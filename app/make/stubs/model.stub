@@ -1,0 +1,9 @@
+package model
+
+{{.import}}
+
+// {{.model_name}} {{.comment}} 模型结构
+type {{.model_name}} struct {
+	Base
+	{{.body}}
+}

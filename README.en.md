@@ -1,7 +1,7 @@
 # vuecmf-go
 
 #### Description
-vuecmf后端（go）
+vuecmf go 后端
 
 #### Software Architecture
 Software architecture description

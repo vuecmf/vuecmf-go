@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"io/ioutil"
 	"strconv"
 	"strings"

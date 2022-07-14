@@ -3,16 +3,21 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/service"
+	"github.com/vuecmf/vuecmf-go/app/route"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
-// MakeController 代码生成控制器
-type MakeController struct {
-	*BaseController
+// Make 代码生成控制器
+type Make struct {
+	*base
+}
+
+func init(){
+	route.Register(&Make{}, "GET|POST", "vuecmf")
 }
 
 // Model 生成模型方法
-func (ctrl *MakeController) Model(c *gin.Context) {
+func (ctrl *Make) Model(c *gin.Context) {
 	req := app.Request{Context: c}
 	tableName := req.Get("table_name")
 

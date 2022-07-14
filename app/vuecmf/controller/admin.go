@@ -3,13 +3,17 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/service"
+	"github.com/vuecmf/vuecmf-go/app/route"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
-type AdminController struct {
-	*BaseController
+type Admin struct {
+	*base
 }
 
+func init(){
+	route.Register(&Admin{}, "GET|POST", "vuecmf")
+}
 
 // LoginForm 登录表单
 type LoginForm struct {
@@ -18,13 +22,24 @@ type LoginForm struct {
 }
 
 
-func (ctrl *AdminController) Index(c *gin.Context){
+func (ctrl *Admin) Index(c *gin.Context){
 	req := app.Request{Context: c}
+	resp := app.Response{Context: c}
+
+	defer func() {
+		if err := recover(); err != nil {
+			resp.SendFailure("拉取失败：", err)
+		}
+	}()
 
 	listParams := DataListParams{}
 	req.Input("post", &listParams)
 
 	adminService := service.AdminService{}
+
+	if listParams.Data == nil {
+		panic("请求参数data不能为空")
+	}
 
 	adminList := adminService.List(
 		listParams.Data.Filter,
@@ -35,12 +50,12 @@ func (ctrl *AdminController) Index(c *gin.Context){
 		listParams.Data.OrderSort,
 		)
 
-	resp := app.Response{Context: c}
 	resp.SendSuccess("拉取成功", adminList)
+	//app.Json(c.Writer, adminList)
 }
 
 
-func (ctrl *BaseController) Login(c *gin.Context) {
+func (ctrl *Admin) Login(c *gin.Context) {
 	loginForm := LoginForm{Username: "aaa",Password: "123456"}
 
 	req := app.Request{Context: c}

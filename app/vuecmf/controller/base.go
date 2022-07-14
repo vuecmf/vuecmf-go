@@ -1,7 +1,10 @@
 package controller
 
-type BaseController struct {
+import "github.com/vuecmf/vuecmf-go/app"
 
+type base struct {
+	Request app.Request
+	Response app.Response
 }
 
 // ListParams 列表参数
@@ -18,6 +21,7 @@ type ListParams struct {
 type DataListParams struct {
 	Data *ListParams `json:"data" form:"data"`
 }
+
 
 
 

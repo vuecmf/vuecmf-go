@@ -22,7 +22,7 @@ func UnderToCamel(str string) string {
 	return str
 }
 
-
+// CamelToUnder 驼峰转下横线
 func CamelToUnder(str string) string {
 	var output []rune
 

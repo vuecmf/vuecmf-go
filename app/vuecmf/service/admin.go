@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 )
 
 // AdminService admin服务结构
@@ -18,7 +18,7 @@ type AdminService struct {
 //			pageSize 	int 	每页显示条数
 //			orderField 	string 	排序字段名
 //			orderSort 	string 	排序方式（desc 倒序, asc升序）
-func (service *AdminService) List(filter map[string]interface{}, keywords string, page int, pageSize int, orderField string, orderSort string) []model.Admin{
+func (service *AdminService) List(filter map[string]interface{}, keywords string, page int, pageSize int, orderField string, orderSort string) []model.Admin {
 
 	var adminList []model.Admin
 

@@ -6,7 +6,7 @@ import (
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 )
 
 func CheckAuth(ctx *gin.Context) {

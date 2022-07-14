@@ -6,6 +6,13 @@ import (
 	"strings"
 )
 
+type IRequest interface {
+	Input(param string, bindParam interface{})
+	Get(fieldName string) string
+	Post(fieldName string) string
+	Header(fieldName string) string
+}
+
 // Request 定义Request，加入gin上下文
 type Request struct {
 	*gin.Context

@@ -1,7 +1,0 @@
-package config
-
-func GetControllerConf() map[string]interface{} {
-	return map[string]interface{} {
-		"AdminIndex": 
-	}
-}

@@ -3,6 +3,7 @@ package route
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/middleware"
 	"reflect"
 	"strings"
 )
@@ -42,11 +43,23 @@ func Register(ctrl interface{}, method, appName string) {
 
 // InitRoute 初始化路由列表
 func InitRoute(engine *gin.Engine){
+	mw := middleware.GetMiddleWares()
+
 	for groupName, ctrl := range routes {
+		engine := engine.Group("/" + groupName + "/")
+
+		//加入中间件
+		if mw[groupName] != nil {
+			for _, handle := range mw[groupName] {
+				engine.Use(handle)
+			}
+		}
+
+		//注册路由
 		for ctrlName, action := range ctrl {
 			for actionName, method := range action {
 				arr := strings.Split(actionName, ":")
-				url := "/" + groupName + "/" + ctrlName + "/" + arr[0]
+				url := "/" + ctrlName + "/" + arr[0]
 
 				if arr[1] == "GET" {
 					engine.GET(url, getHandle(method))

@@ -10,6 +10,10 @@ import (
 
 func main() {
 	engine := gin.Default()
+
+	//加入权限验证
+	//engine.Use(middleware.CheckAuth)
+
 	//初始路由
 	route.InitRoute(engine)
 

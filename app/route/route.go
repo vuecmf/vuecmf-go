@@ -25,17 +25,16 @@ func Register(ctrl interface{}, method, appName string) {
 	for _,methodName := range methodArr {
 		if routes[appName] == nil {
 			routes[appName] = map[string]map[string]reflect.Value{}
-			if routes[appName][ctrlName] == nil {
-				routes[appName][ctrlName] = map[string]reflect.Value{}
-			}
+		}
+
+		if routes[appName][ctrlName] == nil {
+			routes[appName][ctrlName] = map[string]reflect.Value{}
 		}
 
 		for i := 0; i < actionList; i++ {
 			actionName := refV.Type().Method(i).Name
 			actionName = app.CamelToUnder(actionName)
-			if routes[appName][ctrlName] != nil {
-				routes[appName][ctrlName][actionName + ":" + methodName] = refV.Method(i)
-			}
+			routes[appName][ctrlName][actionName + ":" + methodName] = refV.Method(i)
 		}
 	}
 }
@@ -43,6 +42,7 @@ func Register(ctrl interface{}, method, appName string) {
 
 // InitRoute 初始化路由列表
 func InitRoute(engine *gin.Engine){
+	//获取所有中间件
 	mw := middleware.GetMiddleWares()
 
 	for groupName, ctrl := range routes {

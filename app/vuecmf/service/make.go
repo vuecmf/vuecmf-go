@@ -27,7 +27,7 @@ func (service *MakeService) Model(tableName string) bool {
 		Where("MC.table_name = ?", tableName).Scan(&result)
 
 	//读取模型模板文件
-	tplContent, err := ioutil.ReadFile("app/make/stubs/model.stub")
+	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/model.stub")
 	if err != nil {
 		//fmt.Println("读取model模板失败")
 		panic("读取model模板失败")
@@ -106,7 +106,7 @@ func (service *MakeService) Model(tableName string) bool {
 
 	txt = strings.Replace(txt,"{{.body}}", modelContent, -1)
 
-	err = ioutil.WriteFile("app/model/"+ tableName +".go",[]byte(txt), 0666)
+	err = ioutil.WriteFile("app/vuecmf/model/"+ tableName +".go",[]byte(txt), 0666)
 
 	if err != nil {
 		return false

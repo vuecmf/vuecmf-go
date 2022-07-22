@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/vuecmf/vuecmf-go/app"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"io/ioutil"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 
 // MakeService make服务结构
 type MakeService struct {
-	*BaseService
+	*base
 }
 
 //Model 功能：生成模型文件
@@ -19,8 +20,8 @@ func (service *MakeService) Model(tableName string) bool {
 	var result []model.ModelField
 
 	//查出需要生成模型表的字段相关信息
-	db := app.Db{}
-	db.Connect().Table("model_field MF").Db.
+	db := app.Db("default")
+	db.Table("model_field MF").Db.
 		Select("MF.*").
 		Joins("left join " + db.Conf.Prefix + "model_config MC on MF.model_id = MC.id").
 		Where("MF.field_name NOT IN('id','status')").
@@ -76,7 +77,7 @@ func (service *MakeService) Model(tableName string) bool {
 		//字段唯一索引处理
 		modelIndexId := 0
 		id := strconv.Itoa(int(value.Id))
-		db.Connect().Table("model_index").Db.Select("id").
+		db.Table("model_index").Db.Select("id").
 			Where("model_field_id = ? or model_field_id like ? or model_field_id like ?", id, id + ",%", "%," + id).
 			Find(&modelIndexId)
 
@@ -84,19 +85,19 @@ func (service *MakeService) Model(tableName string) bool {
 			uniqueIndex = "uniqueIndex:unique_index;"
 		}
 
-		modelContent += app.UnderToCamel(value.FieldName) + " " + fieldType + " `json:\"" + value.FieldName +
+		modelContent += helper.UnderToCamel(value.FieldName) + " " + fieldType + " `json:\"" + value.FieldName +
 			"\" gorm:\"column:" + value.FieldName + ";" + size + uniqueIndex + notNull + autoCreateTime + defaultVal +
 			"comment:"+ value.Note +"\"`\n\t"
 	}
 
 	modelLabel := ""
-	db.Connect().Table("model_config").Db.Select("label").
+	db.Table("model_config").Db.Select("label").
 		Where("table_name = ?", tableName).Find(&modelLabel)
 
 	//替换模板文件中内容
 	txt := string(tplContent)
 	txt = strings.Replace(txt, "{{.comment}}", modelLabel, -1)
-	txt = strings.Replace(txt, "{{.model_name}}", app.UnderToCamel(tableName), -1)
+	txt = strings.Replace(txt, "{{.model_name}}", helper.UnderToCamel(tableName), -1)
 
 	if hasTime == true {
 		txt = strings.Replace(txt,"{{.import}}", "import \"time\"", -1)

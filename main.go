@@ -11,9 +11,6 @@ import (
 func main() {
 	engine := gin.Default()
 
-	//加入权限验证
-	//engine.Use(middleware.CheckAuth)
-
 	//初始路由
 	route.InitRoute(engine)
 
@@ -21,4 +18,8 @@ func main() {
 	if err != nil {
 		fmt.Println("服务启动失败！", err)
 	}
+
+
 }
+
+

@@ -22,14 +22,14 @@ type DatabaseConf struct {
 	Debug bool `yaml:"debug"`
 }
 
-// Db Db结构
-type Db struct {
+// database database结构
+type database struct {
 	Db *gorm.DB
 	Conf DatabaseConf
 }
 
 // Connect 连接数据库
-func (conn *Db) Connect(confName ...string) (tx *Db) {
+func (conn *database) Connect(confName string) *database {
 	confContent, err := os.Open("config/database.yaml")
 	if err != nil {
 		panic("无法读取数据库配置文件database.yaml")
@@ -42,12 +42,9 @@ func (conn *Db) Connect(confName ...string) (tx *Db) {
 		panic("数据库配置文件解析错误！")
 	}
 
-	conf := databaseConf["default"]
-
-	conn.Conf = conf
-	
-	if 0 != len(confName) {
-		conf = databaseConf[confName[0]]
+	conf, ok := databaseConf[confName]
+	if ok == false {
+		panic("数据库配置（"+ confName +"）不存在")
 	}
 
 	dsn := conf.User + ":" + conf.Password + "@tcp(" + conf.Host +
@@ -69,22 +66,19 @@ func (conn *Db) Connect(confName ...string) (tx *Db) {
 		db = db.Debug()
 	}
 
+	conn.Conf = conf
 	conn.Db = db
-
-	tx = conn
-	
-	return
+	return conn
 }
 
 // Table 查询表
-func (conn *Db) Table(tableName string) (tx *Db) {
+func (conn *database) Table(tableName string) *database {
 	conn.Db = conn.Db.Table(conn.Conf.Prefix + tableName)
-	tx = conn
-	return
+	return conn
 }
 
 // Paginate 分页 page=当前页码，options = 每页显示条数
-func (conn *Db) Paginate(page int, options ...int) (db *gorm.DB) {
+func (conn *database) Paginate(page int, options ...int) (db *gorm.DB) {
 	fmt.Println("page=", page, " len=", len(options))
 
 	pageSize := 20  //默认每页显示20条
@@ -96,4 +90,15 @@ func (conn *Db) Paginate(page int, options ...int) (db *gorm.DB) {
 
 	db = conn.Db.Offset(offset).Limit(pageSize)
 	return
+}
+
+var db *database
+
+// Db 获取数据库连接
+//    参数：confName 数据库配置名称
+func Db(confName string) *database{
+	//if db == nil {
+		db = &database{}
+	//}
+	return db.Connect(confName)
 }

@@ -43,9 +43,7 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 
 
 func Test() {
-	db := app.Db{}
-
-	conn := db.Connect()
+	conn := app.Db("default")
 
 	// Initialize a Gorm adapter and use it in a Casbin enforcer:
 	// The adapter will use an existing gorm.DB instnace.

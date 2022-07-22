@@ -2,7 +2,7 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/middleware"
 	"reflect"
 	"strings"
@@ -14,13 +14,13 @@ var routes = make(map[string]map[string]map[string]reflect.Value)
 // Register 注册控制器路由
 func Register(ctrl interface{}, method, appName string) {
 	method = strings.ToUpper(method)
-	appName = app.CamelToUnder(appName)
+	appName = helper.CamelToUnder(appName)
 	methodArr := strings.Split(method, "|")
 
 	refV := reflect.ValueOf(ctrl)
 	actionList := refV.NumMethod()
 	ctrlName := reflect.TypeOf(ctrl).Elem().Name()
-	ctrlName = app.CamelToUnder(ctrlName)
+	ctrlName = helper.CamelToUnder(ctrlName)
 
 	for _,methodName := range methodArr {
 		if routes[appName] == nil {
@@ -33,7 +33,7 @@ func Register(ctrl interface{}, method, appName string) {
 
 		for i := 0; i < actionList; i++ {
 			actionName := refV.Type().Method(i).Name
-			actionName = app.CamelToUnder(actionName)
+			actionName = helper.CamelToUnder(actionName)
 			routes[appName][ctrlName][actionName + ":" + methodName] = refV.Method(i)
 		}
 	}

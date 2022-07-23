@@ -1,25 +1,32 @@
+// Package service
+//+----------------------------------------------------------------------
+// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
 package service
 
-import "github.com/vuecmf/vuecmf-go/app"
-
-// ModelConfigService model_config服务结构
-type ModelConfigService struct {
+// modelConfigService modelConfig服务结构
+type modelConfigService struct {
 	*base
 }
 
 // GetModelId 根据表名获取模型ID
-func (service *ModelConfigService) GetModelId(tableName string) int {
+func (s *modelConfigService) GetModelId(tableName string) int {
 	var modelId int
-	app.Db("default").Table("model_config").Db.Select("id").
+	db.Model(ns.TableName("model_config")).Select("id").
 		Where("table_name = ?", tableName).Limit(1).Find(&modelId)
 	return modelId
 }
 
-var modelConfigService *ModelConfigService
+var modelConfig *modelConfigService
 
-func ModelConfig() *ModelConfigService {
-	if modelConfigService == nil {
-		modelConfigService = &ModelConfigService{}
+// ModelConfig 获取modelConfig服务实例
+func ModelConfig() *modelConfigService {
+	if modelConfig == nil {
+		modelConfig = &modelConfigService{}
 	}
-	return modelConfigService
+	return modelConfig
 }

@@ -1,60 +1,75 @@
+// Package app
+//+----------------------------------------------------------------------
+// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
 package app
 
 import (
-	"fmt"
 	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"os"
+	"time"
 )
 
-// DatabaseConf 数据库配置
-type DatabaseConf struct {
-	Type string `yaml:"type"`
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
-	User string `yaml:"user"`
-	Password string `yaml:"password"`
-	Database string `yaml:"database"`
-	Charset string `yaml:"charset"`
-	Prefix string `yaml:"prefix"`
-	Debug bool `yaml:"debug"`
+// databaseConf 数据库配置
+type databaseConf struct {
+	Type            string `yaml:"type"`
+	Host            string `yaml:"host"`
+	Port            string `yaml:"port"`
+	User            string `yaml:"user"`
+	Password        string `yaml:"password"`
+	Database        string `yaml:"database"`
+	Charset         string `yaml:"charset"`
+	Prefix          string `yaml:"prefix"`
+	MaxIdleConnNums int    `yaml:"max_idle_conn_nums"` //默认
+	MaxOpenConnNums int    `yaml:"max_open_conn_nums"`
+	ConnMaxLifetime int64  `yaml:"conn_max_lifetime"`
+	Debug           bool   `yaml:"debug"`
 }
 
 // database database结构
 type database struct {
-	Db *gorm.DB
-	Conf DatabaseConf
+	db *gorm.DB
 }
 
+var conf = make(map[string]databaseConf)
+
 // Connect 连接数据库
-func (conn *database) Connect(confName string) *database {
+func (conn *database) connect(confName string) *gorm.DB {
+	_, isExist := conf[confName]
+	if isExist {
+		return conn.db
+	}
+
 	confContent, err := os.Open("config/database.yaml")
 	if err != nil {
 		panic("无法读取数据库配置文件database.yaml")
 	}
 
-	databaseConf := make(map[string]DatabaseConf)
-
-	err = yaml.NewDecoder(confContent).Decode(&databaseConf)
+	err = yaml.NewDecoder(confContent).Decode(&conf)
 	if err != nil {
 		panic("数据库配置文件解析错误！")
 	}
 
-	conf, ok := databaseConf[confName]
+	cfg, ok := conf[confName]
 	if ok == false {
-		panic("数据库配置（"+ confName +"）不存在")
+		panic("数据库配置（" + confName + "）不存在")
 	}
 
-	dsn := conf.User + ":" + conf.Password + "@tcp(" + conf.Host +
-		":" + conf.Port + ")/" + conf.Database + "?charset=" + conf.Charset +
+	dsn := cfg.User + ":" + cfg.Password + "@tcp(" + cfg.Host +
+		":" + cfg.Port + ")/" + cfg.Database + "?charset=" + cfg.Charset +
 		"&parseTime=True&loc=Local"
 
-  	db, err2 := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	db, err2 := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix: conf.Prefix,   	// 表前缀
-			SingularTable: true, 					// 使用单数表名
+			TablePrefix:   cfg.Prefix, // 表前缀
+			SingularTable: true,       // 使用单数表名
 		},
 	})
 
@@ -62,43 +77,35 @@ func (conn *database) Connect(confName string) *database {
 		panic("数据库连接失败！")
 	}
 
-	if conf.Debug {
+	if cfg.Debug {
 		db = db.Debug()
 	}
 
-	conn.Conf = conf
-	conn.Db = db
-	return conn
-}
-
-// Table 查询表
-func (conn *database) Table(tableName string) *database {
-	conn.Db = conn.Db.Table(conn.Conf.Prefix + tableName)
-	return conn
-}
-
-// Paginate 分页 page=当前页码，options = 每页显示条数
-func (conn *database) Paginate(page int, options ...int) (db *gorm.DB) {
-	fmt.Println("page=", page, " len=", len(options))
-
-	pageSize := 20  //默认每页显示20条
-	if len(options) > 0 {
-		pageSize = options[0]
+	sqlDB, err3 := db.DB()
+	if err3 != nil {
+		panic("获取SQL DB 失败")
 	}
 
-	offset := (page - 1) * pageSize
+	// SetMaxIdleConns 设置空闲连接池中连接的最大数量
+	sqlDB.SetMaxIdleConns(cfg.MaxIdleConnNums)
 
-	db = conn.Db.Offset(offset).Limit(pageSize)
-	return
+	// SetMaxOpenConns 设置打开数据库连接的最大数量。
+	sqlDB.SetMaxOpenConns(cfg.MaxOpenConnNums)
+
+	// SetConnMaxLifetime 设置了连接可复用的最大时间。
+	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime * int64(time.Minute)))
+
+	conn.db = db
+	return conn.db
 }
 
 var db *database
 
 // Db 获取数据库连接
 //    参数：confName 数据库配置名称
-func Db(confName string) *database{
-	//if db == nil {
+func Db(confName string) *gorm.DB {
+	if db == nil {
 		db = &database{}
-	//}
-	return db.Connect(confName)
+	}
+	return db.connect(confName)
 }

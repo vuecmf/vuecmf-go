@@ -1,34 +1,34 @@
+// Package app
+//+----------------------------------------------------------------------
+// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
 package app
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-type IResponse interface {
-	SendJson(code int, msg string, data interface{})
-	SendSuccess(msg string, data interface{}, code ...int)
-	SendFailure(msg string, data interface{}, code ...int)
-	Json(w http.ResponseWriter, data any) error
-}
-
-// Response 定义Response，加入gin上下文
-type Response struct {
+// response 定义response结构体，加入gin上下文
+type response struct {
 	*gin.Context
 }
 
 // SendJson 输出JSON内容到客户端
-func (r *Response) SendJson(code int, msg string, data interface{}) {
+func (r *response) SendJson(code int, msg string, data interface{}) {
 	r.JSON(http.StatusOK, gin.H{
 		"code": code,
-		"msg": msg,
+		"msg":  msg,
 		"data": data,
 	})
 }
 
 // SendSuccess 成功返回信息到客户端
-func (r *Response) SendSuccess(msg string, data interface{}, code ...int) {
+func (r *response) SendSuccess(msg string, data interface{}, code ...int) {
 	codeNum := 0
 	if 0 != len(code) {
 		codeNum = code[0]
@@ -37,7 +37,7 @@ func (r *Response) SendSuccess(msg string, data interface{}, code ...int) {
 }
 
 // SendFailure 失败返回信息到客户端
-func (r *Response) SendFailure(msg string, data interface{}, code ...int) {
+func (r *response) SendFailure(msg string, data interface{}, code ...int) {
 	codeNum := 500
 	if 0 != len(code) {
 		codeNum = code[0]
@@ -45,8 +45,14 @@ func (r *Response) SendFailure(msg string, data interface{}, code ...int) {
 	r.SendJson(codeNum, msg, data)
 }
 
+// Response 获取response实例
+func Response(ctx *gin.Context) *response {
+	return &response{
+		Context: ctx,
+	}
+}
 
-func Json(w http.ResponseWriter, data any) error {
+/*func Json(w http.ResponseWriter, data any) error {
 	header := w.Header()
 	header["Content-Type"] = []string{"application/json; charset=utf-8"}
 	content, _ := json.Marshal(data)
@@ -54,4 +60,4 @@ func Json(w http.ResponseWriter, data any) error {
 	w.WriteHeader(200)
 	_, err := w.Write(content)
 	return err
-}
+}*/

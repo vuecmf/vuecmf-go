@@ -1,3 +1,11 @@
+// Package service
+//+----------------------------------------------------------------------
+// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
 package service
 
 import (
@@ -5,35 +13,25 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 )
 
-// AdminService admin服务结构
-type AdminService struct {
+// adminService admin服务结构
+type adminService struct {
 	*base
-	TableName string 
+	TableName string
 }
-
 
 // List 获取列表数据
 // 		参数：params 查询参数
-func (service *AdminService) List(params *helper.DataListParams) interface{} {
+func (admin *adminService) List(params *helper.DataListParams) interface{} {
 	var adminList []model.Admin
-
-	//modelId := service.ModelConfig().GetModelId(tableName)
-
-	page := &helper.Page{
-		Model: adminList,
-		TableName: service.TableName,
-		DbConf: "default",
-	}
-
-	return page.Filter(params)
-
+	return helper.Page(admin.TableName, db, ns).Filter(adminList, params)
 }
 
-var admin *AdminService
+var admin *adminService
 
-func Admin() *AdminService {
+// Admin 获取admin服务实例
+func Admin() *adminService {
 	if admin == nil {
-		admin = &AdminService{TableName: "admin"}
+		admin = &adminService{TableName: "admin"}
 	}
 	return admin
 }

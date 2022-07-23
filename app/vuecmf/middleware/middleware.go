@@ -1,3 +1,11 @@
+// Package middleware
+//+----------------------------------------------------------------------
+// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
 package middleware
 
 import (
@@ -20,9 +28,8 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 	//vuecmf应用 登录验证
 	middlewares["vuecmf"]["login"] = func(ctx *gin.Context) {
 		defer func() {
-			resp := app.Response{Context: ctx}
 			if err := recover(); err != nil {
-				resp.SendFailure("请求失败", err)
+				app.Response(ctx).SendFailure("请求失败", err)
 				ctx.Abort()
 			}
 		}()
@@ -30,6 +37,7 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 		token := ctx.Request.Header.Get("token")
 		fmt.Println("path=", ctx.Request.URL)
 		fmt.Println("token=", token)
+		fmt.Println("token2=", app.Request(ctx).Header("token"))
 		//panic("access deny")
 	}
 
@@ -41,13 +49,12 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 	return middlewares
 }
 
-
 func Test() {
-	conn := app.Db("default")
+	db := app.Db("default")
 
 	// Initialize a Gorm adapter and use it in a Casbin enforcer:
 	// The adapter will use an existing gorm.DB instnace.
-	a, _ := gormadapter.NewAdapterByDBWithCustomTable(conn.Db, &model.Rules{})
+	a, _ := gormadapter.NewAdapterByDBWithCustomTable(db, &model.Rules{})
 	e, _ := casbin.NewEnforcer("examples/rbac_model.conf", a)
 
 	// Load the policy from DB.

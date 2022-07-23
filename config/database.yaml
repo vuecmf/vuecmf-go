@@ -7,6 +7,9 @@ default:
   database: photo
   charset: utf8
   prefix: vuecmf_
+  max_idle_conn_nums: 10
+  max_open_conn_nums: 100
+  conn_max_lifetime: 60
   debug: true
 
 vuecmf:
@@ -18,4 +21,7 @@ vuecmf:
   database: vuecmf
   charset: utf8
   prefix: vuecmf_
+  max_idle_conn_nums: 10
+  max_open_conn_nums: 100
+  conn_max_lifetime: 60
   debug: true

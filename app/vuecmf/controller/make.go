@@ -1,3 +1,11 @@
+// Package controller
+//+----------------------------------------------------------------------
+// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
 package controller
 
 import (
@@ -12,24 +20,19 @@ type Make struct {
 	*base
 }
 
-func init(){
+func init() {
 	route.Register(&Make{}, "GET|POST", "vuecmf")
 }
 
 // Model 生成模型方法
 func (ctrl *Make) Model(c *gin.Context) {
-	req := app.Request{Context: c}
-	tableName := req.Get("table_name")
-
-	makeService := service.MakeService{}
-	makeRes := makeService.Model(tableName)
-
-	resp := app.Response{Context: c}
+	tableName := app.Request(c).Get("table_name")
+	makeRes := service.Make().Model(tableName)
 
 	if makeRes {
-		resp.SendSuccess("模型生成成功", nil)
+		app.Response(c).SendSuccess("模型生成成功", nil)
 	} else {
-		resp.SendFailure("模型生成失败", nil)
+		app.Response(c).SendFailure("模型生成失败", nil)
 	}
 
 }

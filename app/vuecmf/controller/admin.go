@@ -1,3 +1,11 @@
+// Package controller
+//+----------------------------------------------------------------------
+// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
 package controller
 
 import (
@@ -13,40 +21,24 @@ type Admin struct {
 	*base
 }
 
-func init(){
+func init() {
 	route.Register(&Admin{}, "GET|POST", "vuecmf")
 }
 
-func (ctrl *Admin) Index(c *gin.Context){
-	req := app.Request{Context: c}
-	resp := app.Response{Context: c}
-
-	defer func() {
-		if err := recover(); err != nil {
-			resp.SendFailure("拉取失败：", err)
-		}
-	}()
-
-	listParams := helper.DataListParams{}
-	req.Input("post", &listParams)
-
-	adminList := service.Admin().List(&listParams)
-
-	resp.SendSuccess("拉取成功", adminList)
-
+// Index 列表页
+func (ctrl *Admin) Index(c *gin.Context) {
+	commonIndex(c, func(listParams *helper.DataListParams) interface{} {
+		return service.Admin().List(listParams)
+	})
 }
 
-
 func (ctrl *Admin) Login(c *gin.Context) {
-	loginForm := form.LoginForm{Username: "aaa",Password: "123456"}
-
-	req := app.Request{Context: c}
-	resp := app.Response{Context: c}
+	loginForm := form.LoginForm{Username: "aaa", Password: "123456"}
 
 	//获取输入内容
-	req.Input("post", &loginForm)
+	app.Request(c).Input("post", &loginForm)
 
 	//输出内容
-	resp.SendSuccess("提交成功", loginForm)
+	app.Response(c).SendSuccess("提交成功", loginForm)
 
 }

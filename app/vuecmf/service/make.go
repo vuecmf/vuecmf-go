@@ -21,7 +21,7 @@ type makeService struct {
 	*base
 }
 
-//Model 功能：生成模型文件
+//Model 功能：生成模型代码文件
 //		参数：tableName string 表名（不带表前缀）
 func (makeSer *makeService) Model(tableName string) bool {
 	var result []model.ModelField
@@ -36,7 +36,6 @@ func (makeSer *makeService) Model(tableName string) bool {
 	//读取模型模板文件
 	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/model.stub")
 	if err != nil {
-		//fmt.Println("读取model模板失败")
 		panic("读取model模板失败")
 	}
 
@@ -115,6 +114,32 @@ func (makeSer *makeService) Model(tableName string) bool {
 	txt = strings.Replace(txt, "{{.body}}", modelContent, -1)
 
 	err = ioutil.WriteFile("app/vuecmf/model/"+tableName+".go", []byte(txt), 0666)
+
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+//Service 功能：生成服务代码文件
+//		  参数：tableName string 表名（不带表前缀）
+func (makeSer *makeService) Service(tableName string) bool {
+	serviceMethod := helper.UnderToCamel(tableName)
+	nameArr := []rune(serviceMethod)
+	nameArr[0] += 32
+	serviceName := string(nameArr)
+
+	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/service.stub")
+	if err != nil {
+		panic("读取service模板失败")
+	}
+
+	txt := string(tplContent)
+	txt = strings.Replace(txt, "{{.service_name}}", serviceName, -1)
+	txt = strings.Replace(txt, "{{.service_method}}", serviceMethod, -1)
+
+	err = ioutil.WriteFile("app/vuecmf/service/"+tableName+".go", []byte(txt), 0666)
 
 	if err != nil {
 		return false

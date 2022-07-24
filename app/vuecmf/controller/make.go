@@ -24,15 +24,27 @@ func init() {
 	route.Register(&Make{}, "GET|POST", "vuecmf")
 }
 
-// Model 生成模型方法
+// Model 生成模型代码文件
 func (ctrl *Make) Model(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
 	makeRes := service.Make().Model(tableName)
 
 	if makeRes {
-		app.Response(c).SendSuccess("模型生成成功", nil)
+		app.Response(c).SendSuccess("模型代码文件生成成功", nil)
 	} else {
-		app.Response(c).SendFailure("模型生成失败", nil)
+		app.Response(c).SendFailure("模型代码文件生成失败", nil)
 	}
 
+}
+
+// Service 生成服务代码文件
+func (ctrl *Make) Service(c *gin.Context) {
+	tableName := app.Request(c).Get("table_name")
+	makeRes := service.Make().Service(tableName)
+
+	if makeRes {
+		app.Response(c).SendSuccess("服务代码文件生成成功", nil)
+	} else {
+		app.Response(c).SendFailure("服务代码文件生成失败", nil)
+	}
 }

@@ -21,7 +21,8 @@ type listParams struct {
 	OrderSort  string                 `json:"order_sort" form:"order_sort"`   //字段排序方式 （desc 倒序, asc升序）
 	Page       int                    `json:"page" form:"page"`               //列表当前页码
 	PageSize   int                    `json:"page_size" form:"page_size"`     //列表每页显示条数
-	Filter     map[string]interface{} //精确多字段过滤查询
+	Action     string                 `json:"action" form:"action"`           //请求动作
+	Filter     map[string]interface{} `json:"filter" form:"filter"`           //精确多字段过滤查询
 }
 
 // DataListParams 列表参数 用data包裹一下
@@ -45,6 +46,10 @@ func (p *page) Filter(model interface{}, params *DataListParams) interface{} {
 		panic("请求参数data不能为空")
 	}
 	data := params.Data
+
+	if data.Action == "getField" {
+
+	}
 
 	if data.PageSize == 0 {
 		data.PageSize = 20

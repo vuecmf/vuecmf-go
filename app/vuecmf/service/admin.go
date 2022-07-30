@@ -21,9 +21,9 @@ type adminService struct {
 
 // List 获取列表数据
 // 		参数：params 查询参数
-func (admin *adminService) List(params *helper.DataListParams) interface{} {
+func (ser *adminService) List(params *helper.DataListParams) interface{} {
 	var adminList []model.Admin
-	return helper.Page(admin.TableName, db, ns).Filter(adminList, params)
+	return ser.commonList(adminList, ser.TableName, params)
 }
 
 var admin *adminService

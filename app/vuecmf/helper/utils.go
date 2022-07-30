@@ -11,6 +11,8 @@ package helper
 import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"gorm.io/gorm"
+	"strconv"
 	"strings"
 )
 
@@ -46,3 +48,101 @@ func CamelToUnder(str string) string {
 
 	return string(output)
 }
+
+// InSlice 判断字符串是否在指定的切片中
+func InSlice(item string, items []string) bool {
+	for _, val := range items {
+		if val == item {
+			return true
+		}
+	}
+	return false
+}
+
+// SliceRemove 删除字符串切片中元素
+func SliceRemove(slice []string,index int) []string {
+	return append(slice[:index], slice[index+1:]...)
+}
+
+// InterfaceToInt interface类型转换成int
+func InterfaceToInt(val interface{}) int {
+	var res int
+	switch val.(type) {
+	case uint:
+		res = int(val.(uint))
+		break
+	case int8:
+		res = int(val.(int8))
+		break
+	case uint8:
+		res = int(val.(uint8))
+		break
+	case int32:
+		res = int(val.(int32))
+	case uint32:
+		res = int(val.(uint32))
+	case int64:
+		res = int(val.(int64))
+	case uint64:
+		res = int(val.(uint64))
+	case float32:
+		res = int(val.(float32))
+	case float64:
+		res = int(val.(float64))
+	case string:
+		res, _ = strconv.Atoi(val.(string))
+	default:
+		res = val.(int)
+	}
+	return res
+}
+
+
+type TreeRes struct {
+	Id int     //主键值
+	Label string  //标题
+}
+// FormatTree 格式化下拉树型列表
+//	参数：
+// 		tree map				存储返回的结果
+// 		tableName string        表名
+//		pk string				主键字段名称
+// 		pid int                 父级ID
+// 		label string            标题字段名
+// 		pidField string         父级字段名
+// 		orderField string       排序字段名
+// 		level int               层级数
+//	返回值：map
+func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string, pid int, label string, pidField string, orderField string,level int){
+	//参数为空的，设置默认值
+	if label == "" {
+		label = "title"
+	}
+	if pidField == "" {
+		pidField = "pid"
+	}
+
+	var treeResList []TreeRes
+	var childTotal int64
+
+	model := db.Table(tableName).Select(label + " label," + pk + " id").
+		Where(pidField + " = ?", pid).
+		Where("status = 10")
+	if orderField != "" {
+		model.Order(orderField)
+	}
+	model.Find(&treeResList)
+
+	for key, val := range treeResList {
+		prefix := strings.Repeat("┊ ",  level - 1)
+		db.Table(tableName).Where(pidField + " = ?", val.Id).Where("status = 10").Count(&childTotal)
+		if childTotal > 0 || key != len(treeResList) - 1 {
+			prefix += "┊┈ "
+		}else{
+			prefix += "└─ "
+		}
+		tree[strconv.Itoa(val.Id)] = prefix + val.Label
+		FormatTree(tree, db, tableName, pk, val.Id, label, pidField, orderField, level + 1)
+	}
+}
+

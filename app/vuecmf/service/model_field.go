@@ -23,6 +23,7 @@ func ModelField() *modelFieldService {
 	return modelField
 }
 
+// fieldInfo 列表表字段信息
 type fieldInfo struct {
 	FieldId  int    `json:"field_id"`
 	Prop     string `json:"prop"`
@@ -37,7 +38,8 @@ type fieldInfo struct {
 	Sortable bool   `json:"sortable"`
 }
 
-func (ser *modelFieldService) GetFieldInfo(modelId int) interface{} {
+// GetFieldInfo 根据模型ID获取对应的字段信息
+func (ser *modelFieldService) GetFieldInfo(modelId int) []fieldInfo {
 	var list []fieldInfo
 
 	db.Table(ns.TableName("model_field")).Select(
@@ -46,9 +48,9 @@ func (ser *modelFieldService) GetFieldInfo(modelId int) interface{} {
 			"label,"+
 			"column_width width,"+
 			"length,"+
-			"if(is_show = 10,) show,"+
-			"is_fixed fixed,"+
-			"is_filter filter,"+
+			"if(is_show = 10,true, false) `show`,"+
+			"if(is_fixed = 10,true, false) fixed,"+
+			"if(is_filter = 10,true, false) `filter`,"+
 			"note tooltip,"+
 			"model_id,"+
 			"true sortable").

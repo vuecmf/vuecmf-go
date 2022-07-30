@@ -47,10 +47,6 @@ func (p *page) Filter(model interface{}, params *DataListParams) interface{} {
 	}
 	data := params.Data
 
-	if data.Action == "getField" {
-
-	}
-
 	if data.PageSize == 0 {
 		data.PageSize = 20
 	}

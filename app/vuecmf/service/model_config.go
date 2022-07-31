@@ -50,3 +50,33 @@ func (s *modelConfigService) IsTree(modelId int) bool {
 		Limit(1).Find(&isTree)
 	return isTree == 10
 }
+
+type modelConf struct {
+	TableName      string
+	IsTree         bool
+	ModelId        int
+	LabelFieldName string
+}
+
+// GetModelConfig 根据模型表名获取模型的配置信息
+func (s *modelConfigService) GetModelConfig(tableName string) modelConf {
+	var modelConfig modelConf
+	db.Table(ns.TableName("model_config")).
+		Select("table_name, if(is_tree = 10, true, false) is_tree, id model_id, '' label_field_name").
+		Where("status = 10").
+		Where("table_name = ?", tableName).
+		Limit(1).
+		Find(&modelConfig)
+
+	var labelFieldName string
+	db.Table(ns.TableName("model_field")).
+		Select("field_name").
+		Where("status = 10").
+		Where("model_id = ?", modelConfig.ModelId).
+		Where("is_label = 10").
+		Find(&labelFieldName)
+
+	modelConfig.LabelFieldName = labelFieldName
+
+	return modelConfig
+}

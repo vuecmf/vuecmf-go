@@ -27,30 +27,66 @@ func init() {
 }
 
 type fullModelFields struct {
-	FieldInfo []fieldInfo `json:"field_info"`
-	FormInfo []formInfo `json:"form_info"`
-	FieldOption map[int]map[string]string `json:"field_option"`
-	RelationInfo *modelRelationInfo `json:"relation_info"`
+	FieldInfo    []fieldInfo               `json:"field_info"`
+	FormInfo     []formInfo                `json:"form_info"`
+	FieldOption  map[int]map[string]string `json:"field_option"`
+	RelationInfo *modelRelationInfo        `json:"relation_info"`
+	FormRules    interface{}               `json:"form_rules"`
+	ModelId      int                       `json:"model_id"`
 }
 
-
 // commonList 公共列表 服务方法
-func (b *base) commonList(model interface{}, tableName string, params *helper.DataListParams) interface{}{
+func (b *base) commonList(model interface{}, tableName string, params *helper.DataListParams) interface{} {
+	modelConf := ModelConfig().GetModelConfig(tableName)
+
 	if params.Data.Action == "getField" {
-		modelId := ModelConfig().GetModelId(tableName)
-		fieldInfo := ModelField().GetFieldInfo(modelId) //模型的字段信息
-		formInfo := ModelForm().GetFormInfo(modelId)  //模型的表单信息
+		modelId := modelConf.ModelId
+		fieldInfo := ModelField().GetFieldInfo(modelId)       //模型的字段信息
+		formInfo := ModelForm().GetFormInfo(modelId)          //模型的表单信息
 		fieldOption := FieldOption().GetFieldOptions(modelId) //模型的关联信息
 		relationInfo := ModelRelation().GetRelationInfo(modelId, params.Data.Filter)
+		formRulesInfo := ModelFormRules().GetRuleListForForm(modelId)
 
+		//目录树列表中 父级字段处理
+		if modelConf.IsTree {
+			if modelConf.LabelFieldName == "" {
+				panic("模型还没有设置标题字段")
+			}
+			orderField := "sort_num"
+			if tableName == "roles" {
+				orderField = ""
+			}
+
+			var pidFieldId int
+			db.Table(ns.TableName("model_field")).
+				Select("id").
+				Where("field_name = 'pid'").
+				Where("model_id = ?", modelId).
+				Limit(1).Find(&pidFieldId)
+
+			tree := map[string]string{}
+			helper.FormatTree(tree, db, ns.TableName(tableName), "id", 0, modelConf.LabelFieldName, "pid", orderField, 1)
+			fieldOption[pidFieldId] = tree
+		}
 
 		return &fullModelFields{
-			FieldInfo: fieldInfo,
-			FormInfo: formInfo,
-			FieldOption: fieldOption,
+			FieldInfo:    fieldInfo,
+			FormInfo:     formInfo,
+			FieldOption:  fieldOption,
 			RelationInfo: relationInfo,
+			FormRules:    formRulesInfo,
+			ModelId:      modelId,
 		}
-	}else{
+	} else if modelConf.IsTree == true {
+		//列表数据（目录树形式）
+		orderField := "sort_num"
+		if tableName == "roles" {
+			orderField = ""
+		}
+		var res = make(map[string]interface{})
+		res["data"] = helper.TreeList(db, ns.TableName(tableName), 0, params.Data.Keywords, "pid", modelConf.LabelFieldName, orderField)
+		return res
+	} else {
 		return helper.Page(tableName, db, ns).Filter(model, params)
 	}
 }

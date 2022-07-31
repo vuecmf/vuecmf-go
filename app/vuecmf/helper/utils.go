@@ -60,7 +60,7 @@ func InSlice(item string, items []string) bool {
 }
 
 // SliceRemove 删除字符串切片中元素
-func SliceRemove(slice []string,index int) []string {
+func SliceRemove(slice []string, index int) []string {
 	return append(slice[:index], slice[index+1:]...)
 }
 
@@ -97,11 +97,11 @@ func InterfaceToInt(val interface{}) int {
 	return res
 }
 
-
 type TreeRes struct {
-	Id int     //主键值
-	Label string  //标题
+	Id    int    //主键值
+	Label string //标题
 }
+
 // FormatTree 格式化下拉树型列表
 //	参数：
 // 		tree map				存储返回的结果
@@ -113,7 +113,7 @@ type TreeRes struct {
 // 		orderField string       排序字段名
 // 		level int               层级数
 //	返回值：map
-func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string, pid int, label string, pidField string, orderField string,level int){
+func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string, pid int, label string, pidField string, orderField string, level int) {
 	//参数为空的，设置默认值
 	if label == "" {
 		label = "title"
@@ -125,8 +125,8 @@ func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string
 	var treeResList []TreeRes
 	var childTotal int64
 
-	model := db.Table(tableName).Select(label + " label," + pk + " id").
-		Where(pidField + " = ?", pid).
+	model := db.Table(tableName).Select(label+" label,"+pk+" id").
+		Where(pidField+" = ?", pid).
 		Where("status = 10")
 	if orderField != "" {
 		model.Order(orderField)
@@ -134,15 +134,37 @@ func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string
 	model.Find(&treeResList)
 
 	for key, val := range treeResList {
-		prefix := strings.Repeat("┊ ",  level - 1)
-		db.Table(tableName).Where(pidField + " = ?", val.Id).Where("status = 10").Count(&childTotal)
-		if childTotal > 0 || key != len(treeResList) - 1 {
+		prefix := strings.Repeat("┊ ", level-1)
+		db.Table(tableName).Where(pidField+" = ?", val.Id).Where("status = 10").Count(&childTotal)
+		if childTotal > 0 || key != len(treeResList)-1 {
 			prefix += "┊┈ "
-		}else{
+		} else {
 			prefix += "└─ "
 		}
 		tree[strconv.Itoa(val.Id)] = prefix + val.Label
-		FormatTree(tree, db, tableName, pk, val.Id, label, pidField, orderField, level + 1)
+		FormatTree(tree, db, tableName, pk, val.Id, label, pidField, orderField, level+1)
 	}
 }
 
+func TreeList(db *gorm.DB, tableName string, pid int, keywords string, pidField string, searchField string, orderField string) interface{} {
+	query := db.Table(tableName).Select("*").Where(pidField+" = ?", pid)
+	if keywords != "" {
+		query.Where(searchField+" like ?", "%"+keywords+"%")
+	}
+	if orderField != "" {
+		query.Order(orderField)
+	}
+	res := map[int]interface{}{}
+	query.Take(&res)
+	for _, val := range res {
+		child := TreeList(db, tableName, val.Id, keywords, pidField, searchField, orderField)
+		/*if val.Pid == 0 {
+			val.Pid = ""
+		}*/
+
+		if child != nil {
+			val.Children = child
+		}
+	}
+	return res
+}

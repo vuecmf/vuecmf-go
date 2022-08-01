@@ -198,8 +198,6 @@ func (ser *modelRelationService) getRelationOptions (modelId int, filter map[str
 func (ser *modelRelationService) GetRelationInfo (modelId int, filter map[string]interface{}) *modelRelationInfo {
 	mri := &modelRelationInfo{}
 
-	modelId = 6
-
 	//供表单中与之相关的下拉框联动变化
 	mri.Linkage = ser.getRelationLinkage(modelId)
 

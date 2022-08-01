@@ -9,6 +9,8 @@
 package helper
 
 import (
+	"fmt"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"gorm.io/gorm"
@@ -146,7 +148,7 @@ func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string
 	}
 }
 
-func TreeList(db *gorm.DB, tableName string, pid int, keywords string, pidField string, searchField string, orderField string) interface{} {
+func TreeList(tree []model.MenuTree, db *gorm.DB, tableName string, pid int, keywords string, pidField string, searchField string, orderField string) []model.MenuTree {
 	query := db.Table(tableName).Select("*").Where(pidField+" = ?", pid)
 	if keywords != "" {
 		query.Where(searchField+" like ?", "%"+keywords+"%")
@@ -154,17 +156,23 @@ func TreeList(db *gorm.DB, tableName string, pid int, keywords string, pidField 
 	if orderField != "" {
 		query.Order(orderField)
 	}
-	res := map[int]interface{}{}
-	query.Take(&res)
-	for _, val := range res {
-		child := TreeList(db, tableName, val.Id, keywords, pidField, searchField, orderField)
-		/*if val.Pid == 0 {
-			val.Pid = ""
-		}*/
+	var res = make([]model.Menu, 0)
+	query.Find(&res)
+
+	fmt.Println(res)
+
+	for key, val := range res {
+
+
+		child := TreeList(tree, db, tableName, int(val.Id), keywords, pidField, searchField, orderField)
 
 		if child != nil {
-			val.Children = child
+			treeItem.Children = child
 		}
+
+
 	}
-	return res
+	fmt.Println("res=", res)
+
+	return tree
 }

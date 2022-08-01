@@ -11,6 +11,7 @@ package service
 import (
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
@@ -36,7 +37,7 @@ type fullModelFields struct {
 }
 
 // commonList 公共列表 服务方法
-func (b *base) commonList(model interface{}, tableName string, params *helper.DataListParams) interface{} {
+func (b *base) commonList(modelData interface{}, tableName string, params *helper.DataListParams) interface{} {
 	modelConf := ModelConfig().GetModelConfig(tableName)
 
 	if params.Data.Action == "getField" {
@@ -83,10 +84,22 @@ func (b *base) commonList(model interface{}, tableName string, params *helper.Da
 		if tableName == "roles" {
 			orderField = ""
 		}
+
+		//先查询出所有数据,  // https://blog.csdn.net/LW1314QS/article/details/124517399
+		var dataForTree []model.Menu
+
+
+		//然后将数据格式化目录树
+
+
 		var res = make(map[string]interface{})
-		res["data"] = helper.TreeList(db, ns.TableName(tableName), 0, params.Data.Keywords, "pid", modelConf.LabelFieldName, orderField)
+		var tree []model.MenuTree
+
+
+
+		res["data"] = helper.TreeList(tree, db, ns.TableName(tableName), 0, params.Data.Keywords, "pid", modelConf.LabelFieldName, orderField)
 		return res
 	} else {
-		return helper.Page(tableName, db, ns).Filter(model, params)
+		return helper.Page(tableName, db, ns).Filter(modelData, params)
 	}
 }

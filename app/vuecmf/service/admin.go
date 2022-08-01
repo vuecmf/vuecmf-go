@@ -31,7 +31,7 @@ var admin *adminService
 // Admin 获取admin服务实例
 func Admin() *adminService {
 	if admin == nil {
-		admin = &adminService{TableName: "admin"}
+		admin = &adminService{TableName: "menu"}
 	}
 	return admin
 }

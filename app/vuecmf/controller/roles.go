@@ -1,4 +1,4 @@
-// Package service
+// Package controller
 //+----------------------------------------------------------------------
 // | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
@@ -6,32 +6,27 @@
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
-package service
+package controller
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
-// adminService admin服务结构
-type adminService struct {
+type Roles struct {
 	*base
-	TableName string
 }
 
-// List 获取列表数据
-// 		参数：params 查询参数
-func (ser *adminService) List(params *helper.DataListParams) interface{} {
-	var adminList []model.Admin
-	return ser.commonList(adminList, ser.TableName, params)
+func init() {
+	route.Register(&Roles{}, "GET|POST", "vuecmf")
 }
 
-var admin *adminService
-
-// Admin 获取admin服务实例
-func Admin() *adminService {
-	if admin == nil {
-		admin = &adminService{TableName: "admin"}
-	}
-	return admin
+// Index 列表页
+func (ctrl *Roles) Index(c *gin.Context) {
+	commonIndex(c, func(listParams *helper.DataListParams) interface{} {
+		return service.Roles().List(listParams)
+	})
 }
+

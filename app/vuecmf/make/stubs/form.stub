@@ -1,0 +1,8 @@
+package form
+
+{{.import}}
+
+// {{.form_name}} {{.comment}} 表单结构
+type {{.form_name}} struct {
+	{{.body}}
+}

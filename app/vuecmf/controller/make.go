@@ -48,3 +48,15 @@ func (ctrl *Make) Service(c *gin.Context) {
 		app.Response(c).SendFailure("服务代码文件生成失败", nil)
 	}
 }
+
+// Controller 生成服务代码文件
+func (ctrl *Make) Controller(c *gin.Context) {
+	tableName := app.Request(c).Get("table_name")
+	makeRes := service.Make().Controller(tableName)
+
+	if makeRes {
+		app.Response(c).SendSuccess("控制器代码文件生成成功", nil)
+	} else {
+		app.Response(c).SendFailure("控制器代码文件生成失败", nil)
+	}
+}

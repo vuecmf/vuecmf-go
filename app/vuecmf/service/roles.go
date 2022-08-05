@@ -13,25 +13,38 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 )
 
-// adminService admin服务结构
-type adminService struct {
+// rolesService roles服务结构
+type rolesService struct {
 	*base
 	TableName string
 }
 
-// List 获取列表数据
-// 		参数：params 查询参数
-func (ser *adminService) List(params *helper.DataListParams) interface{} {
-	var adminList []model.Admin
-	return ser.commonList(adminList, ser.TableName, params)
+var roles *rolesService
+
+// Roles 获取roles服务实例
+func Roles() *rolesService {
+	if roles == nil {
+		roles = &rolesService{TableName: "roles"}
+	}
+	return roles
 }
 
-var admin *adminService
+// List 获取列表数据
+// 		参数：params 查询参数
+func (ser *rolesService) List(params *helper.DataListParams) interface{} {
+	if params.Data.Action == "getField" {
+		//拉取列表的字段信息
+		return ser.getFieldList(ser.TableName, params.Data.Filter)
+	}else{
+		//拉取列表的数据
+		var rolesList []*model.Roles
+		var res = make(map[string]interface{})
 
-// Admin 获取admin服务实例
-func Admin() *adminService {
-	if admin == nil {
-		admin = &adminService{TableName: "admin"}
+		ser.getList(&rolesList, ser.TableName, params)
+
+		//转换成树形列表
+		tree := model.RolesModel().ToTree(rolesList)
+		res["data"] = tree
+		return res
 	}
-	return admin
 }

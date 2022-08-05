@@ -9,8 +9,6 @@
 package helper
 
 import (
-	"fmt"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"gorm.io/gorm"
@@ -148,7 +146,7 @@ func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string
 	}
 }
 
-func TreeList(tree []model.MenuTree, db *gorm.DB, tableName string, pid int, keywords string, pidField string, searchField string, orderField string) []model.MenuTree {
+/*func TreeList(tree []model.MenuTree, db *gorm.DB, tableName string, pid int, keywords string, pidField string, searchField string, orderField string) []model.MenuTree {
 	query := db.Table(tableName).Select("*").Where(pidField+" = ?", pid)
 	if keywords != "" {
 		query.Where(searchField+" like ?", "%"+keywords+"%")
@@ -175,4 +173,4 @@ func TreeList(tree []model.MenuTree, db *gorm.DB, tableName string, pid int, key
 	fmt.Println("res=", res)
 
 	return tree
-}
+}*/

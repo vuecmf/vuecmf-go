@@ -8,6 +8,8 @@
 // +----------------------------------------------------------------------
 package service
 
+import "github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+
 // fieldOptionService fieldOption服务结构
 type fieldOptionService struct {
 	*base
@@ -31,7 +33,7 @@ type modelFieldOption struct {
 }
 
 // GetFieldOptions 根据模型ID获取模型的字段选项列表
-func (ser *fieldOptionService) GetFieldOptions(modelId int) map[int]map[string]string {
+func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, isTree bool, labelFieldName string) map[int]map[string]string {
 	var list = make(map[int]map[string]string)
 	var result []modelFieldOption
 
@@ -47,5 +49,29 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int) map[int]map[string]s
 		}
 		list[val.FieldId][val.OptionValue] = val.OptionLabel
 	}
+
+	//目录树列表中 父级字段处理
+	if isTree {
+		if labelFieldName == "" {
+			panic("模型还没有设置标题字段")
+		}
+		orderField := "sort_num"
+		if tableName == "roles" {
+			orderField = ""
+		}
+
+		var pidFieldId int
+		db.Table(ns.TableName("model_field")).
+			Select("id").
+			Where("field_name = 'pid'").
+			Where("model_id = ?", modelId).
+			Limit(1).Find(&pidFieldId)
+
+		tree := map[string]string{}
+		helper.FormatTree(tree, db, ns.TableName(tableName), "id", 0, labelFieldName, "pid", orderField, 1)
+		list[pidFieldId] = tree
+	}
+
+
 	return list
 }

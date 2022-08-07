@@ -6,6 +6,7 @@ type Test struct {
 
 var ruleMaps = make(map[string]string)
 
+//https://pkg.go.dev/github.com/go-playground/validator/v10#section-readme
 func getRuleMaps() map[string]string {
 	ruleMaps["="] = "eq"
 	ruleMaps[">"] = "gt"

@@ -31,11 +31,11 @@ func Menu() *menuService {
 
 // List 获取列表数据
 // 		参数：params 查询参数
-func (ser *menuService) List(params *helper.DataListParams) interface{} {
+func (ser *menuService) List(params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
 		//拉取列表的字段信息
 		return ser.getFieldList(ser.TableName, params.Data.Filter)
-	}else{
+	} else {
 		//拉取列表的数据
 		var menuList []*model.Menu
 		var res = make(map[string]interface{})
@@ -45,6 +45,6 @@ func (ser *menuService) List(params *helper.DataListParams) interface{} {
 		//转换成树形列表
 		tree := model.MenuModel().ToTree(menuList)
 		res["data"] = tree
-		return res
+		return res, nil
 	}
 }

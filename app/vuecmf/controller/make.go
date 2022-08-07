@@ -17,7 +17,6 @@ import (
 
 // Make 代码生成控制器
 type Make struct {
-	*base
 }
 
 func init() {

@@ -31,7 +31,7 @@ func {{.service_method}}() *{{.service_name}}Service {
 
 // List 获取列表数据
 // 		参数：params 查询参数
-func (ser *{{.service_name}}Service) List(params *helper.DataListParams) interface{} {
+func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interface{} , error) {
 	if params.Data.Action == "getField" {
 		//拉取列表的字段信息
 		return ser.getFieldList(ser.TableName, params.Data.Filter)
@@ -45,6 +45,6 @@ func (ser *{{.service_name}}Service) List(params *helper.DataListParams) interfa
 		//转换成树形列表
 		tree := model.{{.service_method}}Model().ToTree({{.service_name}}List)
 		res["data"] = tree
-		return res
+		return res, nil
 	}
 }

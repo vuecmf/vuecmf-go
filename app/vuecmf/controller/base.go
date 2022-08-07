@@ -11,24 +11,30 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/form"
 )
 
-type base struct {
-}
-
-// commonIndex 公共列表页方法
-func commonIndex(c *gin.Context, fun func(listParams *helper.DataListParams) interface{}) {
+// common 控制器公共入口方法
+func common(c *gin.Context, formParams interface{}, fun func() (interface{}, error)) {
 	defer func() {
 		if err := recover(); err != nil {
-			app.Response(c).SendFailure("拉取失败：", err)
+			app.Response(c).SendFailure("请求异常", err)
 		}
 	}()
 
-	listParams := helper.DataListParams{}
-	app.Request(c).Input("post", &listParams)
+	err := app.Request(c).Input("post", &formParams)
 
-	list := fun(&listParams)
+	if err != nil {
+		app.Response(c).SendFailure("请求失败："+form.GetError(err, formParams), nil)
+		return
+	}
 
-	app.Response(c).SendSuccess("拉取成功", list)
+	list, err := fun()
+
+	if err != nil {
+		app.Response(c).SendFailure("请求失败："+err.Error(), nil)
+		return
+	}
+
+	app.Response(c).SendSuccess("请求成功", list)
 }

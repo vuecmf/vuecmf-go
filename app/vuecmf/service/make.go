@@ -224,9 +224,7 @@ func (makeSer *makeService) Form(tableName string) bool {
 			fieldType = "time.Time"
 		} else if value.Type == "int" || value.Type == "bigint" {
 			fieldType = "int"
-			if modelConf.IsTree == true {
-				fieldType = "uint"
-			}
+
 		} else if value.Type == "smallint" {
 			fieldType = "int16"
 		} else if value.Type == "tinyint" {
@@ -294,7 +292,6 @@ func (makeSer *makeService) Form(tableName string) bool {
 
 	return true
 }
-
 
 var makeSer *makeService
 

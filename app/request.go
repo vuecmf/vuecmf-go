@@ -9,6 +9,7 @@
 package app
 
 import (
+	"errors"
 	//"errors"
 	"github.com/gin-gonic/gin"
 	"strings"
@@ -20,21 +21,23 @@ type request struct {
 }
 
 // Input 获取客户端GET/POST请求及header的所有输入数据
-func (r *request) Input(param string, bindParam interface{}) {
+func (r *request) Input(param string, bindParam interface{}) error {
 	param = strings.ToLower(param)
+
+	var err error
 
 	switch param {
 	case "post":
-		_ = r.ShouldBind(bindParam)
+		err = r.ShouldBind(bindParam)
 	case "get":
-		_ = r.ShouldBindQuery(bindParam)
+		err = r.ShouldBindQuery(bindParam)
 	case "header":
-		_ = r.ShouldBindHeader(bindParam)
+		err = r.ShouldBindHeader(bindParam)
 	default:
-		panic("输入参数有误！只支持post, get, header")
+		err = errors.New("输入参数有误！只支持post, get, header")
 	}
 
-	return
+	return err
 }
 
 // Get 获取GET请求参数

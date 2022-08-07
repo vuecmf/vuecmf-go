@@ -21,7 +21,7 @@ type adminService struct {
 
 // List 获取列表数据
 // 		参数：params 查询参数
-func (ser *adminService) List(params *helper.DataListParams) interface{} {
+func (ser *adminService) List(params *helper.DataListParams) (interface{}, error) {
 	var adminList []model.Admin
 	return ser.commonList(adminList, ser.TableName, params)
 }

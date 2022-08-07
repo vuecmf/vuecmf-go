@@ -43,7 +43,11 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 
 	//vuecmf应用 权限验证
 	middlewares["vuecmf"]["auth"] = func(ctx *gin.Context) {
+		//ctx.Keys["aaa"] = "123456"
+		ctx.Set("bbb", "2222")
+
 		fmt.Println("开始权限验证")
+
 	}
 
 	return middlewares

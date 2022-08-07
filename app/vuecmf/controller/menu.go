@@ -16,7 +16,6 @@ import (
 )
 
 type Menu struct {
-	*base
 }
 
 func init() {
@@ -25,8 +24,8 @@ func init() {
 
 // Index 列表页
 func (ctrl *Menu) Index(c *gin.Context) {
-	commonIndex(c, func(listParams *helper.DataListParams) interface{} {
+	listParams := &helper.DataListParams{}
+	common(c, listParams, func() (interface{}, error) {
 		return service.Menu().List(listParams)
 	})
 }
-

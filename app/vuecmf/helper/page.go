@@ -41,7 +41,7 @@ type page struct {
 //	参数：
 //		model 模型实例
 //		params POST请求传递的参数
-func (p *page) Filter(model interface{}, params *DataListParams) interface{} {
+func (p *page) Filter(model interface{}, params *DataListParams) (interface{}, error) {
 	if params.Data == nil {
 		panic("请求参数data不能为空")
 	}
@@ -87,7 +87,7 @@ func (p *page) Filter(model interface{}, params *DataListParams) interface{} {
 	}
 
 	query.Order(data.OrderField + " " + data.OrderSort).Find(&model)
-	return model
+	return model, nil
 }
 
 var pInstances = make(map[string]*page)

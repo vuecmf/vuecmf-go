@@ -37,7 +37,7 @@ type fullModelFields struct {
 }
 
 // commonList 公共列表 服务方法
-func (b *base) commonList(modelData interface{}, tableName string, params *helper.DataListParams) interface{} {
+func (b *base) commonList(modelData interface{}, tableName string, params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
 		return b.getFieldList(tableName, params.Data.Filter)
 	} else {
@@ -46,11 +46,11 @@ func (b *base) commonList(modelData interface{}, tableName string, params *helpe
 }
 
 // getFieldList 根据表名获取对应所有字段信息
-func (b *base) getFieldList(tableName string, filter map[string]interface{}) *fullModelFields{
+func (b *base) getFieldList(tableName string, filter map[string]interface{}) (*fullModelFields, error) {
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	modelId := modelConf.ModelId
-	fieldInfo := ModelField().GetFieldInfo(modelId)       //模型的字段信息
-	formInfo := ModelForm().GetFormInfo(modelId)          //模型的表单信息
+	fieldInfo := ModelField().GetFieldInfo(modelId)                                                              //模型的字段信息
+	formInfo := ModelForm().GetFormInfo(modelId)                                                                 //模型的表单信息
 	fieldOption := FieldOption().GetFieldOptions(modelId, tableName, modelConf.IsTree, modelConf.LabelFieldName) //模型的关联信息
 	relationInfo := ModelRelation().GetRelationInfo(modelId, filter)
 	formRulesInfo := ModelFormRules().GetRuleListForForm(modelId)
@@ -62,9 +62,8 @@ func (b *base) getFieldList(tableName string, filter map[string]interface{}) *fu
 		RelationInfo: relationInfo,
 		FormRules:    formRulesInfo,
 		ModelId:      modelId,
-	}
+	}, nil
 }
-
 
 // getList 根据表名获取对应列表数据
 //	参数：
@@ -77,7 +76,7 @@ func (b *base) getList(dataList interface{}, tableName string, params *helper.Da
 	modelConf := ModelConfig().GetModelConfig(tableName)
 
 	if params.Data.Keywords != "" {
-		query = query.Where(modelConf.LabelFieldName +" like ?", "%"+params.Data.Keywords+"%")
+		query = query.Where(modelConf.LabelFieldName+" like ?", "%"+params.Data.Keywords+"%")
 	}
 
 	orderField := "sort_num"

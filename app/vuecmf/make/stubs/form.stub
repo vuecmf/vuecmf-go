@@ -2,7 +2,11 @@ package form
 
 {{.import}}
 
-// {{.form_name}} {{.comment}} 表单结构
-type {{.form_name}} struct {
+// {{.form_name}}Form {{.comment}} 表单结构
+type {{.form_name}}Form struct {
 	{{.body}}
+}
+
+type Data{{.form_name}}Form struct {
+    Data *{{.form_name}}Form `json:"data" form:"data"`
 }

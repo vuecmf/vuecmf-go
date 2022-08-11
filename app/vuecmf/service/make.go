@@ -9,6 +9,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"io/ioutil"
@@ -189,17 +190,31 @@ func (makeSer *makeService) Controller(tableName string) bool {
 	return true
 }
 
+// formRules 表单规则
+type formRules struct {
+	FieldName string `json:"field_name"`  //字段名
+	FieldType string `json:"field_type"`  //字段类型
+	RuleType string `json:"rule_type"`    //验证规则类型
+	RuleValue string `json:"rule_value"`  //规则值
+	ErrorTips string `json:"error_tips"`  //错误提示
+}
+
 //Form 功能：生成表单代码文件
 //		参数：tableName string 表名（不带表前缀）
 func (makeSer *makeService) Form(tableName string) bool {
-	var result []model.ModelField
+	var result []formRules
 
 	//查出需要生成模型表的字段相关信息
-	db.Table(ns.TableName("model_field")+" MF").
-		Select("MF.*").
-		Joins("left join "+ns.TableName("model_config")+" MC on MF.model_id = MC.id").
-		Where("MF.field_name NOT IN('id','status')").
-		Where("MC.table_name = ?", tableName).Scan(&result)
+	db.Table(ns.TableName("model_form")+" VMF").
+		Select("VMF2.field_name, VMF2.type field_type, VMFR.rule_type, VMFR.rule_value, VMFR.error_tips").
+		Joins("left join "+ns.TableName("model_field") + " VMF2 on VMF.model_field_id = VMF2.id").
+		Joins("left join "+ns.TableName("model_form_rules") + " VMFR on VMF.id = VMFR.model_form_id").
+		Joins("left join "+ns.TableName("model_config")+" MC on VMF.model_id = MC.id").
+		Where("VMF.status = 10").
+		Where("VMF2.status = 10").
+		Where("VMFR.status = 10").
+		Where("MC.status = 10").
+		Where("MC.table_name = ?", tableName).Find(&result)
 
 	//读取模型模板文件
 	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/form.stub")
@@ -207,73 +222,75 @@ func (makeSer *makeService) Form(tableName string) bool {
 		panic("读取form模板失败")
 	}
 
+	formList := make(map[string]map[string][]string)
+	ruleMaps := getRuleMaps()
+
+	for _, value := range result {
+		if formList[value.FieldName] == nil {
+			formList[value.FieldName] = map[string][]string{}
+		}
+
+		formList[value.FieldName]["type"] = []string{value.FieldType} //字段类型
+		rules := ""
+		if ruleMaps[value.RuleType] != "" {
+			switch ruleMaps[value.RuleType] {
+			case "eq","gt","lt","gte","lte","datetime","len","max","min","required_if","required_with","required_without":
+				rules = ruleMaps[value.RuleType]
+				if value.RuleValue != "" {
+					rules += "=" + value.RuleValue
+				}
+			default:
+				rules = ruleMaps[value.RuleType]
+			}
+
+			//验证规则
+			formList[value.FieldName]["rules"] = append(formList[value.FieldName]["rules"], rules)
+			//错误提示语句
+			formList[value.FieldName]["tips"] = append(formList[value.FieldName]["tips"], ruleMaps[value.RuleType] + "_tips:\""+ value.ErrorTips +"\"")
+		}
+
+	}
+
+	fmt.Println(formList)
+
 	formContent := ""
 	hasTime := false
 
-	//模型字段信息处理
-	for _, value := range result {
-		notNull := ""
-		defaultVal := ""
-		size := ""
-		autoCreateTime := ""
+	//表单验证字段信息处理
+	for fieldName, value := range formList {
 		fieldType := "string"
-		uniqueIndex := ""
 
-		if value.Type == "timestamp" {
+		switch value["type"][0] {
+		case "timestamp":
 			hasTime = true
 			fieldType = "time.Time"
-		} else if value.Type == "int" || value.Type == "bigint" {
+		case "int","bigint":
 			fieldType = "int"
-
-		} else if value.Type == "smallint" {
+		case "smallint":
 			fieldType = "int16"
-		} else if value.Type == "tinyint" {
+		case "tinyint":
 			fieldType = "int8"
-		} else if value.Type == "float" {
+		case "float":
 			fieldType = "float32"
-		} else if value.Type == "double" || value.Type == "decimal" {
+		case "double","decimal":
 			fieldType = "float64"
 		}
 
-		if value.IsNull == 20 {
-			notNull = "not null;"
-		}
-
-		if value.FieldName == "update_time" || value.FieldName == "last_login_time" || value.DefaultValue == "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" {
-			autoCreateTime = "autoCreateTime;autoUpdateTime;"
-		} else if value.DefaultValue == "CURRENT_TIMESTAMP" {
-			autoCreateTime = "autoCreateTime;"
-		} else {
-			defaultVal = "default:" + value.DefaultValue + ";"
-			size = "size:" + strconv.Itoa(value.Length) + ";"
-		}
-
-		//字段唯一索引处理
-		modelIndexId := 0
-		id := strconv.Itoa(int(value.Id))
-		db.Table(ns.TableName("model_index")).Select("id").
-			Where("model_field_id = ? or model_field_id like ? or model_field_id like ?", id, id+",%", "%,"+id).
-			Find(&modelIndexId)
-
-		if modelIndexId > 0 {
-			uniqueIndex = "uniqueIndex:unique_index;"
-		}
-
-		formContent += helper.UnderToCamel(value.FieldName) + " " + fieldType + " `json:\"" + value.FieldName +
-			"\" gorm:\"column:" + value.FieldName + ";" + size + uniqueIndex + notNull + autoCreateTime + defaultVal +
-			"comment:" + value.Note + "\"`\n\t"
+		formContent += helper.UnderToCamel(fieldName) + " " + fieldType + " `json:\"" + fieldName +
+			"\" form:\"" + fieldName + "\" binding:\"" + strings.Join(value["rules"], ",")  + "\" " + strings.Join(value["tips"]," ") + "`\n\t"
 	}
 
+
 	//获取模型标签名称
-	modelLabel := ""
+	formLabel := ""
 	db.Table(ns.TableName("model_config")).Select("label").
-		Where("table_name = ?", tableName).Find(&modelLabel)
+		Where("table_name = ?", tableName).Find(&formLabel)
 
 	formName := helper.UnderToCamel(tableName)
 
 	//替换模板文件中内容
 	txt := string(tplContent)
-	txt = strings.Replace(txt, "{{.comment}}", modelLabel, -1)
+	txt = strings.Replace(txt, "{{.comment}}", formLabel, -1)
 	txt = strings.Replace(txt, "{{.form_name}}", formName, -1)
 
 	if hasTime == true {
@@ -284,7 +301,7 @@ func (makeSer *makeService) Form(tableName string) bool {
 
 	txt = strings.Replace(txt, "{{.body}}", formContent, -1)
 
-	err = ioutil.WriteFile("app/vuecmf/form/"+tableName+".go", []byte(txt), 0666)
+	err = ioutil.WriteFile("app/vuecmf/form/"+tableName+"_form.go", []byte(txt), 0666)
 
 	if err != nil {
 		return false
@@ -301,4 +318,39 @@ func Make() *makeService {
 		makeSer = &makeService{}
 	}
 	return makeSer
+}
+
+var ruleMaps = make(map[string]string)
+// getRuleMaps 获取验证规则映射， 兼容PHP中的验证规则名称
+func getRuleMaps() map[string]string {
+	ruleMaps["="] = "eq"
+	ruleMaps[">"] = "gt"
+	ruleMaps["<"] = "lt"
+	ruleMaps[">="] = "gte"
+	ruleMaps["<="] = "lte"
+	ruleMaps["alpha"] = "alpha"
+	ruleMaps["alphaNum"] = "alphanum"
+	ruleMaps["boolean"] = "boolean"
+	ruleMaps["lower"] = "lowercase"
+	ruleMaps["upper"] = "uppercase"
+	ruleMaps["integer"] = "numeric"
+	ruleMaps["number"] = "number"
+	ruleMaps["date"] = "datetime"
+	ruleMaps["email"] = "email"
+	ruleMaps["file"] = "file"
+	ruleMaps["ip"] = "ip"
+	ruleMaps["macAddr"] = "mac"
+	ruleMaps["length"] = "len"
+	ruleMaps["max"] = "max"
+	ruleMaps["min"] = "min"
+	ruleMaps["require"] = "required"
+	ruleMaps["requireIf"] = "required_if"
+	ruleMaps["requireWith"] = "required_with"
+	ruleMaps["requireWithout"] = "required_without"
+	ruleMaps["unique"] = "unique"
+	ruleMaps["url"] = "url"
+	ruleMaps["zip"] = "postcode_iso3166_alpha2"
+	//ruleMaps["regex"] = "regex"
+
+	return ruleMaps
 }

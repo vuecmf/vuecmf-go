@@ -59,3 +59,15 @@ func (ctrl *Make) Controller(c *gin.Context) {
 		app.Response(c).SendFailure("控制器代码文件生成失败", nil)
 	}
 }
+
+// Form 生成form表单代码文件
+func (ctrl *Make) Form(c *gin.Context) {
+	tableName := app.Request(c).Get("table_name")
+	makeRes := service.Make().Form(tableName)
+
+	if makeRes {
+		app.Response(c).SendSuccess("表单代码文件生成成功", nil)
+	} else {
+		app.Response(c).SendFailure("表单代码文件生成失败", nil)
+	}
+}

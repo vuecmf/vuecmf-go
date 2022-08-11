@@ -32,6 +32,15 @@ func (ctrl *Admin) Index(c *gin.Context) {
 	})
 }
 
+// Save 保存单条数据
+func (ctrl *Admin) Save(c *gin.Context) {
+	data := &form.DataAdminForm{}
+	common(c, data, func() (interface{}, error) {
+		return service.Admin().Save(data)
+	})
+}
+
+
 func (ctrl *Admin) Login(c *gin.Context) {
 	loginForm := &form.LoginForm{}
 	common(c, loginForm, func() (interface{}, error) {

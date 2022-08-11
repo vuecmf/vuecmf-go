@@ -9,6 +9,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"gorm.io/gorm"
@@ -90,3 +91,9 @@ func (b *base) getList(dataList interface{}, tableName string, params *helper.Da
 
 	query.Find(dataList)
 }
+
+func (b *base) Save(data interface{}) (bool, error) {
+	fmt.Println(data)
+	return true, nil
+}
+

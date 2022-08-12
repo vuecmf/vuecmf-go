@@ -9,7 +9,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"io/ioutil"
@@ -192,11 +191,11 @@ func (makeSer *makeService) Controller(tableName string) bool {
 
 // formRules 表单规则
 type formRules struct {
-	FieldName string `json:"field_name"`  //字段名
-	FieldType string `json:"field_type"`  //字段类型
-	RuleType string `json:"rule_type"`    //验证规则类型
-	RuleValue string `json:"rule_value"`  //规则值
-	ErrorTips string `json:"error_tips"`  //错误提示
+	FieldName string `json:"field_name"` //字段名
+	FieldType string `json:"field_type"` //字段类型
+	RuleType  string `json:"rule_type"`  //验证规则类型
+	RuleValue string `json:"rule_value"` //规则值
+	ErrorTips string `json:"error_tips"` //错误提示
 }
 
 //Form 功能：生成表单代码文件
@@ -205,14 +204,12 @@ func (makeSer *makeService) Form(tableName string) bool {
 	var result []formRules
 
 	//查出需要生成模型表的字段相关信息
-	db.Table(ns.TableName("model_form")+" VMF").
-		Select("VMF2.field_name, VMF2.type field_type, VMFR.rule_type, VMFR.rule_value, VMFR.error_tips").
-		Joins("left join "+ns.TableName("model_field") + " VMF2 on VMF.model_field_id = VMF2.id").
-		Joins("left join "+ns.TableName("model_form_rules") + " VMFR on VMF.id = VMFR.model_form_id").
+	db.Table(ns.TableName("model_field")+" VMF").
+		Select("VMF.field_name, VMF.type field_type, VMFR.rule_type, VMFR.rule_value, VMFR.error_tips").
+		Joins("left join "+ns.TableName("model_form")+" VMF2 on VMF2.model_field_id = VMF.id").
+		Joins("left join "+ns.TableName("model_form_rules")+" VMFR on VMF2.id = VMFR.model_form_id").
 		Joins("left join "+ns.TableName("model_config")+" MC on VMF.model_id = MC.id").
 		Where("VMF.status = 10").
-		Where("VMF2.status = 10").
-		Where("VMFR.status = 10").
 		Where("MC.status = 10").
 		Where("MC.table_name = ?", tableName).Find(&result)
 
@@ -234,7 +231,7 @@ func (makeSer *makeService) Form(tableName string) bool {
 		rules := ""
 		if ruleMaps[value.RuleType] != "" {
 			switch ruleMaps[value.RuleType] {
-			case "eq","gt","lt","gte","lte","datetime","len","max","min","required_if","required_with","required_without":
+			case "eq", "gt", "lt", "gte", "lte", "datetime", "len", "max", "min", "required_if", "required_with", "required_without":
 				rules = ruleMaps[value.RuleType]
 				if value.RuleValue != "" {
 					rules += "=" + value.RuleValue
@@ -246,12 +243,9 @@ func (makeSer *makeService) Form(tableName string) bool {
 			//验证规则
 			formList[value.FieldName]["rules"] = append(formList[value.FieldName]["rules"], rules)
 			//错误提示语句
-			formList[value.FieldName]["tips"] = append(formList[value.FieldName]["tips"], ruleMaps[value.RuleType] + "_tips:\""+ value.ErrorTips +"\"")
+			formList[value.FieldName]["tips"] = append(formList[value.FieldName]["tips"], ruleMaps[value.RuleType]+"_tips:\""+value.ErrorTips+"\"")
 		}
-
 	}
-
-	fmt.Println(formList)
 
 	formContent := ""
 	hasTime := false
@@ -259,12 +253,17 @@ func (makeSer *makeService) Form(tableName string) bool {
 	//表单验证字段信息处理
 	for fieldName, value := range formList {
 		fieldType := "string"
+		timeFormat := ""
 
 		switch value["type"][0] {
-		case "timestamp":
+		case "timestamp", "datetime", "date":
 			hasTime = true
 			fieldType = "time.Time"
-		case "int","bigint":
+			timeFormat = "time_format:\"2006-01-02 15:04:05\" "
+			if value["type"][0] == "date" {
+				timeFormat = "time_format:\"2006-01-02\" "
+			}
+		case "int", "bigint":
 			fieldType = "int"
 		case "smallint":
 			fieldType = "int16"
@@ -272,14 +271,17 @@ func (makeSer *makeService) Form(tableName string) bool {
 			fieldType = "int8"
 		case "float":
 			fieldType = "float32"
-		case "double","decimal":
+		case "double", "decimal":
 			fieldType = "float64"
 		}
 
 		formContent += helper.UnderToCamel(fieldName) + " " + fieldType + " `json:\"" + fieldName +
-			"\" form:\"" + fieldName + "\" binding:\"" + strings.Join(value["rules"], ",")  + "\" " + strings.Join(value["tips"]," ") + "`\n\t"
+			"\" form:\"" + fieldName + "\" " + timeFormat
+		if len(value["rules"]) > 0 {
+			formContent += "binding:\"" + strings.Join(value["rules"], ",") + "\" " + strings.Join(value["tips"], " ")
+		}
+		formContent += "`\n\t"
 	}
-
 
 	//获取模型标签名称
 	formLabel := ""
@@ -321,6 +323,7 @@ func Make() *makeService {
 }
 
 var ruleMaps = make(map[string]string)
+
 // getRuleMaps 获取验证规则映射， 兼容PHP中的验证规则名称
 func getRuleMaps() map[string]string {
 	ruleMaps["="] = "eq"
@@ -340,7 +343,6 @@ func getRuleMaps() map[string]string {
 	ruleMaps["file"] = "file"
 	ruleMaps["ip"] = "ip"
 	ruleMaps["macAddr"] = "mac"
-	ruleMaps["length"] = "len"
 	ruleMaps["max"] = "max"
 	ruleMaps["min"] = "min"
 	ruleMaps["require"] = "required"
@@ -350,6 +352,7 @@ func getRuleMaps() map[string]string {
 	ruleMaps["unique"] = "unique"
 	ruleMaps["url"] = "url"
 	ruleMaps["zip"] = "postcode_iso3166_alpha2"
+	ruleMaps["len"] = "len"
 	//ruleMaps["regex"] = "regex"
 
 	return ruleMaps

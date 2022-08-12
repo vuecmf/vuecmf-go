@@ -11,6 +11,7 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/form"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
@@ -35,11 +36,19 @@ func (ctrl *Admin) Index(c *gin.Context) {
 // Save 保存单条数据
 func (ctrl *Admin) Save(c *gin.Context) {
 	data := &form.DataAdminForm{}
+
+	app.Cache().Set("hello", []byte("world 123"))
+
 	common(c, data, func() (interface{}, error) {
-		return service.Admin().Save(data)
+		if data.Data.Id == 0 {
+			return service.Admin().Create(data.Data)
+		} else {
+			res, _ := app.Cache().Get("hello")
+			fmt.Println(string(res))
+			return service.Admin().Update(data.Data)
+		}
 	})
 }
-
 
 func (ctrl *Admin) Login(c *gin.Context) {
 	loginForm := &form.LoginForm{}

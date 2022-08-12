@@ -22,7 +22,7 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 		}
 	}()
 
-	err := app.Request(c).Input("post", &formParams)
+	err := app.Request(c).Input("post", formParams)
 
 	if err != nil {
 		app.Response(c).SendFailure("请求失败："+form.GetError(err, formParams), nil)

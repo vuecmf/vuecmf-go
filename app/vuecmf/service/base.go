@@ -66,7 +66,7 @@ func (b *base) getFieldList(tableName string, filter map[string]interface{}) (*f
 	}, nil
 }
 
-// getList 根据表名获取对应列表数据
+// getList 根据表名获取对应列表数据(无分页列表数据，如树型列表)
 //	参数：
 //		dataList  需要填充的列表数据
 //		tableName 表名
@@ -92,8 +92,14 @@ func (b *base) getList(dataList interface{}, tableName string, params *helper.Da
 	query.Find(dataList)
 }
 
-func (b *base) Save(data interface{}) (bool, error) {
-	fmt.Println(data)
-	return true, nil
+// Create 创建单条数据
+func (b *base) Create(data interface{}) (interface{}, error) {
+	res := db.Create(data)
+	return data, res.Error
 }
 
+func (b *base) Update(data interface{}) (interface{}, error) {
+	res := db.Updates(data)
+	fmt.Println("影响条数：", res.RowsAffected)
+	return data, res.Error
+}

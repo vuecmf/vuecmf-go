@@ -9,6 +9,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
@@ -51,6 +52,23 @@ func (ctrl *Admin) Save(c *gin.Context) {
 }
 
 func (ctrl *Admin) Login(c *gin.Context) {
+	login := &model.LoginForm{
+		Username: "haha",
+		Password: "123456",
+	}
+
+	loginBt,_ := json.Marshal(login)
+
+	app.Cache().Set("user", loginBt)
+
+	userBt, _ := app.Cache().Get("user")
+
+	var login2 model.LoginForm
+	json.Unmarshal(userBt, &login2)
+	fmt.Println("login2 = ",login2)
+
+
+
 	loginForm := &model.LoginForm{}
 	common(c, loginForm, func() (interface{}, error) {
 		fmt.Println(c.Get("bbb"))

@@ -87,7 +87,7 @@ func (makeSer *makeService) Model(tableName string) error {
 			autoCreateTime = "autoCreateTime;"
 		} else {
 			defaultVal = "default:" + value.DefaultValue + ";"
-			size = "size:" + strconv.Itoa(value.Length) + ";"
+			size = "size:" + strconv.Itoa(int(value.Length)) + ";"
 		}
 
 		//字段唯一索引处理
@@ -103,9 +103,9 @@ func (makeSer *makeService) Model(tableName string) error {
 		gormCnf := " gorm:\"column:" + value.FieldName + ";" + autoIncrement + size + uniqueIndex + notNull + autoCreateTime + defaultVal +
 			"comment:" + value.Note + "\""
 
-		formList[value.FieldName]["gorm"] = []string{gormCnf} //gorm表信息
-		formList[value.FieldName]["type"] = []string{value.Type} //字段类型
-		formList[value.FieldName]["is_signed"] = []string{strconv.Itoa(value.IsSigned)} //是否为负数
+		formList[value.FieldName]["gorm"] = []string{gormCnf}                                //gorm表信息
+		formList[value.FieldName]["type"] = []string{value.Type}                             //字段类型
+		formList[value.FieldName]["is_signed"] = []string{strconv.Itoa(int(value.IsSigned))} //是否为负数
 		rules := ""
 		if ruleMaps[value.RuleType] != "" {
 			switch ruleMaps[value.RuleType] {

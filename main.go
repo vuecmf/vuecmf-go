@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	_ "github.com/vuecmf/vuecmf-go/app/vuecmf/controller"
+	"log"
 )
 
 
@@ -16,7 +16,7 @@ func main() {
 
 	err := engine.Run(":8080")
 	if err != nil {
-		fmt.Println("服务启动失败！", err)
+		log.Fatal("服务启动失败！", err)
 	}
 
 }

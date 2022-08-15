@@ -4,6 +4,10 @@ package model
 
 // {{.model_name}} {{.comment}} 模型结构
 type {{.model_name}} struct {
-	Base
 	{{.body}}
+}
+
+// Data{{.model_name}}Form 提交的表单数据
+type Data{{.model_name}}Form struct {
+    Data *{{.model_name}} `json:"data" form:"data"`
 }

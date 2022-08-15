@@ -13,8 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/form"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
@@ -35,7 +35,7 @@ func (ctrl *Admin) Index(c *gin.Context) {
 
 // Save 保存单条数据
 func (ctrl *Admin) Save(c *gin.Context) {
-	data := &form.DataAdminForm{}
+	data := &model.DataAdminForm{}
 
 	app.Cache().Set("hello", []byte("world 123"))
 
@@ -51,7 +51,7 @@ func (ctrl *Admin) Save(c *gin.Context) {
 }
 
 func (ctrl *Admin) Login(c *gin.Context) {
-	loginForm := &form.LoginForm{}
+	loginForm := &model.LoginForm{}
 	common(c, loginForm, func() (interface{}, error) {
 		fmt.Println(c.Get("bbb"))
 

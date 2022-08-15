@@ -26,48 +26,36 @@ func init() {
 // Model 生成模型代码文件
 func (ctrl *Make) Model(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
-	makeRes := service.Make().Model(tableName)
+	err := service.Make().Model(tableName)
 
-	if makeRes {
-		app.Response(c).SendSuccess("模型代码文件生成成功", nil)
+	if err != nil {
+		app.Response(c).SendFailure("模型代码文件生成失败!" + err.Error(), nil)
 	} else {
-		app.Response(c).SendFailure("模型代码文件生成失败", nil)
+		app.Response(c).SendSuccess("模型代码文件生成成功", nil)
 	}
-
 }
 
 // Service 生成服务代码文件
 func (ctrl *Make) Service(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
-	makeRes := service.Make().Service(tableName)
+	err := service.Make().Service(tableName)
 
-	if makeRes {
-		app.Response(c).SendSuccess("服务代码文件生成成功", nil)
+	if err != nil {
+		app.Response(c).SendFailure("服务代码文件生成失败!" + err.Error(), nil)
 	} else {
-		app.Response(c).SendFailure("服务代码文件生成失败", nil)
+		app.Response(c).SendSuccess("服务代码文件生成成功", nil)
 	}
 }
 
 // Controller 生成服务代码文件
 func (ctrl *Make) Controller(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
-	makeRes := service.Make().Controller(tableName)
+	err := service.Make().Controller(tableName)
 
-	if makeRes {
+	if err != nil {
+		app.Response(c).SendFailure("控制器代码文件生成失败!" + err.Error(), nil)
+	} else {
 		app.Response(c).SendSuccess("控制器代码文件生成成功", nil)
-	} else {
-		app.Response(c).SendFailure("控制器代码文件生成失败", nil)
 	}
 }
 
-// Form 生成form表单代码文件
-func (ctrl *Make) Form(c *gin.Context) {
-	tableName := app.Request(c).Get("table_name")
-	makeRes := service.Make().Form(tableName)
-
-	if makeRes {
-		app.Response(c).SendSuccess("表单代码文件生成成功", nil)
-	} else {
-		app.Response(c).SendFailure("表单代码文件生成失败", nil)
-	}
-}

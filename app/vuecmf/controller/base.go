@@ -11,7 +11,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/form"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 )
 
 // common 控制器公共入口方法
@@ -25,7 +25,7 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 	err := app.Request(c).Input("post", formParams)
 
 	if err != nil {
-		app.Response(c).SendFailure("请求失败："+form.GetError(err, formParams), nil)
+		app.Response(c).SendFailure("请求失败："+model.GetError(err, formParams), nil)
 		return
 	}
 

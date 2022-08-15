@@ -1,4 +1,4 @@
-package form
+package model
 
 // LoginForm 登录表单
 type LoginForm struct {

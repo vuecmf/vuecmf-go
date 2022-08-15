@@ -23,7 +23,7 @@ type base struct {
 }
 
 func init() {
-	db = app.Db("vuecmf")
+	db = app.Db("default")
 	ns = db.NamingStrategy
 }
 
@@ -52,9 +52,13 @@ func (b *base) getFieldList(tableName string, filter map[string]interface{}) (*f
 	modelId := modelConf.ModelId
 	fieldInfo := ModelField().GetFieldInfo(modelId)                                                              //模型的字段信息
 	formInfo := ModelForm().GetFormInfo(modelId)                                                                 //模型的表单信息
-	fieldOption := FieldOption().GetFieldOptions(modelId, tableName, modelConf.IsTree, modelConf.LabelFieldName) //模型的关联信息
 	relationInfo := ModelRelation().GetRelationInfo(modelId, filter)
 	formRulesInfo := ModelFormRules().GetRuleListForForm(modelId)
+	fieldOption, err := FieldOption().GetFieldOptions(modelId, tableName, modelConf.IsTree, modelConf.LabelFieldName) //模型的关联信息
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &fullModelFields{
 		FieldInfo:    fieldInfo,

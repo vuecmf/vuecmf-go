@@ -13,6 +13,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+	"log"
 	"os"
 	"time"
 )
@@ -49,17 +50,17 @@ func (conn *database) connect(confName string) *gorm.DB {
 
 	confContent, err := os.Open("config/database.yaml")
 	if err != nil {
-		panic("无法读取数据库配置文件database.yaml")
+		log.Fatal("无法读取数据库配置文件database.yaml")
 	}
 
 	err = yaml.NewDecoder(confContent).Decode(&conf)
 	if err != nil {
-		panic("数据库配置文件解析错误！")
+		log.Fatal("数据库配置文件解析错误！")
 	}
 
 	cfg, ok := conf[confName]
 	if ok == false {
-		panic("数据库配置（" + confName + "）不存在")
+		log.Fatal("数据库配置（" + confName + "）不存在")
 	}
 
 	dsn := cfg.User + ":" + cfg.Password + "@tcp(" + cfg.Host +
@@ -74,7 +75,7 @@ func (conn *database) connect(confName string) *gorm.DB {
 	})
 
 	if err2 != nil {
-		panic("数据库连接失败！")
+		log.Fatal("数据库连接失败！")
 	}
 
 	if cfg.Debug {
@@ -83,7 +84,7 @@ func (conn *database) connect(confName string) *gorm.DB {
 
 	sqlDB, err3 := db.DB()
 	if err3 != nil {
-		panic("获取SQL DB 失败")
+		log.Fatal("获取SQL DB 失败")
 	}
 
 	// SetMaxIdleConns 设置空闲连接池中连接的最大数量

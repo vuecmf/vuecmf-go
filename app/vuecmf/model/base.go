@@ -11,6 +11,22 @@ type Base struct {
 	Status uint8 `json:"status" form:"status" gorm:"column:status;size:4;not null;default:10;comment:状态：10=开启，20=禁用"`
 }
 
+// DataBatchForm 批量导入数据 提交的表单数据
+type DataBatchForm struct {
+	Data string `json:"data" form:"data"`
+}
+
+// DataIdForm 根据ID获取详情
+type DataIdForm struct {
+	Id uint `json:"id" form:"id"`
+}
+
+//DataIdListForm 根据ID批量删除
+type DataIdListForm struct {
+	IdList string `json:"id_list" form:"id_list"`
+}
+
+
 // GetError 获取form中错误提示信息
 func GetError(errs error, f interface{}) string {
 	fData := reflect.ValueOf(f).Elem().FieldByName("Data")

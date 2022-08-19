@@ -1,16 +1,24 @@
+// Package app
+//+----------------------------------------------------------------------
+// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
 package app
 
 import (
+	"encoding/json"
 	"github.com/allegro/bigcache/v3"
 	"log"
 	"time"
 )
 
-var cache *bigcache.BigCache
+var bc  *bigcache.BigCache
 
-// Cache 获取缓存实例
-func Cache() *bigcache.BigCache {
-	if cache == nil {
+func init(){
+	if bc == nil {
 		config := bigcache.Config{
 			// number of shards (must be a power of 2)
 			Shards: 1024,
@@ -49,10 +57,50 @@ func Cache() *bigcache.BigCache {
 			OnRemoveWithReason: nil,
 		}
 		var err error
-		cache, err = bigcache.NewBigCache(config)
+		bc, err = bigcache.NewBigCache(config)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-	return cache
 }
+
+type cache struct {
+
+}
+
+// Set 添加缓存
+//	参数：
+//		key 缓存的键
+//		content 缓存的内容
+func (c *cache) Set(key string, content interface{}) error {
+	cb, err := json.Marshal(content)
+	if err != nil {
+		return err
+	}
+	err = bc.Set(key,cb)
+	return err
+}
+
+// Get 获取缓存内容
+//	参数：
+//		key 缓存的key
+//		res 存放缓存内容的容器
+func (c *cache) Get(key string, res interface{}) error {
+	rb, err := bc.Get(key)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(rb, res)
+	return err
+}
+
+var c *cache
+
+// Cache 获取缓存组件实例
+func Cache() *cache {
+	if c == nil {
+		c = &cache{}
+	}
+	return c
+}
+

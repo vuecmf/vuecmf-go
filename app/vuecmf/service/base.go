@@ -9,11 +9,11 @@
 package service
 
 import (
-	"fmt"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+	"strings"
 )
 
 var db *gorm.DB
@@ -96,14 +96,33 @@ func (b *base) getList(dataList interface{}, tableName string, params *helper.Da
 	query.Find(dataList)
 }
 
-// Create 创建单条数据
-func (b *base) Create(data interface{}) (interface{}, error) {
+// Create 创建单条或多条数据, 成功返回影响行数
+func (b *base) Create(data interface{}) (int64, error) {
 	res := db.Create(data)
-	return data, res.Error
+	return res.RowsAffected, res.Error
 }
 
-func (b *base) Update(data interface{}) (interface{}, error) {
+// Update 更新数据, 成功返回影响行数
+func (b *base) Update(data interface{}) (int64, error) {
 	res := db.Updates(data)
-	fmt.Println("影响条数：", res.RowsAffected)
-	return data, res.Error
+	return res.RowsAffected, res.Error
+}
+
+// Detail 根据ID获取详情
+func (b *base) Detail(id uint, result interface{}) error {
+	res := db.First(result, id)
+	return res.Error
+}
+
+// Delete 根据ID删除数据
+func (b *base) Delete(id uint, model interface{}) (int64, error) {
+	res := db.Delete(model, id)
+	return res.RowsAffected, res.Error
+}
+
+// DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
+func (b *base) DeleteBatch(idList string, model interface{}) (int64, error) {
+	idArr := strings.Split(idList,",")
+	res := db.Delete(model, idArr)
+	return res.RowsAffected, res.Error
 }

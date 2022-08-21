@@ -5,27 +5,39 @@ import (
 	"reflect"
 )
 
-// Base 基础模型
-type Base struct {
-	Id uint `json:"id" form:"id" gorm:"column:id;primaryKey;autoIncrement;size:11;comment:ID"`
-	Status uint8 `json:"status" form:"status" gorm:"column:status;size:4;not null;default:10;comment:状态：10=开启，20=禁用"`
-}
-
 // DataBatchForm 批量导入数据 提交的表单数据
 type DataBatchForm struct {
 	Data string `json:"data" form:"data"`
 }
 
+type IdForm struct {
+	Id uint `json:"id" form:"id"`
+}
+
 // DataIdForm 根据ID获取详情
 type DataIdForm struct {
-	Id uint `json:"id" form:"id"`
+	Data *IdForm `json:"data" form:"data"`
+}
+
+type IdListForm struct {
+	IdList string `json:"id_list" form:"id_list"`
 }
 
 //DataIdListForm 根据ID批量删除
 type DataIdListForm struct {
-	IdList string `json:"id_list" form:"id_list"`
+	Data *IdListForm `json:"data" form:"data"`
 }
 
+type DropdownForm struct {
+	TableName       string `json:"table_name" form:"table_name"`
+	ModelId         uint   `json:"model_id" form:"model_id"`
+	RelationModelId uint   `json:"relation_model_id" form:"relation_model_id"`
+}
+
+// DataDropdownForm 获取Dropdown数据所传form
+type DataDropdownForm struct {
+	Data *DropdownForm `json:"data" form:"data"`
+}
 
 // GetError 获取form中错误提示信息
 func GetError(errs error, f interface{}) string {

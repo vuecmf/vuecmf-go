@@ -15,7 +15,7 @@ import (
 
 // menuService menu服务结构
 type menuService struct {
-	*base
+	*baseService
 	TableName string
 }
 

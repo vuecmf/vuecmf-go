@@ -9,18 +9,19 @@
 package controller
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type {{.controller_name}} struct {
-	*base
 }
 
 func init() {
-	route.Register(&{{.controller_name}}{}, "GET|POST", "vuecmf")
+	route.Register(&{{.controller_name}}{}, "POST", "vuecmf")
 }
 
 // Index 列表页
@@ -31,3 +32,61 @@ func (ctrl *{{.controller_name}}) Index(c *gin.Context) {
 	})
 }
 
+// Save 新增/更新 单条数据
+func (ctrl *{{.controller_name}}) Save(c *gin.Context) {
+	data := &model.Data{{.controller_name}}Form{}
+	common(c, data, func() (interface{}, error) {
+		if data.Data.Id == 0 {
+			return service.{{.controller_name}}().Create(data.Data)
+		} else {
+			return service.{{.controller_name}}().Update(data.Data)
+		}
+	})
+}
+
+// Saveall 批量添加多条数据
+func (ctrl *{{.controller_name}}) Saveall(c *gin.Context) {
+	data := &model.DataBatchForm{}
+	common(c, data, func() (interface{}, error) {
+		var dataBatch []model.{{.controller_name}}
+		err := json.Unmarshal([]byte(data.Data), &dataBatch)
+		if err != nil {
+			return nil, err
+		}
+		return service.{{.controller_name}}().Create(dataBatch)
+	})
+}
+
+// Detail 根据ID获取详情
+func (ctrl *{{.controller_name}}) Detail(c *gin.Context) {
+	data := &model.DataIdForm{}
+	common(c, data, func() (interface{}, error) {
+		var result model.{{.controller_name}}
+		err := service.{{.controller_name}}().Detail(data.Data.Id, &result)
+		return result, err
+	})
+}
+
+// Delete 根据ID删除单条数据
+func (ctrl *{{.controller_name}}) Delete(c *gin.Context) {
+	data := &model.DataIdForm{}
+	common(c, data, func() (interface{}, error) {
+		return service.{{.controller_name}}().Delete(data.Data.Id, &model.{{.controller_name}}{})
+	})
+}
+
+// Deletebatch 根据ID列表批量删除多条数据
+func (ctrl *{{.controller_name}}) Deletebatch(c *gin.Context) {
+	data := &model.DataIdListForm{}
+	common(c, data, func() (interface{}, error) {
+		return service.{{.controller_name}}().DeleteBatch(data.Data.IdList, &model.{{.controller_name}}{})
+	})
+}
+
+// Dropdown 下拉列表数据
+func (ctrl *{{.controller_name}}) Dropdown(c *gin.Context) {
+	data := &model.DataDropdownForm{}
+	common(c, data, func() (interface{}, error) {
+		return service.{{.controller_name}}().Dropdown(data.Data, "{{.controller_name}}")
+	})
+}

@@ -15,7 +15,7 @@ import (
 
 // rolesService roles服务结构
 type rolesService struct {
-	*base
+	*baseService
 	TableName string
 }
 

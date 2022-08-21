@@ -10,7 +10,7 @@ package service
 
 // modelConfigService modelConfig服务结构
 type modelConfigService struct {
-	*base
+	*baseService
 }
 
 var modelConfig *modelConfigService

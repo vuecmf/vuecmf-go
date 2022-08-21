@@ -15,7 +15,7 @@ import (
 
 // fieldOptionService fieldOption服务结构
 type fieldOptionService struct {
-	*base
+	*baseService
 }
 
 var fieldOption *fieldOptionService
@@ -30,7 +30,7 @@ func FieldOption() *fieldOptionService {
 
 // 模型的字段选项
 type modelFieldOption struct {
-	FieldId int
+	FieldId     int
 	OptionValue string
 	OptionLabel string
 }
@@ -74,7 +74,6 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 		helper.FormatTree(tree, db, ns.TableName(tableName), "id", 0, labelFieldName, "pid", orderField, 1)
 		list[pidFieldId] = tree
 	}
-
 
 	return list, nil
 }

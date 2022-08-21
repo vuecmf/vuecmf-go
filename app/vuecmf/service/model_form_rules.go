@@ -12,7 +12,7 @@ import "strings"
 
 // modelFormRulesService modelFormRules服务结构
 type modelFormRulesService struct {
-	*base
+	*baseService
 }
 
 var modelFormRules *modelFormRulesService

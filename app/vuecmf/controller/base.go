@@ -12,7 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
+
+type Base struct {
+	TableName string
+	Model     interface{}
+}
 
 // common 控制器公共入口方法
 func common(c *gin.Context, formParams interface{}, fun func() (interface{}, error)) {
@@ -37,4 +43,21 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 	}
 
 	app.Response(c).SendSuccess("请求成功", list)
+}
+
+// Detail 根据ID获取详情
+func (ctrl *Base) Detail(c *gin.Context) {
+	data := &model.DataIdForm{}
+	common(c, data, func() (interface{}, error) {
+		err := service.Base().Detail(data.Data.Id, ctrl.Model)
+		return ctrl.Model, err
+	})
+}
+
+// Dropdown 下拉列表数据
+func (ctrl *Base) Dropdown(c *gin.Context) {
+	data := &model.DataDropdownForm{}
+	common(c, data, func() (interface{}, error) {
+		return service.Base().Dropdown(data.Data, ctrl.TableName)
+	})
 }

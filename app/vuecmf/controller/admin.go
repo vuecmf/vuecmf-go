@@ -10,9 +10,7 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
@@ -20,15 +18,19 @@ import (
 )
 
 type Admin struct {
+	Base
 }
 
 func init() {
-	route.Register(&Admin{}, "GET|POST", "vuecmf")
+	admin := &Admin{}
+	admin.TableName = "admin"
+	admin.Model = &model.Admin{}
+	route.Register(admin, "GET|POST", "vuecmf")
 }
 
 // Index 列表页
 func (ctrl *Admin) Index(c *gin.Context) {
-	app.Cache().Set("hello", "123456")
+	//app.Cache().Set("hello", "123456")
 
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
@@ -39,7 +41,6 @@ func (ctrl *Admin) Index(c *gin.Context) {
 // Save 新增/更新 单条数据
 func (ctrl *Admin) Save(c *gin.Context) {
 	data := &model.DataAdminForm{}
-
 	common(c, data, func() (interface{}, error) {
 		if data.Data.Id == 0 {
 			return service.Admin().Create(data.Data)
@@ -48,7 +49,6 @@ func (ctrl *Admin) Save(c *gin.Context) {
 		}
 	})
 }
-
 
 // Saveall 批量添加多条数据
 func (ctrl *Admin) Saveall(c *gin.Context) {
@@ -63,21 +63,21 @@ func (ctrl *Admin) Saveall(c *gin.Context) {
 	})
 }
 
-// Detail 根据ID获取详情
+/*// Detail 根据ID获取详情
 func (ctrl *Admin) Detail(c *gin.Context) {
 	data := &model.DataIdForm{}
 	common(c, data, func() (interface{}, error) {
 		var result model.Admin
-		err := service.Admin().Detail(data.Id, &result)
+		err := service.Admin().Detail(data.Data.Id, &result)
 		return result, err
 	})
-}
+}*/
 
 // Delete 根据ID删除单条数据
 func (ctrl *Admin) Delete(c *gin.Context) {
 	data := &model.DataIdForm{}
 	common(c, data, func() (interface{}, error) {
-		return service.Admin().Delete(data.Id, &model.Admin{})
+		return service.Admin().Delete(data.Data.Id, &model.Admin{})
 	})
 }
 
@@ -85,20 +85,20 @@ func (ctrl *Admin) Delete(c *gin.Context) {
 func (ctrl *Admin) Deletebatch(c *gin.Context) {
 	data := &model.DataIdListForm{}
 	common(c, data, func() (interface{}, error) {
-		return service.Admin().DeleteBatch(data.IdList, &model.Admin{})
+		return service.Admin().DeleteBatch(data.Data.IdList, &model.Admin{})
 	})
 }
 
-
-func (ctrl *Admin) Dropdown(c *gin.Context) {
-
-}
-
-
-
+// Dropdown 下拉列表数据
+/*func (ctrl *Admin) Dropdown(c *gin.Context) {
+	data := &model.DataDropdownForm{}
+	common(c, data, func() (interface{}, error) {
+		return service.Admin().Dropdown(data.Data, "admin")
+	})
+}*/
 
 func (ctrl *Admin) Login(c *gin.Context) {
-	login := &model.LoginForm{
+	/*login := &model.LoginForm{
 		Username: "haha",
 		Password: "123456",
 	}
@@ -112,12 +112,11 @@ func (ctrl *Admin) Login(c *gin.Context) {
 
 	var str string
 	app.Cache().Get("hello", &str)
-	fmt.Println("str cache = ", str)
-
+	fmt.Println("str cache = ", str)*/
 
 	loginForm := &model.LoginForm{}
 	common(c, loginForm, func() (interface{}, error) {
-		fmt.Println(c.Get("bbb"))
+		//fmt.Println(c.Get("bbb"))
 
 		return loginForm, nil
 	})

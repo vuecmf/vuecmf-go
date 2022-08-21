@@ -16,7 +16,7 @@ import (
 
 // modelRelationService modelRelation服务结构
 type modelRelationService struct {
-	*base
+	*baseService
 }
 
 var modelRelation *modelRelationService
@@ -30,14 +30,14 @@ func ModelRelation() *modelRelationService {
 }
 
 type modelRelationInfo struct {
-	Options interface{} `json:"options"`
-	Linkage interface{} `json:"linkage"`
+	Options     interface{} `json:"options"`
+	Linkage     interface{} `json:"linkage"`
 	FullOptions interface{} `json:"full_options"`
 }
 
 type fieldInfoST struct {
-	FieldId int
-	LinkageFieldId int
+	FieldId         int
+	LinkageFieldId  int
 	LinkageActionId int
 }
 
@@ -46,7 +46,7 @@ type actionInfoST struct {
 }
 
 //modelRelationService 联动关联字段信息
-func (ser *modelRelationService) getRelationLinkage (modelId int) interface{} {
+func (ser *modelRelationService) getRelationLinkage(modelId int) interface{} {
 	var fieldInfo []fieldInfoST
 	var result = make(map[int]map[int]map[string]string)
 
@@ -59,9 +59,9 @@ func (ser *modelRelationService) getRelationLinkage (modelId int) interface{} {
 
 	for _, val := range fieldInfo {
 		var actionInfo actionInfoST
-		db.Table(ns.TableName("model_action") + " MA").
+		db.Table(ns.TableName("model_action")+" MA").
 			Select("MA.action_type, MC.table_name").
-			Joins("LEFT JOIN " + ns.TableName("model_config") + " MC ON MA.model_id = MC.id").
+			Joins("LEFT JOIN "+ns.TableName("model_config")+" MC ON MA.model_id = MC.id").
 			Where("MA.id = ?", val.LinkageActionId).
 			Where("MA.status = 10").
 			Where("MC.status = 10").
@@ -85,30 +85,30 @@ func (ser *modelRelationService) getRelationLinkage (modelId int) interface{} {
 
 // 关联模型的字段信息
 type relationFieldInfo struct {
-	FieldId int  //字段ID
-	RelationModelId int  //关联模型ID
-	RelationTableName string //关联模型的表名
-	RelationFieldName string //关联模型的字段名
-	RelationShowFieldId string  //需关联显示的字段ID,多个逗号分隔
+	FieldId             int    //字段ID
+	RelationModelId     int    //关联模型ID
+	RelationTableName   string //关联模型的表名
+	RelationFieldName   string //关联模型的字段名
+	RelationShowFieldId string //需关联显示的字段ID,多个逗号分隔
 }
 
 // 关联的字段选项信息
 type relationOptions struct {
-	Label string
+	Label     string
 	FieldName string
 }
 
 // getRelationOptions 关联模型的数据列表
-func (ser *modelRelationService) getRelationOptions (modelId int, filter map[string]interface{}) interface{} {
+func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}) interface{} {
 	var fieldInfo []relationFieldInfo
 	result := map[int]map[string]string{}
 	options := map[string]string{}
 
 	//先取出有关联表的字段及关联信息
-	db.Table(ns.TableName("model_relation") + " VMR").
+	db.Table(ns.TableName("model_relation")+" VMR").
 		Select("model_field_id field_id, relation_model_id, MC.table_name relation_table_name, VMF.field_name relation_field_name, relation_show_field_id").
-		Joins("LEFT JOIN " + ns.TableName("model_field") + " VMF ON VMF.id = VMR.relation_field_id").
-		Joins("LEFT JOIN " + ns.TableName("model_config") + " MC ON MC.id = VMR.relation_model_id").
+		Joins("LEFT JOIN "+ns.TableName("model_field")+" VMF ON VMF.id = VMR.relation_field_id").
+		Joins("LEFT JOIN "+ns.TableName("model_config")+" MC ON MC.id = VMR.relation_model_id").
 		Where("VMR.relation_field_id != 0").
 		Where("VMR.model_id = ?", modelId).
 		Where("VMR.status = 10").
@@ -132,7 +132,7 @@ func (ser *modelRelationService) getRelationOptions (modelId int, filter map[str
 
 			var reOptions []relationOptions
 
-			if modelTableName == "model_form_rules" && val.RelationTableName == "model_form" && helper.InSlice("model_field_id", showFieldNameArr)  && helper.InSlice("type", showFieldNameArr) {
+			if modelTableName == "model_form_rules" && val.RelationTableName == "model_form" && helper.InSlice("model_field_id", showFieldNameArr) && helper.InSlice("type", showFieldNameArr) {
 				query := db.Table(ns.TableName(val.RelationTableName) + " A").
 					Select("concat(F.field_name,\"(\",F.label,\")-\",FP.option_label) label, A." + val.RelationFieldName + " field_name").
 					Joins("LEFT JOIN " + ns.TableName("model_field") + " F ON F.id = A.model_field_id and F.status = 10").
@@ -147,13 +147,13 @@ func (ser *modelRelationService) getRelationOptions (modelId int, filter map[str
 
 				query.Find(&reOptions)
 
-			}else{
+			} else {
 				showFieldStr := "id"
 				if len(showFieldNameArr) > 0 {
 					showFieldStr = showFieldNameArr[0]
 					helper.SliceRemove(showFieldNameArr, 0)
 					if len(showFieldNameArr) > 0 {
-						showFieldStr = "concat(" + showFieldStr + ",'('," + strings.Join(showFieldNameArr,",'-',") + ",')')"
+						showFieldStr = "concat(" + showFieldStr + ",'('," + strings.Join(showFieldNameArr, ",'-',") + ",')')"
 					}
 				}
 
@@ -161,7 +161,7 @@ func (ser *modelRelationService) getRelationOptions (modelId int, filter map[str
 					Select(showFieldStr + " label," + val.RelationFieldName + " field_name").
 					Where("status = 10")
 
-				if filter != nil && helper.InSlice(val.RelationTableName, []string{"model_field","model_action"}) {
+				if filter != nil && helper.InSlice(val.RelationTableName, []string{"model_field", "model_action"}) {
 					for field, filterVal := range filter {
 						if field == "model_id" {
 							//取出所关联的模型ID
@@ -169,10 +169,10 @@ func (ser *modelRelationService) getRelationOptions (modelId int, filter map[str
 							db.Table(ns.TableName("model_relation")).Select("relation_model_id").
 								Where("model_id = ?", filterVal).Find(&modelIdArr)
 							modelIdArr = append(modelIdArr, helper.InterfaceToInt(filterVal))
-							query = query.Where(field + " IN ?", modelIdArr)
+							query = query.Where(field+" IN ?", modelIdArr)
 
 						} else {
-							query = query.Where(field + " = ?", filterVal)
+							query = query.Where(field+" = ?", filterVal)
 						}
 					}
 				}
@@ -195,7 +195,7 @@ func (ser *modelRelationService) getRelationOptions (modelId int, filter map[str
 }
 
 // GetRelationInfo 获取模型的关联信息
-func (ser *modelRelationService) GetRelationInfo (modelId int, filter map[string]interface{}) *modelRelationInfo {
+func (ser *modelRelationService) GetRelationInfo(modelId int, filter map[string]interface{}) *modelRelationInfo {
 	mri := &modelRelationInfo{}
 
 	//供表单中与之相关的下拉框联动变化

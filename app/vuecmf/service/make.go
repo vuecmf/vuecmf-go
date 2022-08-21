@@ -19,7 +19,7 @@ import (
 
 // makeService make服务结构
 type makeService struct {
-	*base
+	*baseService
 }
 
 // modelRules 表单规则

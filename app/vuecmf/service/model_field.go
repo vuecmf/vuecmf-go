@@ -10,7 +10,7 @@ package service
 
 // modelFieldService modelField服务结构
 type modelFieldService struct {
-	*base
+	*baseService
 }
 
 var modelField *modelFieldService

@@ -15,7 +15,7 @@ import (
 
 // adminService admin服务结构
 type adminService struct {
-	*base
+	*baseService
 	TableName string
 }
 

@@ -17,46 +17,46 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
-type Roles struct {
+type Upload struct {
 	Base
 }
 
 func init() {
-	roles := &Roles{}
-	roles.TableName = "roles"
-	roles.Model = &model.Roles{}
-	route.Register(roles, "POST", "vuecmf")
+	upload := &Upload{}
+	upload.TableName = "upload"
+	upload.Model = &model.Upload{}
+	route.Register(upload, "POST", "vuecmf")
 }
 
 // Index 列表页
-func (ctrl *Roles) Index(c *gin.Context) {
+func (ctrl *Upload) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.Roles().List(listParams)
+		return service.Upload().List(listParams)
 	})
 }
 
 // Save 新增/更新 单条数据
-func (ctrl *Roles) Save(c *gin.Context) {
-	data := &model.DataRolesForm{}
+func (ctrl *Upload) Save(c *gin.Context) {
+	data := &model.DataUploadForm{}
 	common(c, data, func() (interface{}, error) {
 		if data.Data.Id == 0 {
-			return service.Roles().Create(data.Data)
+			return service.Upload().Create(data.Data)
 		} else {
-			return service.Roles().Update(data.Data)
+			return service.Upload().Update(data.Data)
 		}
 	})
 }
 
 // Saveall 批量添加多条数据
-func (ctrl *Roles) Saveall(c *gin.Context) {
+func (ctrl *Upload) Saveall(c *gin.Context) {
 	data := &model.DataBatchForm{}
 	common(c, data, func() (interface{}, error) {
-		var dataBatch []model.Roles
+		var dataBatch []model.Upload
 		err := json.Unmarshal([]byte(data.Data), &dataBatch)
 		if err != nil {
 			return nil, err
 		}
-		return service.Roles().Create(dataBatch)
+		return service.Upload().Create(dataBatch)
 	})
 }

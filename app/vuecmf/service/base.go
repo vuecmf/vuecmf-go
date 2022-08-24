@@ -9,7 +9,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
@@ -95,7 +94,7 @@ func (b *baseService) getList(dataList interface{}, tableName string, params *he
 		query = query.Order(orderField)
 	}
 
-	query.Find(dataList)
+	query.Find(&dataList)
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数
@@ -112,8 +111,7 @@ func (b *baseService) Update(data interface{}) (int64, error) {
 
 // Detail 根据ID获取详情
 func (b *baseService) Detail(id uint, result interface{}) error {
-	fmt.Println("id = ", id)
-	res := db.First(result, id)
+	res := db.First(&result, id)
 	return res.Error
 }
 

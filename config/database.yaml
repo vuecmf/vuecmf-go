@@ -9,7 +9,7 @@ default:
   prefix: vuecmf_
   max_idle_conn_nums: 10
   max_open_conn_nums: 100
-  conn_max_lifetime: 60
+  conn_max_lifetime: 2
   debug: true
 
 vuecmf:

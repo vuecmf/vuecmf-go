@@ -7,7 +7,6 @@ import (
 	"log"
 )
 
-
 func main() {
 	engine := gin.Default()
 

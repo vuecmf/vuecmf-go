@@ -34,18 +34,14 @@ type databaseConf struct {
 	Debug           bool   `yaml:"debug"`
 }
 
-// database database结构
-type database struct {
-	db *gorm.DB
-}
-
 var conf = make(map[string]databaseConf)
+var conn = make(map[string]*gorm.DB)
 
 // Connect 连接数据库
-func (conn *database) connect(confName string) *gorm.DB {
+func connect(confName string) *gorm.DB {
 	_, isExist := conf[confName]
-	if isExist {
-		return conn.db
+	if isExist && conn[confName] != nil {
+		return conn[confName]
 	}
 
 	confContent, err := os.Open("config/database.yaml")
@@ -67,7 +63,8 @@ func (conn *database) connect(confName string) *gorm.DB {
 		":" + cfg.Port + ")/" + cfg.Database + "?charset=" + cfg.Charset +
 		"&parseTime=True&loc=Local"
 
-	db, err2 := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	var err2 error
+	conn[confName], err2 = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   cfg.Prefix, // 表前缀
 			SingularTable: true,       // 使用单数表名
@@ -79,10 +76,10 @@ func (conn *database) connect(confName string) *gorm.DB {
 	}
 
 	if cfg.Debug {
-		db = db.Debug()
+		conn[confName] = conn[confName].Debug()
 	}
 
-	sqlDB, err3 := db.DB()
+	sqlDB, err3 := conn[confName].DB()
 	if err3 != nil {
 		log.Fatal("获取SQL DB 失败")
 	}
@@ -96,17 +93,16 @@ func (conn *database) connect(confName string) *gorm.DB {
 	// SetConnMaxLifetime 设置了连接可复用的最大时间。
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime * int64(time.Minute)))
 
-	conn.db = db
-	return conn.db
+	return conn[confName]
 }
 
-var db *database
+
 
 // Db 获取数据库连接
 //    参数：confName 数据库配置名称
 func Db(confName string) *gorm.DB {
-	if db == nil {
-		db = &database{}
+	if conn[confName] == nil {
+		conn[confName] = connect(confName)
 	}
-	return db.connect(confName)
+	return conn[confName]
 }

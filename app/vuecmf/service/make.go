@@ -226,6 +226,7 @@ func (makeSer *makeService) Service(tableName string) error {
 //		  参数：tableName string 表名（不带表前缀）
 func (makeSer *makeService) Controller(tableName string) error {
 	controllerName := helper.UnderToCamel(tableName)
+	contrlValName := strings.ToLower(controllerName)
 
 	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/controller.stub")
 	if err != nil {
@@ -234,6 +235,7 @@ func (makeSer *makeService) Controller(tableName string) error {
 
 	txt := string(tplContent)
 	txt = strings.Replace(txt, "{{.controller_name}}", controllerName, -1)
+	txt = strings.Replace(txt, "{{.controller_var_name}}", contrlValName, -1)
 
 	err = ioutil.WriteFile("app/vuecmf/controller/"+tableName+".go", []byte(txt), 0666)
 	return err

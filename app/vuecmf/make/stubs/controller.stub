@@ -18,10 +18,14 @@ import (
 )
 
 type {{.controller_name}} struct {
+    Base
 }
 
 func init() {
-	route.Register(&{{.controller_name}}{}, "POST", "vuecmf")
+    {{.controller_var_name}} := &{{.controller_name}}{}
+	{{.controller_var_name}}.TableName = "{{.controller_var_name}}"
+	{{.controller_var_name}}.Model = &model.{{.controller_name}}{}
+	route.Register({{.controller_var_name}}, "POST", "vuecmf")
 }
 
 // Index 列表页
@@ -57,36 +61,3 @@ func (ctrl *{{.controller_name}}) Saveall(c *gin.Context) {
 	})
 }
 
-// Detail 根据ID获取详情
-func (ctrl *{{.controller_name}}) Detail(c *gin.Context) {
-	data := &model.DataIdForm{}
-	common(c, data, func() (interface{}, error) {
-		var result model.{{.controller_name}}
-		err := service.{{.controller_name}}().Detail(data.Data.Id, &result)
-		return result, err
-	})
-}
-
-// Delete 根据ID删除单条数据
-func (ctrl *{{.controller_name}}) Delete(c *gin.Context) {
-	data := &model.DataIdForm{}
-	common(c, data, func() (interface{}, error) {
-		return service.{{.controller_name}}().Delete(data.Data.Id, &model.{{.controller_name}}{})
-	})
-}
-
-// Deletebatch 根据ID列表批量删除多条数据
-func (ctrl *{{.controller_name}}) Deletebatch(c *gin.Context) {
-	data := &model.DataIdListForm{}
-	common(c, data, func() (interface{}, error) {
-		return service.{{.controller_name}}().DeleteBatch(data.Data.IdList, &model.{{.controller_name}}{})
-	})
-}
-
-// Dropdown 下拉列表数据
-func (ctrl *{{.controller_name}}) Dropdown(c *gin.Context) {
-	data := &model.DataDropdownForm{}
-	common(c, data, func() (interface{}, error) {
-		return service.{{.controller_name}}().Dropdown(data.Data, "{{.controller_name}}")
-	})
-}

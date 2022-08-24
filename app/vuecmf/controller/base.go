@@ -54,6 +54,22 @@ func (ctrl *Base) Detail(c *gin.Context) {
 	})
 }
 
+// Delete 根据ID删除单条数据
+func (ctrl *Base) Delete(c *gin.Context) {
+	data := &model.DataIdForm{}
+	common(c, data, func() (interface{}, error) {
+		return service.Base().Delete(data.Data.Id, ctrl.Model)
+	})
+}
+
+// Deletebatch 根据ID列表批量删除多条数据
+func (ctrl *Admin) Deletebatch(c *gin.Context) {
+	data := &model.DataIdListForm{}
+	common(c, data, func() (interface{}, error) {
+		return service.Base().DeleteBatch(data.Data.IdList, ctrl.Model)
+	})
+}
+
 // Dropdown 下拉列表数据
 func (ctrl *Base) Dropdown(c *gin.Context) {
 	data := &model.DataDropdownForm{}

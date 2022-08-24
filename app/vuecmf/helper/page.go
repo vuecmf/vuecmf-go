@@ -9,6 +9,7 @@
 package helper
 
 import (
+	"errors"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"strings"
@@ -43,7 +44,7 @@ type page struct {
 //		params POST请求传递的参数
 func (p *page) Filter(model interface{}, params *DataListParams) (interface{}, error) {
 	if params.Data == nil {
-		panic("请求参数data不能为空")
+		return nil, errors.New("请求参数data不能为空")
 	}
 	data := params.Data
 

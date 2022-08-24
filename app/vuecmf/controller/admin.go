@@ -63,40 +63,6 @@ func (ctrl *Admin) Saveall(c *gin.Context) {
 	})
 }
 
-/*// Detail 根据ID获取详情
-func (ctrl *Admin) Detail(c *gin.Context) {
-	data := &model.DataIdForm{}
-	common(c, data, func() (interface{}, error) {
-		var result model.Admin
-		err := service.Admin().Detail(data.Data.Id, &result)
-		return result, err
-	})
-}*/
-
-// Delete 根据ID删除单条数据
-func (ctrl *Admin) Delete(c *gin.Context) {
-	data := &model.DataIdForm{}
-	common(c, data, func() (interface{}, error) {
-		return service.Admin().Delete(data.Data.Id, &model.Admin{})
-	})
-}
-
-// Deletebatch 根据ID列表批量删除多条数据
-func (ctrl *Admin) Deletebatch(c *gin.Context) {
-	data := &model.DataIdListForm{}
-	common(c, data, func() (interface{}, error) {
-		return service.Admin().DeleteBatch(data.Data.IdList, &model.Admin{})
-	})
-}
-
-// Dropdown 下拉列表数据
-/*func (ctrl *Admin) Dropdown(c *gin.Context) {
-	data := &model.DataDropdownForm{}
-	common(c, data, func() (interface{}, error) {
-		return service.Admin().Dropdown(data.Data, "admin")
-	})
-}*/
-
 func (ctrl *Admin) Login(c *gin.Context) {
 	/*login := &model.LoginForm{
 		Username: "haha",

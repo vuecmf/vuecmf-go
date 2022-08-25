@@ -23,7 +23,7 @@ type ModelFormLinkage struct {
 
 func init() {
     modelformlinkage := &ModelFormLinkage{}
-	modelformlinkage.TableName = "modelformlinkage"
+	modelformlinkage.TableName = "model_form_linkage"
 	modelformlinkage.Model = &model.ModelFormLinkage{}
 	route.Register(modelformlinkage, "POST", "vuecmf")
 }

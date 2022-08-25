@@ -23,7 +23,7 @@ type {{.controller_name}} struct {
 
 func init() {
     {{.controller_var_name}} := &{{.controller_name}}{}
-	{{.controller_var_name}}.TableName = "{{.controller_var_name}}"
+	{{.controller_var_name}}.TableName = "{{.table_name}}"
 	{{.controller_var_name}}.Model = &model.{{.controller_name}}{}
 	route.Register({{.controller_var_name}}, "POST", "vuecmf")
 }

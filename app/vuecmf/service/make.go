@@ -242,6 +242,7 @@ func (makeSer *makeService) Controller(tableName string) error {
 	txt := string(tplContent)
 	txt = strings.Replace(txt, "{{.controller_name}}", controllerName, -1)
 	txt = strings.Replace(txt, "{{.controller_var_name}}", contrlValName, -1)
+	txt = strings.Replace(txt, "{{.table_name}}", tableName, -1)
 
 	err = ioutil.WriteFile("app/vuecmf/controller/"+tableName+".go", []byte(txt), 0666)
 	return err

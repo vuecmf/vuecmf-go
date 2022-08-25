@@ -23,7 +23,7 @@ type ModelRelation struct {
 
 func init() {
     modelrelation := &ModelRelation{}
-	modelrelation.TableName = "modelrelation"
+	modelrelation.TableName = "model_relation"
 	modelrelation.Model = &model.ModelRelation{}
 	route.Register(modelrelation, "POST", "vuecmf")
 }

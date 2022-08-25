@@ -18,22 +18,22 @@ import (
 )
 
 type ModelAction struct {
-    Base
+	Base
 }
 
 func init() {
-    modelaction := &ModelAction{}
-	modelaction.TableName = "modelaction"
+	modelaction := &ModelAction{}
+	modelaction.TableName = "model_action"
 	modelaction.Model = &model.ModelAction{}
 	route.Register(modelaction, "POST", "vuecmf")
 }
 
 // Index 列表页
 func (ctrl *ModelAction) Index(c *gin.Context) {
-    listParams := &helper.DataListParams{}
+	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
 		var result []model.ModelAction
-        return service.Base().CommonList(result, ctrl.TableName, listParams)
+		return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 
@@ -61,4 +61,3 @@ func (ctrl *ModelAction) Saveall(c *gin.Context) {
 		return service.ModelAction().Create(dataBatch)
 	})
 }
-

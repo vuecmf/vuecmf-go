@@ -23,7 +23,7 @@ type ModelForm struct {
 
 func init() {
     modelform := &ModelForm{}
-	modelform.TableName = "modelform"
+	modelform.TableName = "model_form"
 	modelform.Model = &model.ModelForm{}
 	route.Register(modelform, "POST", "vuecmf")
 }

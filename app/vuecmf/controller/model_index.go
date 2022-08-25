@@ -23,7 +23,7 @@ type ModelIndex struct {
 
 func init() {
     modelindex := &ModelIndex{}
-	modelindex.TableName = "modelindex"
+	modelindex.TableName = "model_index"
 	modelindex.Model = &model.ModelIndex{}
 	route.Register(modelindex, "POST", "vuecmf")
 }

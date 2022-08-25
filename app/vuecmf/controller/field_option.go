@@ -18,11 +18,11 @@ import (
 )
 
 type FieldOption struct {
-	Base
+    Base
 }
 
 func init() {
-	fieldoption := &FieldOption{}
+    fieldoption := &FieldOption{}
 	fieldoption.TableName = "fieldoption"
 	fieldoption.Model = &model.FieldOption{}
 	route.Register(fieldoption, "POST", "vuecmf")
@@ -30,9 +30,10 @@ func init() {
 
 // Index 列表页
 func (ctrl *FieldOption) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
+    listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.FieldOption().List(listParams)
+		var result []model.FieldOption
+        return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 
@@ -60,3 +61,4 @@ func (ctrl *FieldOption) Saveall(c *gin.Context) {
 		return service.FieldOption().Create(dataBatch)
 	})
 }
+

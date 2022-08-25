@@ -8,17 +8,17 @@
 // +----------------------------------------------------------------------
 package service
 
-// adminService admin服务结构
-type adminService struct {
+// modelIndexService modelIndex服务结构
+type modelIndexService struct {
 	*baseService
 }
 
-var admin *adminService
+var modelIndex *modelIndexService
 
-// Admin 获取admin服务实例
-func Admin() *adminService {
-	if admin == nil {
-		admin = &adminService{}
+// ModelIndex 获取modelIndex服务实例
+func ModelIndex() *modelIndexService {
+	if modelIndex == nil {
+		modelIndex = &modelIndexService{}
 	}
-	return admin
+	return modelIndex
 }

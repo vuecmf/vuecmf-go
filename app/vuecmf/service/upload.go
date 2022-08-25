@@ -8,17 +8,17 @@
 // +----------------------------------------------------------------------
 package service
 
-// adminService admin服务结构
-type adminService struct {
+// uploadService upload服务结构
+type uploadService struct {
 	*baseService
 }
 
-var admin *adminService
+var upload *uploadService
 
-// Admin 获取admin服务实例
-func Admin() *adminService {
-	if admin == nil {
-		admin = &adminService{}
+// Upload 获取upload服务实例
+func Upload() *uploadService {
+	if upload == nil {
+		upload = &uploadService{}
 	}
-	return admin
+	return upload
 }

@@ -18,11 +18,11 @@ import (
 )
 
 type ModelIndex struct {
-	Base
+    Base
 }
 
 func init() {
-	modelindex := &ModelIndex{}
+    modelindex := &ModelIndex{}
 	modelindex.TableName = "modelindex"
 	modelindex.Model = &model.ModelIndex{}
 	route.Register(modelindex, "POST", "vuecmf")
@@ -30,9 +30,10 @@ func init() {
 
 // Index 列表页
 func (ctrl *ModelIndex) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
+    listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.ModelIndex().List(listParams)
+		var result []model.ModelIndex
+        return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 
@@ -60,3 +61,4 @@ func (ctrl *ModelIndex) Saveall(c *gin.Context) {
 		return service.ModelIndex().Create(dataBatch)
 	})
 }
+

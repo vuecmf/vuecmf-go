@@ -8,17 +8,17 @@
 // +----------------------------------------------------------------------
 package service
 
-// adminService admin服务结构
-type adminService struct {
+// modelFormLinkageService modelFormLinkage服务结构
+type modelFormLinkageService struct {
 	*baseService
 }
 
-var admin *adminService
+var modelFormLinkage *modelFormLinkageService
 
-// Admin 获取admin服务实例
-func Admin() *adminService {
-	if admin == nil {
-		admin = &adminService{}
+// ModelFormLinkage 获取modelFormLinkage服务实例
+func ModelFormLinkage() *modelFormLinkageService {
+	if modelFormLinkage == nil {
+		modelFormLinkage = &modelFormLinkageService{}
 	}
-	return admin
+	return modelFormLinkage
 }

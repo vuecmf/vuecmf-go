@@ -18,11 +18,11 @@ import (
 )
 
 type ModelFormRules struct {
-	Base
+    Base
 }
 
 func init() {
-	modelformrules := &ModelFormRules{}
+    modelformrules := &ModelFormRules{}
 	modelformrules.TableName = "modelformrules"
 	modelformrules.Model = &model.ModelFormRules{}
 	route.Register(modelformrules, "POST", "vuecmf")
@@ -30,9 +30,10 @@ func init() {
 
 // Index 列表页
 func (ctrl *ModelFormRules) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
+    listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.ModelFormRules().List(listParams)
+		var result []model.ModelFormRules
+        return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 
@@ -60,3 +61,4 @@ func (ctrl *ModelFormRules) Saveall(c *gin.Context) {
 		return service.ModelFormRules().Create(dataBatch)
 	})
 }
+

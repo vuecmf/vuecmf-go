@@ -18,11 +18,11 @@ import (
 )
 
 type ModelField struct {
-	Base
+    Base
 }
 
 func init() {
-	modelfield := &ModelField{}
+    modelfield := &ModelField{}
 	modelfield.TableName = "modelfield"
 	modelfield.Model = &model.ModelField{}
 	route.Register(modelfield, "POST", "vuecmf")
@@ -30,9 +30,10 @@ func init() {
 
 // Index 列表页
 func (ctrl *ModelField) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
+    listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.ModelField().List(listParams)
+		var result []model.ModelField
+        return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 
@@ -60,3 +61,4 @@ func (ctrl *ModelField) Saveall(c *gin.Context) {
 		return service.ModelField().Create(dataBatch)
 	})
 }
+

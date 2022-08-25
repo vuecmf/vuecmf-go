@@ -38,8 +38,8 @@ type fullModelFields struct {
 	ModelId      int                       `json:"model_id"`
 }
 
-// commonList 公共列表 服务方法
-func (b *baseService) commonList(modelData interface{}, tableName string, params *helper.DataListParams) (interface{}, error) {
+// CommonList 公共列表 服务方法
+func (b *baseService) CommonList(modelData interface{}, tableName string, params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
 		return b.getFieldList(tableName, params.Data.Filter)
 	} else {
@@ -94,7 +94,7 @@ func (b *baseService) getList(dataList interface{}, tableName string, params *he
 		query = query.Order(orderField)
 	}
 
-	query.Find(&dataList)
+	query.Find(dataList)
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数

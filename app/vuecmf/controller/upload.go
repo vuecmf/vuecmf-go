@@ -18,11 +18,11 @@ import (
 )
 
 type Upload struct {
-	Base
+    Base
 }
 
 func init() {
-	upload := &Upload{}
+    upload := &Upload{}
 	upload.TableName = "upload"
 	upload.Model = &model.Upload{}
 	route.Register(upload, "POST", "vuecmf")
@@ -30,9 +30,10 @@ func init() {
 
 // Index 列表页
 func (ctrl *Upload) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
+    listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.Upload().List(listParams)
+		var result []model.Upload
+        return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 
@@ -60,3 +61,4 @@ func (ctrl *Upload) Saveall(c *gin.Context) {
 		return service.Upload().Create(dataBatch)
 	})
 }
+

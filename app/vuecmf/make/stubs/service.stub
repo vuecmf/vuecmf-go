@@ -10,7 +10,7 @@ package service
 
 // {{.service_name}}Service {{.service_name}}服务结构
 type {{.service_name}}Service struct {
-	*base
+	*baseService
 }
 
 var {{.service_name}} *{{.service_name}}Service

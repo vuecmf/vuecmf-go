@@ -18,11 +18,11 @@ import (
 )
 
 type ModelRelation struct {
-	Base
+    Base
 }
 
 func init() {
-	modelrelation := &ModelRelation{}
+    modelrelation := &ModelRelation{}
 	modelrelation.TableName = "modelrelation"
 	modelrelation.Model = &model.ModelRelation{}
 	route.Register(modelrelation, "POST", "vuecmf")
@@ -30,9 +30,10 @@ func init() {
 
 // Index 列表页
 func (ctrl *ModelRelation) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
+    listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.ModelRelation().List(listParams)
+		var result []model.ModelRelation
+        return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 
@@ -60,3 +61,4 @@ func (ctrl *ModelRelation) Saveall(c *gin.Context) {
 		return service.ModelRelation().Create(dataBatch)
 	})
 }
+

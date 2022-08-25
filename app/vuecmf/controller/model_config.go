@@ -18,11 +18,11 @@ import (
 )
 
 type ModelConfig struct {
-	Base
+    Base
 }
 
 func init() {
-	modelconfig := &ModelConfig{}
+    modelconfig := &ModelConfig{}
 	modelconfig.TableName = "modelconfig"
 	modelconfig.Model = &model.ModelConfig{}
 	route.Register(modelconfig, "POST", "vuecmf")
@@ -30,9 +30,10 @@ func init() {
 
 // Index 列表页
 func (ctrl *ModelConfig) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
+    listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.ModelConfig().List(listParams)
+		var result []model.ModelConfig
+        return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 
@@ -60,3 +61,4 @@ func (ctrl *ModelConfig) Saveall(c *gin.Context) {
 		return service.ModelConfig().Create(dataBatch)
 	})
 }
+

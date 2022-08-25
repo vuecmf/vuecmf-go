@@ -18,11 +18,11 @@ import (
 )
 
 type ModelFormLinkage struct {
-	Base
+    Base
 }
 
 func init() {
-	modelformlinkage := &ModelFormLinkage{}
+    modelformlinkage := &ModelFormLinkage{}
 	modelformlinkage.TableName = "modelformlinkage"
 	modelformlinkage.Model = &model.ModelFormLinkage{}
 	route.Register(modelformlinkage, "POST", "vuecmf")
@@ -30,9 +30,10 @@ func init() {
 
 // Index 列表页
 func (ctrl *ModelFormLinkage) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
+    listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.ModelFormLinkage().List(listParams)
+		var result []model.ModelFormLinkage
+        return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 
@@ -60,3 +61,4 @@ func (ctrl *ModelFormLinkage) Saveall(c *gin.Context) {
 		return service.ModelFormLinkage().Create(dataBatch)
 	})
 }
+

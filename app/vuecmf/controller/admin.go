@@ -34,7 +34,8 @@ func (ctrl *Admin) Index(c *gin.Context) {
 
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.Admin().List(listParams)
+		var result []model.Admin
+		return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
 }
 

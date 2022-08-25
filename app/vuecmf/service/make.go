@@ -228,7 +228,13 @@ func (makeSer *makeService) Controller(tableName string) error {
 	controllerName := helper.UnderToCamel(tableName)
 	contrlValName := strings.ToLower(controllerName)
 
-	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/controller.stub")
+	tplFile := "controller.stub"
+	modelConf := ModelConfig().GetModelConfig(tableName)
+	if modelConf.IsTree == true {
+		tplFile = "tree_controller.stub"
+	}
+
+	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/" + tplFile)
 	if err != nil {
 		return errors.New("读取controller模板失败")
 	}

@@ -8,17 +8,17 @@
 // +----------------------------------------------------------------------
 package service
 
-// adminService admin服务结构
-type adminService struct {
+// modelActionService modelAction服务结构
+type modelActionService struct {
 	*baseService
 }
 
-var admin *adminService
+var modelAction *modelActionService
 
-// Admin 获取admin服务实例
-func Admin() *adminService {
-	if admin == nil {
-		admin = &adminService{}
+// ModelAction 获取modelAction服务实例
+func ModelAction() *modelActionService {
+	if modelAction == nil {
+		modelAction = &modelActionService{}
 	}
-	return admin
+	return modelAction
 }

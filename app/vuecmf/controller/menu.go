@@ -32,7 +32,7 @@ func init() {
 func (ctrl *Menu) Index(c *gin.Context) {
     listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.Menu().List(listParams)
+        return service.Menu().List(listParams)
 	})
 }
 

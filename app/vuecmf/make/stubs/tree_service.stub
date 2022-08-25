@@ -15,7 +15,7 @@ import (
 
 // {{.service_name}}Service {{.service_name}}服务结构
 type {{.service_name}}Service struct {
-	*base
+	*baseService
 	TableName string
 }
 

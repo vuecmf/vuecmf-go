@@ -16,6 +16,7 @@ import (
 // fieldOptionService fieldOption服务结构
 type fieldOptionService struct {
 	*baseService
+	TableName string
 }
 
 var fieldOption *fieldOptionService

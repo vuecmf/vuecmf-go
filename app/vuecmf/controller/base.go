@@ -11,6 +11,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
@@ -18,6 +19,7 @@ import (
 type Base struct {
 	TableName string
 	Model     interface{}
+	listRes   interface{}
 }
 
 // common 控制器公共入口方法
@@ -44,6 +46,16 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 
 	app.Response(c).SendSuccess("请求成功", list)
 }
+
+// Index 列表页
+func (ctrl *Base) Index(c *gin.Context) {
+	listParams := &helper.DataListParams{}
+	common(c, listParams, func() (interface{}, error) {
+		//var result []model.Admin
+		return service.Base().CommonList(ctrl.listRes, ctrl.TableName, listParams)
+	})
+}
+
 
 // Detail 根据ID获取详情
 func (ctrl *Base) Detail(c *gin.Context) {
@@ -76,4 +88,25 @@ func (ctrl *Base) Dropdown(c *gin.Context) {
 	common(c, data, func() (interface{}, error) {
 		return service.Base().Dropdown(data.Data, ctrl.TableName)
 	})
+}
+
+
+func (ctrl *Base) Cache(c *gin.Context){
+	//app.Cache().Set("hello", "123456")
+
+	/*login := &model.LoginForm{
+		Username: "haha",
+		Password: "123456",
+	}
+
+	_ = app.Cache().Set("user", login)
+
+	var loginRes model.LoginForm
+	_ = app.Cache().Get("user", &loginRes)
+
+	fmt.Println("loginRes = ", loginRes)
+
+	var str string
+	app.Cache().Get("hello", &str)
+	fmt.Println("str cache = ", str)*/
 }

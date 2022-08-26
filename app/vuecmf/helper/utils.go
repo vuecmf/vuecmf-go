@@ -36,9 +36,9 @@ func CamelToUnder(str string) string {
 	var output []rune
 
 	for i, c := range str {
-		if i == 0 && c < 91 {
+		if i == 0 && c < 91 && c > 64 {
 			output = append(output, c+32)
-		} else if i > 0 && c < 91 {
+		} else if i > 0 && c < 91 && c > 64 {
 			output = append(output, 95)
 			output = append(output, c+32)
 		} else {

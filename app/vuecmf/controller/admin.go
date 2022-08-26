@@ -25,13 +25,12 @@ func init() {
 	admin := &Admin{}
 	admin.TableName = "admin"
 	admin.Model = &model.Admin{}
+	admin.listRes = []model.Admin{}
 	route.Register(admin, "GET|POST", "vuecmf")
 }
 
 // Index 列表页
 func (ctrl *Admin) Index(c *gin.Context) {
-	//app.Cache().Set("hello", "123456")
-
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
 		var result []model.Admin
@@ -65,22 +64,6 @@ func (ctrl *Admin) Saveall(c *gin.Context) {
 }
 
 func (ctrl *Admin) Login(c *gin.Context) {
-	/*login := &model.LoginForm{
-		Username: "haha",
-		Password: "123456",
-	}
-
-	_ = app.Cache().Set("user", login)
-
-	var loginRes model.LoginForm
-	_ = app.Cache().Get("user", &loginRes)
-
-	fmt.Println("loginRes = ", loginRes)
-
-	var str string
-	app.Cache().Get("hello", &str)
-	fmt.Println("str cache = ", str)*/
-
 	loginForm := &model.LoginForm{}
 	common(c, loginForm, func() (interface{}, error) {
 		//fmt.Println(c.Get("bbb"))

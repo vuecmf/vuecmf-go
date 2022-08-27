@@ -9,12 +9,9 @@
 package controller
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type Admin struct {
@@ -25,20 +22,22 @@ func init() {
 	admin := &Admin{}
 	admin.TableName = "admin"
 	admin.Model = &model.Admin{}
-	admin.listRes = []model.Admin{}
+	admin.listData = []model.Admin{}
+	admin.saveForm = &model.DataAdminForm{}
+
 	route.Register(admin, "GET|POST", "vuecmf")
 }
 
 // Index 列表页
-func (ctrl *Admin) Index(c *gin.Context) {
+/*func (ctrl *Admin) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
 		var result []model.Admin
 		return service.Base().CommonList(result, ctrl.TableName, listParams)
 	})
-}
+}*/
 
-// Save 新增/更新 单条数据
+/*// Save 新增/更新 单条数据
 func (ctrl *Admin) Save(c *gin.Context) {
 	data := &model.DataAdminForm{}
 	common(c, data, func() (interface{}, error) {
@@ -48,10 +47,10 @@ func (ctrl *Admin) Save(c *gin.Context) {
 			return service.Admin().Update(data.Data)
 		}
 	})
-}
+}*/
 
 // Saveall 批量添加多条数据
-func (ctrl *Admin) Saveall(c *gin.Context) {
+/*func (ctrl *Admin) Saveall(c *gin.Context) {
 	data := &model.DataBatchForm{}
 	common(c, data, func() (interface{}, error) {
 		var dataBatch []model.Admin
@@ -61,7 +60,7 @@ func (ctrl *Admin) Saveall(c *gin.Context) {
 		}
 		return service.Admin().Create(dataBatch)
 	})
-}
+}*/
 
 func (ctrl *Admin) Login(c *gin.Context) {
 	loginForm := &model.LoginForm{}

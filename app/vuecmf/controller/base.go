@@ -9,17 +9,20 @@
 package controller
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"reflect"
 )
 
 type Base struct {
-	TableName string
-	Model     interface{}
-	listRes   interface{}
+	TableName string	    //表名称
+	Model     interface{}   //表对应的模型实例
+	listData   interface{}   //存储列表结果
+	saveForm   interface{}  //保存单条数据的form
 }
 
 // common 控制器公共入口方法
@@ -51,11 +54,36 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 func (ctrl *Base) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		//var result []model.Admin
-		return service.Base().CommonList(ctrl.listRes, ctrl.TableName, listParams)
+		return service.Base().CommonList(ctrl.listData, ctrl.TableName, listParams)
 	})
 }
 
+// Save 新增/更新 单条数据
+func (ctrl *Admin) Save(c *gin.Context) {
+	common(c, ctrl.saveForm, func() (interface{}, error) {
+		data := reflect.ValueOf(ctrl.saveForm).Elem().FieldByName("Data").Interface()
+		id := reflect.ValueOf(data).Elem().FieldByName("Id").Interface()
+
+		if id == uint(0) {
+			return service.Base().Create(data)
+		} else {
+			return service.Base().Update(data)
+		}
+	})
+}
+
+// Saveall 批量添加多条数据
+func (ctrl *Admin) Saveall(c *gin.Context) {
+	data := &model.DataBatchForm{}
+	common(c, data, func() (interface{}, error) {
+		//var dataBatch []model.Admin
+		err := json.Unmarshal([]byte(data.Data), &ctrl.listData)
+		if err != nil {
+			return nil, err
+		}
+		return service.Base().Create(ctrl.listData)
+	})
+}
 
 // Detail 根据ID获取详情
 func (ctrl *Base) Detail(c *gin.Context) {

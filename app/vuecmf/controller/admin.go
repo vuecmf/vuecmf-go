@@ -22,7 +22,7 @@ func init() {
 	admin := &Admin{}
 	admin.TableName = "admin"
 	admin.Model = &model.Admin{}
-	admin.listData = []model.Admin{}
+	admin.listData = &[]model.Admin{}
 	admin.saveForm = &model.DataAdminForm{}
 
 	route.Register(admin, "GET|POST", "vuecmf")
@@ -63,12 +63,12 @@ func (ctrl *Admin) Save(c *gin.Context) {
 }*/
 
 func (ctrl *Admin) Login(c *gin.Context) {
-	loginForm := &model.LoginForm{}
+	/*loginForm := &model.LoginForm{}
 	common(c, loginForm, func() (interface{}, error) {
 		//fmt.Println(c.Get("bbb"))
 
 		return loginForm, nil
-	})
+	})*/
 
 	//获取输入内容
 	//app.Request(c).Input("post", &loginForm)

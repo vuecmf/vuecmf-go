@@ -9,7 +9,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
@@ -22,10 +21,13 @@ type {{.controller_name}} struct {
 }
 
 func init() {
-    {{.controller_var_name}} := &{{.controller_name}}{}
-	{{.controller_var_name}}.TableName = "{{.table_name}}"
-	{{.controller_var_name}}.Model = &model.{{.controller_name}}{}
-	route.Register({{.controller_var_name}}, "POST", "vuecmf")
+	{{.controller_var_name}} := &{{.controller_name}}{}
+    {{.controller_var_name}}.TableName = "{{.controller_var_name}}"
+    {{.controller_var_name}}.Model = &model.{{.controller_name}}{}
+    {{.controller_var_name}}.listData = &[]model.{{.controller_name}}{}
+    {{.controller_var_name}}.saveForm = &model.Data{{.controller_name}}Form{}
+
+    route.Register({{.controller_var_name}}, "POST", "vuecmf")
 }
 
 // Index 列表页
@@ -33,31 +35,6 @@ func (ctrl *{{.controller_name}}) Index(c *gin.Context) {
     listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
         return service.{{.controller_name}}().List(listParams)
-	})
-}
-
-// Save 新增/更新 单条数据
-func (ctrl *{{.controller_name}}) Save(c *gin.Context) {
-	data := &model.Data{{.controller_name}}Form{}
-	common(c, data, func() (interface{}, error) {
-		if data.Data.Id == 0 {
-			return service.{{.controller_name}}().Create(data.Data)
-		} else {
-			return service.{{.controller_name}}().Update(data.Data)
-		}
-	})
-}
-
-// Saveall 批量添加多条数据
-func (ctrl *{{.controller_name}}) Saveall(c *gin.Context) {
-	data := &model.DataBatchForm{}
-	common(c, data, func() (interface{}, error) {
-		var dataBatch []model.{{.controller_name}}
-		err := json.Unmarshal([]byte(data.Data), &dataBatch)
-		if err != nil {
-			return nil, err
-		}
-		return service.{{.controller_name}}().Create(dataBatch)
 	})
 }
 

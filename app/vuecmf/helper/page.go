@@ -87,7 +87,7 @@ func (p *page) Filter(model interface{}, params *DataListParams) (interface{}, e
 		query = query.Where(data.Filter)
 	}
 
-	query.Order(data.OrderField + " " + data.OrderSort).Find(&model)
+	query.Order(data.OrderField + " " + data.OrderSort).Find(model)
 	return model, nil
 }
 

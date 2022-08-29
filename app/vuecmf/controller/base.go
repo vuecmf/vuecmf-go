@@ -19,10 +19,10 @@ import (
 )
 
 type Base struct {
-	TableName string	    //表名称
-	Model     interface{}   //表对应的模型实例
-	listData   interface{}   //存储列表结果
-	saveForm   interface{}  //保存单条数据的form
+	TableName string      //表名称
+	Model     interface{} //表对应的模型实例
+	listData  interface{} //存储列表结果
+	saveForm  interface{} //保存单条数据的form
 }
 
 // common 控制器公共入口方法
@@ -118,8 +118,7 @@ func (ctrl *Base) Dropdown(c *gin.Context) {
 	})
 }
 
-
-func (ctrl *Base) Cache(c *gin.Context){
+func (ctrl *Base) Cache(c *gin.Context) {
 	//app.Cache().Set("hello", "123456")
 
 	/*login := &model.LoginForm{

@@ -9,55 +9,20 @@
 package controller
 
 import (
-	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type ModelAction struct {
-	Base
+    Base
 }
 
 func init() {
-	modelaction := &ModelAction{}
-	modelaction.TableName = "model_action"
-	modelaction.Model = &model.ModelAction{}
-	route.Register(modelaction, "POST", "vuecmf")
-}
+	modelAction := &ModelAction{}
+    modelAction.TableName = "model_action"
+    modelAction.Model = &model.ModelAction{}
+    modelAction.listData = &[]model.ModelAction{}
+    modelAction.saveForm = &model.DataModelActionForm{}
 
-// Index 列表页
-func (ctrl *ModelAction) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
-	common(c, listParams, func() (interface{}, error) {
-		var result []model.ModelAction
-		return service.Base().CommonList(result, ctrl.TableName, listParams)
-	})
-}
-
-// Save 新增/更新 单条数据
-func (ctrl *ModelAction) Save(c *gin.Context) {
-	data := &model.DataModelActionForm{}
-	common(c, data, func() (interface{}, error) {
-		if data.Data.Id == 0 {
-			return service.ModelAction().Create(data.Data)
-		} else {
-			return service.ModelAction().Update(data.Data)
-		}
-	})
-}
-
-// Saveall 批量添加多条数据
-func (ctrl *ModelAction) Saveall(c *gin.Context) {
-	data := &model.DataBatchForm{}
-	common(c, data, func() (interface{}, error) {
-		var dataBatch []model.ModelAction
-		err := json.Unmarshal([]byte(data.Data), &dataBatch)
-		if err != nil {
-			return nil, err
-		}
-		return service.ModelAction().Create(dataBatch)
-	})
+    route.Register(modelAction, "POST", "vuecmf")
 }

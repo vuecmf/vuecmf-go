@@ -9,12 +9,8 @@
 package controller
 
 import (
-	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type ModelRelation struct {
@@ -22,43 +18,11 @@ type ModelRelation struct {
 }
 
 func init() {
-    modelrelation := &ModelRelation{}
-	modelrelation.TableName = "model_relation"
-	modelrelation.Model = &model.ModelRelation{}
-	route.Register(modelrelation, "POST", "vuecmf")
-}
+	modelRelation := &ModelRelation{}
+    modelRelation.TableName = "model_relation"
+    modelRelation.Model = &model.ModelRelation{}
+    modelRelation.listData = &[]model.ModelRelation{}
+    modelRelation.saveForm = &model.DataModelRelationForm{}
 
-// Index 列表页
-func (ctrl *ModelRelation) Index(c *gin.Context) {
-    listParams := &helper.DataListParams{}
-	common(c, listParams, func() (interface{}, error) {
-		var result []model.ModelRelation
-        return service.Base().CommonList(result, ctrl.TableName, listParams)
-	})
+    route.Register(modelRelation, "POST", "vuecmf")
 }
-
-// Save 新增/更新 单条数据
-func (ctrl *ModelRelation) Save(c *gin.Context) {
-	data := &model.DataModelRelationForm{}
-	common(c, data, func() (interface{}, error) {
-		if data.Data.Id == 0 {
-			return service.ModelRelation().Create(data.Data)
-		} else {
-			return service.ModelRelation().Update(data.Data)
-		}
-	})
-}
-
-// Saveall 批量添加多条数据
-func (ctrl *ModelRelation) Saveall(c *gin.Context) {
-	data := &model.DataBatchForm{}
-	common(c, data, func() (interface{}, error) {
-		var dataBatch []model.ModelRelation
-		err := json.Unmarshal([]byte(data.Data), &dataBatch)
-		if err != nil {
-			return nil, err
-		}
-		return service.ModelRelation().Create(dataBatch)
-	})
-}
-

@@ -9,12 +9,8 @@
 package controller
 
 import (
-	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type ModelFormLinkage struct {
@@ -22,43 +18,11 @@ type ModelFormLinkage struct {
 }
 
 func init() {
-    modelformlinkage := &ModelFormLinkage{}
-	modelformlinkage.TableName = "model_form_linkage"
-	modelformlinkage.Model = &model.ModelFormLinkage{}
-	route.Register(modelformlinkage, "POST", "vuecmf")
-}
+	modelFormLinkage := &ModelFormLinkage{}
+    modelFormLinkage.TableName = "model_form_linkage"
+    modelFormLinkage.Model = &model.ModelFormLinkage{}
+    modelFormLinkage.listData = &[]model.ModelFormLinkage{}
+    modelFormLinkage.saveForm = &model.DataModelFormLinkageForm{}
 
-// Index 列表页
-func (ctrl *ModelFormLinkage) Index(c *gin.Context) {
-    listParams := &helper.DataListParams{}
-	common(c, listParams, func() (interface{}, error) {
-		var result []model.ModelFormLinkage
-        return service.Base().CommonList(result, ctrl.TableName, listParams)
-	})
+    route.Register(modelFormLinkage, "POST", "vuecmf")
 }
-
-// Save 新增/更新 单条数据
-func (ctrl *ModelFormLinkage) Save(c *gin.Context) {
-	data := &model.DataModelFormLinkageForm{}
-	common(c, data, func() (interface{}, error) {
-		if data.Data.Id == 0 {
-			return service.ModelFormLinkage().Create(data.Data)
-		} else {
-			return service.ModelFormLinkage().Update(data.Data)
-		}
-	})
-}
-
-// Saveall 批量添加多条数据
-func (ctrl *ModelFormLinkage) Saveall(c *gin.Context) {
-	data := &model.DataBatchForm{}
-	common(c, data, func() (interface{}, error) {
-		var dataBatch []model.ModelFormLinkage
-		err := json.Unmarshal([]byte(data.Data), &dataBatch)
-		if err != nil {
-			return nil, err
-		}
-		return service.ModelFormLinkage().Create(dataBatch)
-	})
-}
-

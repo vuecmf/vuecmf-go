@@ -226,7 +226,7 @@ func (makeSer *makeService) Service(tableName string) error {
 //		  参数：tableName string 表名（不带表前缀）
 func (makeSer *makeService) Controller(tableName string) error {
 	controllerName := helper.UnderToCamel(tableName)
-	contrlValName := strings.ToLower(controllerName)
+	ctrlValName := helper.ToFirstLower(controllerName)
 
 	tplFile := "controller.stub"
 	modelConf := ModelConfig().GetModelConfig(tableName)
@@ -241,7 +241,7 @@ func (makeSer *makeService) Controller(tableName string) error {
 
 	txt := string(tplContent)
 	txt = strings.Replace(txt, "{{.controller_name}}", controllerName, -1)
-	txt = strings.Replace(txt, "{{.controller_var_name}}", contrlValName, -1)
+	txt = strings.Replace(txt, "{{.controller_var_name}}", ctrlValName, -1)
 	txt = strings.Replace(txt, "{{.table_name}}", tableName, -1)
 
 	err = ioutil.WriteFile("app/vuecmf/controller/"+tableName+".go", []byte(txt), 0666)

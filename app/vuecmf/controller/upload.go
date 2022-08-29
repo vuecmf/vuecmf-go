@@ -9,12 +9,8 @@
 package controller
 
 import (
-	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type Upload struct {
@@ -22,43 +18,11 @@ type Upload struct {
 }
 
 func init() {
-    upload := &Upload{}
-	upload.TableName = "upload"
-	upload.Model = &model.Upload{}
-	route.Register(upload, "POST", "vuecmf")
-}
+	upload := &Upload{}
+    upload.TableName = "upload"
+    upload.Model = &model.Upload{}
+    upload.listData = &[]model.Upload{}
+    upload.saveForm = &model.DataUploadForm{}
 
-// Index 列表页
-func (ctrl *Upload) Index(c *gin.Context) {
-    listParams := &helper.DataListParams{}
-	common(c, listParams, func() (interface{}, error) {
-		var result []model.Upload
-        return service.Base().CommonList(result, ctrl.TableName, listParams)
-	})
+    route.Register(upload, "POST", "vuecmf")
 }
-
-// Save 新增/更新 单条数据
-func (ctrl *Upload) Save(c *gin.Context) {
-	data := &model.DataUploadForm{}
-	common(c, data, func() (interface{}, error) {
-		if data.Data.Id == 0 {
-			return service.Upload().Create(data.Data)
-		} else {
-			return service.Upload().Update(data.Data)
-		}
-	})
-}
-
-// Saveall 批量添加多条数据
-func (ctrl *Upload) Saveall(c *gin.Context) {
-	data := &model.DataBatchForm{}
-	common(c, data, func() (interface{}, error) {
-		var dataBatch []model.Upload
-		err := json.Unmarshal([]byte(data.Data), &dataBatch)
-		if err != nil {
-			return nil, err
-		}
-		return service.Upload().Create(dataBatch)
-	})
-}
-

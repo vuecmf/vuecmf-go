@@ -23,6 +23,13 @@ func ToFirstUpper(str string) string {
 	return string(strArr)
 }
 
+// ToFirstLower 字符串首字母转小写
+func ToFirstLower(str string) string {
+	strArr := []rune(str)
+	strArr[0] += 32
+	return string(strArr)
+}
+
 // UnderToCamel 下横线转驼峰风格
 func UnderToCamel(str string) string {
 	str = strings.Replace(str, "_", " ", -1)

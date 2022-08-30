@@ -31,11 +31,17 @@ type DataListParams struct {
 	Data *listParams `json:"data" form:"data"`
 }
 
-// page 列表结构
+// page 分页结构体
 type page struct {
 	tableName string   //模型对应表名
 	db        *gorm.DB //数据库连接实例
 	ns        schema.Namer
+}
+
+// result 存放分页列表返回结果
+type result struct {
+	Data interface{} `json:"data"`
+	Total int64 `json:"total"`
 }
 
 // Filter 列表过滤器
@@ -71,6 +77,7 @@ func (p *page) Filter(model interface{}, params *DataListParams) (interface{}, e
 
 	offset := (data.Page - 1) * data.PageSize
 	query := p.db.Table(p.ns.TableName(p.tableName)).Offset(offset).Limit(data.PageSize)
+	totalQuery := p.db.Table(p.ns.TableName(p.tableName))
 
 	if data.Keywords != "" {
 		kw := data.Keywords + "%"
@@ -78,17 +85,29 @@ func (p *page) Filter(model interface{}, params *DataListParams) (interface{}, e
 			field = strings.Trim(field, " ")
 			if k == 0 {
 				query = query.Where(field+" LIKE ?", kw)
+				totalQuery = totalQuery.Where(field+" LIKE ?", kw)
 			} else {
 				query = query.Or(field+" LIKE ?", kw)
+				totalQuery = totalQuery.Or(field+" LIKE ?", kw)
 			}
 		}
 
 	} else if len(data.Filter) > 0 {
 		query = query.Where(data.Filter)
+		totalQuery = totalQuery.Where(data.Filter)
 	}
 
 	query.Order(data.OrderField + " " + data.OrderSort).Find(model)
-	return model, nil
+
+	var total int64
+	totalQuery.Count(&total)
+
+	res := &result{
+		Data: model,
+		Total: total,
+	}
+
+	return res, nil
 }
 
 var pInstances = make(map[string]*page)

@@ -23,6 +23,7 @@ type Base struct {
 	Model     interface{} //表对应的模型实例
 	listData  interface{} //存储列表结果
 	saveForm  interface{} //保存单条数据的form
+	AppName   string      //当前应用标识
 }
 
 // common 控制器公共入口方法

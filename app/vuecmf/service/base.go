@@ -19,6 +19,7 @@ import (
 
 var db *gorm.DB
 var ns schema.Namer
+var CacheUser = "vuecmf_user"
 
 type baseService struct {
 }

@@ -22,7 +22,7 @@ func Register(ctrl interface{}, method, appName string) {
 	ctrlName := reflect.TypeOf(ctrl).Elem().Name()
 	ctrlName = helper.CamelToUnder(ctrlName)
 
-	for _,methodName := range methodArr {
+	for _, methodName := range methodArr {
 		if routes[appName] == nil {
 			routes[appName] = map[string]map[string]reflect.Value{}
 		}
@@ -34,19 +34,24 @@ func Register(ctrl interface{}, method, appName string) {
 		for i := 0; i < actionList; i++ {
 			actionName := refV.Type().Method(i).Name
 			actionName = helper.CamelToUnder(actionName)
-			routes[appName][ctrlName][actionName + ":" + methodName] = refV.Method(i)
+			routes[appName][ctrlName][actionName+":"+methodName] = refV.Method(i)
 		}
 	}
 }
 
+var Engine *gin.Engine
 
 // InitRoute 初始化路由列表
-func InitRoute(engine *gin.Engine){
+func InitRoute(eng *gin.Engine) {
+	Engine = eng
+	//表单上
+	Engine.MaxMultipartMemory = 5 << 20
+
 	//获取所有中间件
 	mw := middleware.GetMiddleWares()
 
 	for groupName, ctrl := range routes {
-		engine := engine.Group("/" + groupName + "/")
+		engine := Engine.Group("/" + groupName + "/")
 
 		//加入中间件
 		if mw[groupName] != nil {
@@ -63,7 +68,7 @@ func InitRoute(engine *gin.Engine){
 
 				if arr[1] == "GET" {
 					engine.GET(url, getHandle(method))
-				}else if arr[1] == "POST" {
+				} else if arr[1] == "POST" {
 					engine.POST(url, getHandle(method))
 				}
 			}
@@ -71,9 +76,8 @@ func InitRoute(engine *gin.Engine){
 	}
 }
 
-
 // getHandle 获取路由执行的方法
-func getHandle(method reflect.Value) gin.HandlerFunc{
+func getHandle(method reflect.Value) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		args := make([]reflect.Value, 1)
 		args[0] = reflect.ValueOf(ctx)

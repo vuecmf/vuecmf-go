@@ -12,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"time"
 )
 
 type Admin struct {
@@ -24,58 +26,60 @@ func init() {
 	admin.Model = &model.Admin{}
 	admin.listData = &[]model.Admin{}
 	admin.saveForm = &model.DataAdminForm{}
+	admin.AppName = "vuecmf"
 
-	route.Register(admin, "GET|POST", "vuecmf")
+	route.Register(admin, "GET|POST", admin.AppName)
 }
 
-// Index 列表页
-/*func (ctrl *Admin) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
-	common(c, listParams, func() (interface{}, error) {
-		var result []model.Admin
-		return service.Base().CommonList(result, ctrl.TableName, listParams)
-	})
-}*/
-
-/*// Save 新增/更新 单条数据
-func (ctrl *Admin) Save(c *gin.Context) {
-	data := &model.DataAdminForm{}
-	common(c, data, func() (interface{}, error) {
-		if data.Data.Id == 0 {
-			return service.Admin().Create(data.Data)
-		} else {
-			return service.Admin().Update(data.Data)
-		}
-	})
-}*/
-
-// Saveall 批量添加多条数据
-/*func (ctrl *Admin) Saveall(c *gin.Context) {
-	data := &model.DataBatchForm{}
-	common(c, data, func() (interface{}, error) {
-		var dataBatch []model.Admin
-		err := json.Unmarshal([]byte(data.Data), &dataBatch)
-		if err != nil {
-			return nil, err
-		}
-		return service.Admin().Create(dataBatch)
-	})
-}*/
-
+// Login 用户登录
 func (ctrl *Admin) Login(c *gin.Context) {
-	/*loginForm := &model.LoginForm{}
-	common(c, loginForm, func() (interface{}, error) {
-		//fmt.Println(c.Get("bbb"))
+	dataLoginForm := &model.DataLoginForm{}
+	common(c, dataLoginForm, func() (interface{}, error) {
+		dataLoginForm.Data.LastLoginIp = c.ClientIP()
+		dataLoginForm.Data.LastLoginTime = time.Now()
+		return service.Admin(ctrl.TableName, ctrl.AppName).Login(dataLoginForm.Data)
+	})
+}
 
-		return loginForm, nil
-	})*/
+func (ctrl *Admin) Logout(c *gin.Context) {
+	dataLogoutForm := &model.DataLogoutForm{}
+	common(c, dataLogoutForm, func() (interface{}, error) {
+		return service.Admin(ctrl.TableName, ctrl.AppName).Logout(dataLogoutForm.Data)
+	})
+}
 
-	//获取输入内容
-	//app.Request(c).Input("post", &loginForm)
+func (ctrl *Admin) AddRole(c *gin.Context) {
 
-	//fmt.Println(c.Get("bbb"))
+}
 
-	//输出内容
-	//app.Response(c).SendSuccess("提交成功", loginForm)
+func (ctrl *Admin) DelRole(c *gin.Context) {
+
+}
+
+func (ctrl *Admin) AddPermission(c *gin.Context) {
+
+}
+
+func (ctrl *Admin) DelPermission(c *gin.Context) {
+
+}
+
+func (ctrl *Admin) GetPermission(c *gin.Context) {
+
+}
+
+func (ctrl *Admin) GetAllRoles(c *gin.Context) {
+
+}
+
+func (ctrl *Admin) GetRoles(c *gin.Context) {
+
+}
+
+func (ctrl *Admin) SetUserPermission(c *gin.Context) {
+
+}
+
+func (ctrl *Admin) GetUserPermission(c *gin.Context) {
 
 }

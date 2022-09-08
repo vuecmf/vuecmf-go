@@ -23,6 +23,7 @@ func init() {
     modelRelation.Model = &model.ModelRelation{}
     modelRelation.listData = &[]model.ModelRelation{}
     modelRelation.saveForm = &model.DataModelRelationForm{}
+    modelRelation.filterFields = []string{"relation_show_field_id"}
 
     route.Register(modelRelation, "POST", "vuecmf")
 }

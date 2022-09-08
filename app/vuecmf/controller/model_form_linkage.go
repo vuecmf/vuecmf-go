@@ -23,6 +23,7 @@ func init() {
     modelFormLinkage.Model = &model.ModelFormLinkage{}
     modelFormLinkage.listData = &[]model.ModelFormLinkage{}
     modelFormLinkage.saveForm = &model.DataModelFormLinkageForm{}
+    modelFormLinkage.filterFields = []string{""}
 
     route.Register(modelFormLinkage, "POST", "vuecmf")
 }

@@ -23,6 +23,7 @@ func init() {
     modelFormRules.Model = &model.ModelFormRules{}
     modelFormRules.listData = &[]model.ModelFormRules{}
     modelFormRules.saveForm = &model.DataModelFormRulesForm{}
+    modelFormRules.filterFields = []string{"rule_type","rule_value","error_tips"}
 
     route.Register(modelFormRules, "POST", "vuecmf")
 }

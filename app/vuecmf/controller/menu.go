@@ -26,6 +26,7 @@ func init() {
     menu.Model = &model.Menu{}
     menu.listData = &[]model.Menu{}
     menu.saveForm = &model.DataMenuForm{}
+    menu.filterFields = []string{"title","icon"}
 
     route.Register(menu, "POST", "vuecmf")
 }

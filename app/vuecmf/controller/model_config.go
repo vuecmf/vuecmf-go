@@ -23,6 +23,7 @@ func init() {
     modelConfig.Model = &model.ModelConfig{}
     modelConfig.listData = &[]model.ModelConfig{}
     modelConfig.saveForm = &model.DataModelConfigForm{}
+    modelConfig.filterFields = []string{"table_name","label","component_tpl","remark"}
 
     route.Register(modelConfig, "POST", "vuecmf")
 }

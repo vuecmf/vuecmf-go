@@ -23,6 +23,7 @@ func init() {
     upload.Model = &model.Upload{}
     upload.listData = &[]model.Upload{}
     upload.saveForm = &model.DataUploadForm{}
+    upload.filterFields = []string{""}
 
     route.Register(upload, "POST", "vuecmf")
 }

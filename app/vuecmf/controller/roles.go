@@ -26,6 +26,7 @@ func init() {
     roles.Model = &model.Roles{}
     roles.listData = &[]model.Roles{}
     roles.saveForm = &model.DataRolesForm{}
+    roles.filterFields = []string{"role_name","app_name","id_path","remark"}
 
     route.Register(roles, "POST", "vuecmf")
 }

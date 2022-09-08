@@ -23,6 +23,7 @@ func init() {
     modelForm.Model = &model.ModelForm{}
     modelForm.listData = &[]model.ModelForm{}
     modelForm.saveForm = &model.DataModelFormForm{}
+    modelForm.filterFields = []string{"type","default_value"}
 
     route.Register(modelForm, "POST", "vuecmf")
 }

@@ -78,7 +78,6 @@ func (ctrl *Admin) Save(c *gin.Context) {
 func (ctrl *Admin) Saveall(c *gin.Context) {
 	data := &model.DataBatchForm{}
 	common(c, data, func() (interface{}, error) {
-		//var dataBatch []model.Admin
 		err := json.Unmarshal([]byte(data.Data), &ctrl.listData)
 		if err != nil {
 			return nil, err

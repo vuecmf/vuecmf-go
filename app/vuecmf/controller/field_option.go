@@ -23,6 +23,7 @@ func init() {
     fieldOption.Model = &model.FieldOption{}
     fieldOption.listData = &[]model.FieldOption{}
     fieldOption.saveForm = &model.DataFieldOptionForm{}
+    fieldOption.filterFields = []string{"option_value","option_label"}
 
     route.Register(fieldOption, "POST", "vuecmf")
 }

@@ -23,6 +23,7 @@ func init() {
     modelAction.Model = &model.ModelAction{}
     modelAction.listData = &[]model.ModelAction{}
     modelAction.saveForm = &model.DataModelActionForm{}
+    modelAction.filterFields = []string{"label","api_path","action_type"}
 
     route.Register(modelAction, "POST", "vuecmf")
 }

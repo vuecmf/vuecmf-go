@@ -228,6 +228,11 @@ func (makeSer *makeService) Controller(tableName string) error {
 	controllerName := helper.UnderToCamel(tableName)
 	ctrlValName := helper.ToFirstLower(controllerName)
 
+	//查询模型是否有需要模糊查询的字段
+	filterFields := ModelField().getFilterFields(tableName)
+	filterFieldStr := "\"" + strings.Join(filterFields, "\",\"") + "\""
+
+
 	tplFile := "controller.stub"
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	if modelConf.IsTree == true {
@@ -243,6 +248,7 @@ func (makeSer *makeService) Controller(tableName string) error {
 	txt = strings.Replace(txt, "{{.controller_name}}", controllerName, -1)
 	txt = strings.Replace(txt, "{{.controller_var_name}}", ctrlValName, -1)
 	txt = strings.Replace(txt, "{{.table_name}}", tableName, -1)
+	txt = strings.Replace(txt, "{{.filter_fields}}", filterFieldStr, -1)
 
 	err = ioutil.WriteFile("app/vuecmf/controller/"+tableName+".go", []byte(txt), 0666)
 	return err

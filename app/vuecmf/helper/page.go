@@ -36,6 +36,7 @@ type page struct {
 	tableName string   //模型对应表名
 	db        *gorm.DB //数据库连接实例
 	ns        schema.Namer
+	filterFields []string //需要模糊查询的字段
 }
 
 // result 存放分页列表返回结果
@@ -66,22 +67,13 @@ func (p *page) Filter(model interface{}, params *DataListParams) (interface{}, e
 		data.OrderField = "id"
 	}
 
-	//查询出该表中的可过滤的字段
-	var filterFields []string
-	p.db.Table(p.ns.TableName("model_field")+" MF").Select("field_name").
-		Joins("left join "+p.ns.TableName("model_config")+" MC on MF.model_id = MC.id").
-		Where("MF.is_filter = 10").
-		Where("MF.type in (?)", []string{"char", "varchar"}).
-		Where("MC.table_name = ?", p.tableName).
-		Limit(50).Find(&filterFields)
-
 	offset := (data.Page - 1) * data.PageSize
 	query := p.db.Table(p.ns.TableName(p.tableName)).Offset(offset).Limit(data.PageSize)
 	totalQuery := p.db.Table(p.ns.TableName(p.tableName))
 
 	if data.Keywords != "" {
 		kw := data.Keywords + "%"
-		for k, field := range filterFields {
+		for k, field := range p.filterFields {
 			field = strings.Trim(field, " ")
 			if k == 0 {
 				query = query.Where(field+" LIKE ?", kw)
@@ -117,13 +109,14 @@ var pInstances = make(map[string]*page)
 //		tableName	模型对应的表名
 //		db			gorm的DB实例指针
 //		ns			gorm数据库相关信息接口
-func Page(tableName string, db *gorm.DB, ns schema.Namer) *page {
+func Page(tableName string, filterFields []string, db *gorm.DB, ns schema.Namer) *page {
 	p, ok := pInstances[tableName]
 	if ok == false {
 		pInstances[tableName] = &page{
 			tableName: tableName,
 			db:        db,
 			ns:        ns,
+			filterFields: filterFields,
 		}
 		return pInstances[tableName]
 	} else {

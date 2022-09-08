@@ -23,6 +23,7 @@ type Base struct {
 	Model     interface{} //表对应的模型实例
 	listData  interface{} //存储列表结果
 	saveForm  interface{} //保存单条数据的form
+	filterFields []string //支持模糊查询的字段
 }
 
 // common 控制器公共入口方法
@@ -54,7 +55,7 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 func (ctrl *Base) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.Base().CommonList(ctrl.listData, ctrl.TableName, listParams)
+		return service.Base().CommonList(ctrl.listData, ctrl.TableName, ctrl.filterFields, listParams)
 	})
 }
 

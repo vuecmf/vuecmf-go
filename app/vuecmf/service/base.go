@@ -39,11 +39,11 @@ type fullModelFields struct {
 }
 
 // CommonList 公共列表 服务方法
-func (b *baseService) CommonList(modelData interface{}, tableName string, params *helper.DataListParams) (interface{}, error) {
+func (b *baseService) CommonList(modelData interface{}, tableName string, filterFields []string, params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
 		return b.getFieldList(tableName, params.Data.Filter)
 	} else {
-		return helper.Page(tableName, db, ns).Filter(modelData, params)
+		return helper.Page(tableName, filterFields, db, ns).Filter(modelData, params)
 	}
 }
 

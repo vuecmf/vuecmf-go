@@ -15,16 +15,16 @@ import (
 	"time"
 )
 
-var bc  *bigcache.BigCache
+var bc *bigcache.BigCache
 
-func init(){
+func init() {
 	if bc == nil {
 		config := bigcache.Config{
 			// number of shards (must be a power of 2)
 			Shards: 1024,
 
 			// time after which entry can be evicted
-			LifeWindow: 10 * time.Minute,
+			LifeWindow: 120 * time.Minute,
 
 			// Interval between removing expired entries (clean up).
 			// If set to <= 0 then no action is performed.
@@ -65,7 +65,6 @@ func init(){
 }
 
 type cache struct {
-
 }
 
 // Set 添加缓存
@@ -77,7 +76,7 @@ func (c *cache) Set(key string, content interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = bc.Set(key,cb)
+	err = bc.Set(key, cb)
 	return err
 }
 
@@ -94,6 +93,13 @@ func (c *cache) Get(key string, res interface{}) error {
 	return err
 }
 
+// Del 删除缓存内容
+//	参数：
+//		key 缓存的key
+func (c *cache) Del(key string) error {
+	return bc.Delete(key)
+}
+
 var c *cache
 
 // Cache 获取缓存组件实例
@@ -103,4 +109,3 @@ func Cache() *cache {
 	}
 	return c
 }
-

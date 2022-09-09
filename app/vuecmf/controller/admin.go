@@ -42,6 +42,7 @@ func (ctrl *Admin) Login(c *gin.Context) {
 	})
 }
 
+// Logout 退出登录
 func (ctrl *Admin) Logout(c *gin.Context) {
 	dataLogoutForm := &model.DataLogoutForm{}
 	common(c, dataLogoutForm, func() (interface{}, error) {
@@ -49,6 +50,7 @@ func (ctrl *Admin) Logout(c *gin.Context) {
 	})
 }
 
+//
 func (ctrl *Admin) AddRole(c *gin.Context) {
 
 }

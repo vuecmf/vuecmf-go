@@ -88,9 +88,9 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 
 	role := "超级管理员"
 	if adminInfo.IsSuper != 10 {
-		auth, err := app.Auth()
-		if err != nil {
-			return nil, errors.New("获取角色失败。" + err.Error())
+		auth := Auth().Enforcer
+		if auth != nil {
+			return nil, errors.New("获取角色失败。")
 		}
 		roleArr, err2 := auth.GetRolesForUser(adminInfo.Username, strings.ToLower(ser.AppName))
 		if err2 != nil {
@@ -130,3 +130,6 @@ func (ser *adminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
 
 	return true, nil
 }
+
+
+

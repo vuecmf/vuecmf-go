@@ -19,12 +19,12 @@ import (
 )
 
 type Base struct {
-	TableName string      //表名称
-	Model     interface{} //表对应的模型实例
-	listData  interface{} //存储列表结果
-	saveForm  interface{} //保存单条数据的form
-	filterFields []string //支持模糊查询的字段
-	AppName   string      //当前应用标识
+	TableName    string      //表名称
+	Model        interface{} //表对应的模型实例
+	listData     interface{} //存储列表结果
+	saveForm     interface{} //保存单条数据的form
+	filterFields []string    //支持模糊查询的字段
+	AppName      string      //当前应用标识
 }
 
 // common 控制器公共入口方法
@@ -34,6 +34,11 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 			app.Response(c).SendFailure("请求异常", err)
 		}
 	}()
+
+	if formParams == nil {
+		list, _ := fun()
+		app.Response(c).SendSuccess("请求成功", list)
+	}
 
 	err := app.Request(c).Input("post", formParams)
 

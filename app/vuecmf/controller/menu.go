@@ -10,6 +10,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
@@ -36,6 +37,19 @@ func (ctrl *Menu) Index(c *gin.Context) {
     listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
         return service.Menu().List(listParams)
+	})
+}
+
+// Nav 获取用户的导航菜单列表
+func (ctrl *Menu) Nav(c *gin.Context) {
+	dataUsernameForm := &model.DataUsernameForm{}
+	common(c, dataUsernameForm, func() (interface{}, error) {
+		isSuper := app.Request(c).GetCtxVal("is_super")
+		return service.Menu().Nav(
+			dataUsernameForm.Data.Username,
+			isSuper,
+			dataUsernameForm.Data.AppName,
+		)
 	})
 }
 

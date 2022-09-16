@@ -1,7 +1,5 @@
 package model
 
-
-
 // Menu 菜单 模型结构
 type Menu struct {
 	SortNum uint `json:"sort_num" form:"sort_num"  gorm:"column:sort_num;size:11;not null;default:0;comment:菜单的排列顺序(小在前)"`
@@ -61,3 +59,54 @@ func (m *Menu) ToTree(data []*Menu) MenuTree {
 	return treeList
 
 }
+
+
+type NavMenu struct {
+	Id uint `json:"id"`
+	Title string `json:"title"`
+	Pid uint `json:"pid"`
+	Icon string `json:"icon"`
+	ModelId uint `json:"model_id"`
+	Mid string `json:"mid"`
+	PathName []string `json:"path_name"`
+	IdPath []string `json:"id_path"`
+
+	TableName string `json:"table_name"`
+	SearchFieldId string `json:"search_field_id"`
+	IsTree uint `json:"is_tree"`
+	DefaultActionType string `json:"default_action_type"`
+	ComponentTpl string `json:"component_tpl"`
+
+	Children *NavMenuTree `json:"children" gorm:"-"`
+}
+
+type NavMenuTree []*NavMenu
+
+// ToNavTree 将导航菜单列表数据转换树形菜单结构
+func (m *Menu) ToNavTree(data []*NavMenu) NavMenuTree {
+	treeData := make(map[uint]*NavMenu)
+	for _, val := range data {
+		treeData[val.Id] = val
+	}
+
+	var treeList NavMenuTree
+
+	for _, item := range treeData {
+		if item.Pid == 0 {
+			treeList = append(treeList, item)
+			continue
+		}
+		if pItem, ok := treeData[item.Pid]; ok {
+			if pItem.Children == nil {
+				children := NavMenuTree{item}
+				pItem.Children = &children
+				continue
+			}
+			*pItem.Children = append(*pItem.Children, item)
+		}
+	}
+
+	return treeList
+
+}
+

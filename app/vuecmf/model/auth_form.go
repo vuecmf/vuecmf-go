@@ -34,7 +34,6 @@ type DataPermissionForm struct {
 
 type roleForm struct {
 	RoleName string `json:"role_name" form:"role_name" binding:"required" required_tips:"角色不能为空"`
-	IsSuper  uint   `json:"is_super" form:"is_super"`
 	AppName  string `json:"app_name" form:"app_name"`
 }
 
@@ -45,7 +44,6 @@ type DataRoleForm struct {
 
 type usernameForm struct {
 	Username string `json:"username" form:"username" binding:"required" required_tips:"用户名不能为空"`
-	IsSuper  uint   `json:"is_super" form:"is_super"`
 	AppName  string `json:"app_name" form:"app_name"`
 }
 

@@ -43,8 +43,13 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 
 	//vuecmf应用 权限验证
 	middlewares["vuecmf"]["auth"] = func(ctx *gin.Context) {
+		//是否为超级管理员, 当前测试修改为超级管理员
+		ctx.Set("is_super", 10)
+
+
 		//ctx.Keys["aaa"] = "123456"
 		ctx.Set("bbb", "2222")
+
 
 		fmt.Println("开始权限验证")
 
@@ -52,6 +57,8 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 
 	return middlewares
 }
+
+
 
 func Test() {
 	db := app.Db("default")

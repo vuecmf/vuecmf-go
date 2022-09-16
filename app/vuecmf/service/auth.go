@@ -228,7 +228,7 @@ func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, err
 }
 
 // GetPermissions 获取(用户或角色)所有权限ID列表
-func (au *auth) GetPermissions(userOrRole string, isSuper uint, appName string) (map[string][]string, error) {
+func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName string) (map[string][]string, error) {
 	if userOrRole == "" {
 		return nil, errors.New("用户或角色不能为空")
 	}
@@ -308,7 +308,7 @@ func (au *auth) GetPermissions(userOrRole string, isSuper uint, appName string) 
 }
 
 // GetPermissionsForModelLabel 获取指定模型的权限ID列表
-func (au *auth) GetPermissionsForModelLabel(userOrRole string, isSuper uint, modelLabel string, appName string) ([]string, error) {
+func (au *auth) GetPermissionsForModelLabel(userOrRole string, isSuper interface{}, modelLabel string, appName string) ([]string, error) {
 	if appName == "" {
 		appName = "vuecmf"
 	}

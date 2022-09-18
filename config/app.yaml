@@ -1,0 +1,5 @@
+upload:
+  file_size: 5              #单位M
+  file_ext: ""              #支持上传文件类型扩展名
+  dir: "uploads"            #文件保存目录
+  url: "http://www.vf.com"  #文件访问链接域名

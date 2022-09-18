@@ -9,6 +9,7 @@
 package service
 
 import (
+	"errors"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 )
@@ -47,4 +48,63 @@ func (ser *rolesService) List(params *helper.DataListParams) (interface{}, error
 		res["data"] = tree
 		return res, nil
 	}
+}
+
+// AddUsers 给角色分配用户
+func (ser *rolesService) AddUsers(roleName string, userIdList []string, appName string) (interface{}, error) {
+	if appName == "" {
+		appName = "vuecmf"
+	}
+
+	if len(userIdList) == 0 {
+		//若传入的为空，则先查出该角色下原有用户列表，然后全部删除
+		userList, err := Auth().GetUsers(roleName, appName)
+		if err != nil {
+			return nil, errors.New("该角色(" + roleName + ")没有分配任务用户")
+		}
+		return Auth().DelUsersForRole(roleName, userList, appName)
+	}
+
+	var userList []string
+	db.Table(ns.TableName("admin")).Select("username").
+		Where("id in ?", userIdList).
+		Where("status = 10").Find(&userList)
+
+	return Auth().AddUsersForRole(roleName, userList, appName)
+}
+
+// GetUsers 获取角色下所有用户的ID
+func (ser *rolesService) GetUsers(roleName string, appName string) (interface{}, error) {
+	if appName == "" {
+		appName = "vuecmf"
+	}
+
+	userList, err := Auth().GetUsers(roleName, appName)
+	if err != nil {
+		return nil, errors.New("该角色(" + roleName + ")没有分配任务用户")
+	}
+
+	var userIdList []string
+	db.Table(ns.TableName("admin")).Select("id").
+		Where("username in ?", userList).
+		Where("status = 10").Find(&userIdList)
+
+	return userIdList, nil
+}
+
+// GetAllUsers 获取所有用户
+func (ser *rolesService) GetAllUsers() (interface{}, error) {
+	type row struct {
+		Key      uint   `json:"key"`
+		Label    string `json:"label"`
+		Disabled bool   `json:"disabled"`
+	}
+
+	var res []*row
+
+	db.Table(ns.TableName("admin")).Select("id `key`, username label, false disabled").
+		Where("status = 10").
+		Where("is_super != 10").Find(&res)
+
+	return res, nil
 }

@@ -8,6 +8,8 @@
 // +----------------------------------------------------------------------
 package service
 
+import "errors"
+
 // modelActionService modelAction服务结构
 type modelActionService struct {
 	*baseService
@@ -18,16 +20,18 @@ func (ser *modelActionService) GetAllApiMap(apiIdList []string) interface{} {
 	var res = make(map[string]map[string]string)
 
 	type actionList struct {
-		TableName string
+		TableName  string
 		ActionType string
-		ApiPath string
+		ApiPath    string
 	}
 
 	var ac []actionList
 
-	db.Table(ns.TableName("model_action") + " ma").Select("mc.table_name, ma.action_type, ma.api_path").
-		Joins("inner join " + ns.TableName("model_config") + " mc on ma.model_id = mc.id").
+	db.Table(ns.TableName("model_action")+" ma").Select("mc.table_name, ma.action_type, ma.api_path").
+		Joins("inner join "+ns.TableName("model_config")+" mc on ma.model_id = mc.id").
 		Where("ma.id in ?", apiIdList).
+		Where("ma.status = 10").
+		Where("mc.status = 10").
 		Find(&ac)
 
 	for _, val := range ac {
@@ -45,13 +49,97 @@ func (ser *modelActionService) GetModelIdListById(apiIdList []string) []string {
 	var res []string
 	db.Table(ns.TableName("model_action")).Select("model_id").
 		Where("id in ?", apiIdList).
+		Where("status = 10").
 		Group("model_id").
 		Find(&res)
 	res = append(res, "0")
 	return res
 }
 
+// GetApiMap 获取API映射的路径
+func (ser *modelActionService) GetApiMap(tableName string, actionType string) string {
+	var apiPath string
+	db.Table(ns.TableName("model_action")+" ma").Select("api_path").
+		Joins("inner join "+ns.TableName("model_config")+" mc on ma.model_id = mc.id").
+		Where("mc.table_name = ?", tableName).
+		Where("ma.action_type = ?", actionType).
+		Where("ma.status = 10").
+		Where("mc.status = 10").
+		Find(&apiPath)
 
+	return apiPath
+}
+
+// GetActionList 获取所有模型的动作列表
+func (ser *modelActionService) GetActionList(roleName string, appName string) (interface{}, error) {
+	var res = make(map[string]map[uint]string)
+	type row struct {
+		Id    uint
+		Label string
+	}
+	if roleName != "" {
+		//若传入角色名称，则只取当前角色的父级角色拥有的权限
+		var pid uint
+		db.Table(ns.TableName("roles")).
+			Select("pid").
+			Where("role_name = ?", roleName).
+			Where("status = 10").Find(&pid)
+
+		if pid == 0 {
+			return nil, errors.New("当前角色没有父级角色")
+		}
+
+		//父级角色
+		var pidRoleName string
+		db.Table(ns.TableName("roles")).
+			Select("role_name").
+			Where("id = ?", pid).
+			Where("status = 10").Find(&pidRoleName)
+
+		if pidRoleName == "" {
+			return nil, errors.New("没有获取到父级角色名称")
+		}
+
+		if appName == "" {
+			appName = "vuecmf"
+		}
+
+		perList, err := Auth().GetPermissions(pidRoleName, nil, appName)
+		if err != nil {
+			return nil, err
+		}
+
+		for modelName, actionIdList := range perList {
+			var actionRes []row
+			db.Table(ns.TableName("model_action")).Select("id, label").
+				Where("id in ?", actionIdList).
+				Where("status = 10").Find(&actionRes)
+			res[modelName] = map[uint]string{}
+			for _, ac := range actionRes {
+				res[modelName][ac.Id] = ac.Label
+			}
+		}
+
+		return res, nil
+	}
+
+	//否则，获取所有权限列表
+	var modelListRes []row
+	db.Table(ns.TableName("model_config")).Select("id, label").
+		Where("status = 10").Find(&modelListRes)
+	for _, mc := range modelListRes {
+		var maList []row
+		db.Table(ns.TableName("model_action")).Select("id, label").
+			Where("model_id = ?", mc.Id).
+			Where("status = 10").Find(&maList)
+		res[mc.Label] = map[uint]string{}
+		for _, ac := range maList {
+			res[mc.Label][ac.Id] = ac.Label
+		}
+	}
+
+	return res, nil
+}
 
 var modelAction *modelActionService
 

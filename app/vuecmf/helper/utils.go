@@ -84,6 +84,22 @@ func PasswordVerify(password, hash string) bool {
 	return err == nil
 }
 
+// GetFileExt 获取文件名的扩展名
+func GetFileExt(fileName string) string {
+	arr := strings.Split(fileName, ".")
+	return strings.ToLower(arr[len(arr)-1])
+}
+
+// GetFileBaseName 获取不包含扩展名的文件名称
+func GetFileBaseName(fileName string) string {
+	arr := strings.Split(fileName, ".")
+	if len(arr) > 1 {
+		return strings.Join(SliceRemove(arr, len(arr)-1), ".")
+	} else {
+		return fileName
+	}
+}
+
 // InterfaceToInt interface类型转换成int
 func InterfaceToInt(val interface{}) int {
 	var res int

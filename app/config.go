@@ -7,10 +7,11 @@ import (
 )
 
 type upload struct {
-	FileSize int    `yaml:"file_size"`
-	FileExt  string `yaml:"file_ext"`
-	Dir      string `yaml:"dir"`
-	Url      string `yaml:"url"`
+	AllowFileSize  int    `yaml:"allow_file_size"`  //允许上传的最大文件，单位M
+	AllowFileType  string `yaml:"allow_file_type"`  //支持上传的文件类型
+	AllowFileMime  string `yaml:"allow_file_mime"`  //支持上传文件的MIME类型
+	Dir            string `yaml:"dir"`              //文件保存目录
+	Url            string `yaml:"url"`              //文件访问链接域名
 }
 
 type AppConfig struct {

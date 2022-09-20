@@ -9,14 +9,21 @@
 package service
 
 import (
+	"bytes"
 	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"mime/multipart"
+	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 )
+
 
 // uploadService upload服务结构
 type uploadService struct {
@@ -39,19 +46,41 @@ type uploadRuleRow struct {
 	ErrorTips string
 }
 
+// GetFileMimeType 获取上传文件的MIME类型
+func (ser *uploadService) GetFileMimeType(fileHeader *multipart.FileHeader) (string, error) {
+	file, err := fileHeader.Open()
+	if err != nil {
+		return "", err
+	}
+
+	buf := make([]byte, 512)
+	_, err = file.Read(buf)
+	if err != nil {
+		return "", errors.New("文件读取失败")
+	}
+
+	return http.DetectContentType(buf), nil
+}
+
 func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interface{}, error) {
 	var uploadRules []*uploadRuleRow
 
 	var fileSize int
 	var fileExt string
-	var isFile bool
-	var isImage bool
+	//var isFile bool
+	//var isImage bool
 	var fileMime string
 
-	file, err := ctx.FormFile("file")
+	fileHeader, err := ctx.FormFile("file")
 
 	if err != nil {
 		return nil, errors.New(fieldName + "|上传异常：" + err.Error())
+	}
+
+	currentFileMime, err2 := ser.GetFileMimeType(fileHeader)
+
+	if err2 != nil {
+		return nil, errors.New(fieldName + "|上传异常：" + err2.Error())
 	}
 
 	db.Table(ns.TableName("model_form_rules")+" vmfr").Select("rule_type, rule_value, error_tips").
@@ -68,9 +97,9 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		for _, row := range uploadRules {
 			switch row.RuleType {
 			case "file":
-				isFile = true
+				//isFile = true
 			case "image":
-				isImage = true
+				//isImage = true
 			case "fileExt":
 				fileExt = row.RuleValue
 			case "fileSize":
@@ -82,24 +111,44 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	}
 
 	if fileSize == 0 {
-		fileSize = config.Upload.FileSize
+		fileSize = config.Upload.AllowFileSize
 	}
 
 	if fileExt == "" {
-		fileExt = config.Upload.FileExt
+		fileExt = config.Upload.AllowFileType
+	}
+
+	if fileMime == "" {
+		fileMime = config.Upload.AllowFileMime
+	}
+
+	if helper.InSlice(currentFileMime, strings.Split(fileMime,",")) == false {
+		return nil, errors.New(fieldName + "|上传异常：不支持该文件类型 " + currentFileMime)
 	}
 
 	uploadDir := "./" + config.Upload.Dir
 	uploadUrl := config.Upload.Url
-	fileName := file.Filename
+	fileName := fileHeader.Filename
 	currentFileExt := helper.GetFileExt(fileName)
+
+	if helper.InSlice(currentFileExt, strings.Split(fileExt,",")) == false {
+		return nil, errors.New(fieldName + "|上传异常：不支持该文件类型 " + currentFileMime)
+	}
 
 	currentFileBaseName := helper.GetFileBaseName(fileName)
 	codeByte := md5.Sum([]byte(currentFileBaseName))
 	newFileName := fmt.Sprintf("%x", codeByte)
 	currentTime := time.Now().Format("20060102")
 
-	dst := uploadDir + "/" + currentTime + "/" + newFileName
-	err = ctx.SaveUploadedFile(file, dst)
+	saveDir := uploadDir + "/" + currentTime + "/"
+	err = os.MkdirAll(saveDir, 0666)
+	if err != nil {
+		return nil, errors.New(fieldName + "|上传异常：创建文件夹失败！")
+	}
+
+	dst := saveDir + newFileName
+	err = ctx.SaveUploadedFile(fileHeader, dst)
+
+	return 
 
 }

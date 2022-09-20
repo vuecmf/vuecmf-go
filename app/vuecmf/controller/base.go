@@ -36,8 +36,13 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 	}()
 
 	if formParams == nil {
-		list, _ := fun()
+		list, err := fun()
+		if err != nil {
+			app.Response(c).SendFailure(err.Error(), nil)
+			return
+		}
 		app.Response(c).SendSuccess("请求成功", list)
+		return
 	}
 
 	err := app.Request(c).Input("post", formParams)

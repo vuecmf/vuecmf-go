@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/middleware"
+	"net/http"
 	"reflect"
 	"strings"
 )
@@ -44,8 +45,11 @@ var Engine *gin.Engine
 // InitRoute 初始化路由列表
 func InitRoute(eng *gin.Engine) {
 	Engine = eng
-	//表单上
+	//表单上传文件最大5M
 	Engine.MaxMultipartMemory = 5 << 20
+
+	//上传目录 静态文件服务
+	Engine.StaticFS("/uploads", http.Dir("uploads"))
 
 	//获取所有中间件
 	mw := middleware.GetMiddleWares()
@@ -66,10 +70,26 @@ func InitRoute(eng *gin.Engine) {
 				arr := strings.Split(actionName, ":")
 				url := "/" + ctrlName + "/" + arr[0]
 
+				indexUrl := ""
+				indexUrl2 := ""
+
+				if arr[0] == "index" {
+					indexUrl = "/" + ctrlName + "/"
+					indexUrl2 = "/" + ctrlName
+				}
+
 				if arr[1] == "GET" {
 					engine.GET(url, getHandle(method))
+					if indexUrl != "" {
+						engine.GET(indexUrl, getHandle(method))
+						engine.GET(indexUrl2, getHandle(method))
+					}
 				} else if arr[1] == "POST" {
 					engine.POST(url, getHandle(method))
+					if indexUrl != "" {
+						engine.POST(indexUrl, getHandle(method))
+						engine.POST(indexUrl2, getHandle(method))
+					}
 				}
 			}
 		}

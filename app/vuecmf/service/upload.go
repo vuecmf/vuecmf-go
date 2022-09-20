@@ -9,9 +9,7 @@
 package service
 
 import (
-	"bytes"
 	"crypto/md5"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -23,7 +21,6 @@ import (
 	"strings"
 	"time"
 )
-
 
 // uploadService upload服务结构
 type uploadService struct {
@@ -62,6 +59,7 @@ func (ser *uploadService) GetFileMimeType(fileHeader *multipart.FileHeader) (str
 	return http.DetectContentType(buf), nil
 }
 
+// UploadFile 文件上传
 func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interface{}, error) {
 	var uploadRules []*uploadRuleRow
 
@@ -122,17 +120,16 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		fileMime = config.Upload.AllowFileMime
 	}
 
-	if helper.InSlice(currentFileMime, strings.Split(fileMime,",")) == false {
+	if helper.InSlice(currentFileMime, strings.Split(fileMime, ",")) == false {
 		return nil, errors.New(fieldName + "|上传异常：不支持该文件类型 " + currentFileMime)
 	}
 
-	uploadDir := "./" + config.Upload.Dir
 	uploadUrl := config.Upload.Url
 	fileName := fileHeader.Filename
 	currentFileExt := helper.GetFileExt(fileName)
 
-	if helper.InSlice(currentFileExt, strings.Split(fileExt,",")) == false {
-		return nil, errors.New(fieldName + "|上传异常：不支持该文件类型 " + currentFileMime)
+	if helper.InSlice(currentFileExt, strings.Split(fileExt, ",")) == false {
+		return nil, errors.New(fieldName + "|上传异常：不支持该文件类型 " + currentFileExt)
 	}
 
 	currentFileBaseName := helper.GetFileBaseName(fileName)
@@ -140,15 +137,23 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	newFileName := fmt.Sprintf("%x", codeByte)
 	currentTime := time.Now().Format("20060102")
 
-	saveDir := uploadDir + "/" + currentTime + "/"
+	saveDir := config.Upload.Dir + "/" + currentTime + "/"
 	err = os.MkdirAll(saveDir, 0666)
 	if err != nil {
-		return nil, errors.New(fieldName + "|上传异常：创建文件夹失败！")
+		return nil, errors.New(fieldName + "|上传异常：创建文件夹失败！" + err.Error())
 	}
 
-	dst := saveDir + newFileName
+	dst := saveDir + newFileName + "." + currentFileExt
 	err = ctx.SaveUploadedFile(fileHeader, dst)
 
-	return 
+	if err != nil {
+		return nil, errors.New(fieldName + "|上传异常：文件上传失败！" + err.Error())
+	}
+
+	var res = make(map[string]string)
+	res["field_name"] = fieldName
+	res["url"] = uploadUrl + dst
+
+	return res, nil
 
 }

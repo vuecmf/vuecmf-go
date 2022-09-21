@@ -160,23 +160,22 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 
 	fontList := []helper.FontInfo{
 		{
-			Size: 14.0,
-			Message: "VUECMF",
+			Size:     14.0,
+			Message:  "VUECMF",
 			Position: helper.Center,
-			Dx: 10,
-			Dy: 10,
-			R: 0,
-			G: 0,
-			B: 0,
-			A: 60,
+			Dx:       0,
+			Dy:       0,
+			R:        0,
+			G:        0,
+			B:        0,
+			A:        60,
 		},
 	}
 
-	err = helper.Img().FontWater(dst, "uploads/", fontList)
+	err = helper.Img().FontWater(dst, fontList)
 	if err != nil {
 		return nil, err
 	}
-
 
 	var res = make(map[string]string)
 	res["field_name"] = fieldName

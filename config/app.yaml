@@ -6,3 +6,4 @@ upload:
   url: "http://www.vf.com/"  #文件访问链接域名
   image_width: 600   #上传的图片裁切后的宽度
   image_height: 600  #上传的图片裁切后的高度
+  water_font: "config/simhei.ttf"   #水印字体路径

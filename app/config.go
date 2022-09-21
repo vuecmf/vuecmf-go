@@ -14,6 +14,7 @@ type upload struct {
 	Url           string `yaml:"url"`             //文件访问链接域名
 	ImageWidth    int    `yaml:"image_width"`     //上传的图片裁切后的宽度
 	ImageHeight   int    `yaml:"image_height"`    //上传的图片裁切后的高度
+	WaterFont     string `yaml:"water_font"`      //水印字体路径
 }
 
 type AppConfig struct {

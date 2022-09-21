@@ -13,8 +13,10 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"gorm.io/gorm"
+	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // ToFirstUpper 字符串首字母转大写
@@ -98,6 +100,19 @@ func GetFileBaseName(fileName string) string {
 	} else {
 		return fileName
 	}
+}
+
+// GetRandomString 生成图片名字
+func GetRandomString(length int) string {
+	str := "0123456789abcdefghijklmnopqrstuvwxyz"
+	bytes := []byte(str)
+	bytesLen := len(bytes)
+	var result []byte
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < length; i++ {
+		result = append(result, bytes[r.Intn(bytesLen)])
+	}
+	return string(result)
 }
 
 // InterfaceToInt interface类型转换成int

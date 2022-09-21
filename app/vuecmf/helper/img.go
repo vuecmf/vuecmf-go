@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang/freetype"
+	"github.com/vuecmf/vuecmf-go/app"
 	"image"
 	"image/color"
 	"image/draw"
@@ -11,9 +12,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io/ioutil"
-	"math/rand"
 	"os"
-	"time"
 )
 
 // 水印的位置
@@ -25,10 +24,7 @@ const (
 	Center
 )
 
-var Ttf string  //字体路径
-
 type img struct {
-
 }
 
 var imgInstance *img
@@ -41,11 +37,7 @@ func Img() *img {
 }
 
 // FontWater 给图片添加文字水印
-func (w *img) FontWater(fileName, SavePath string, typeface []FontInfo) error {
-	dirs, err := createDir(SavePath)
-	if err != nil {
-		return err
-	}
+func (w *img) FontWater(fileName string, typeface []FontInfo) error {
 	imgFile, err := os.Open(fileName)
 	if err != nil {
 		return errors.New("打开文件失败！" + err.Error())
@@ -60,20 +52,18 @@ func (w *img) FontWater(fileName, SavePath string, typeface []FontInfo) error {
 		return err
 	}
 
-	newName := fmt.Sprintf("%s%s.%s", dirs, getRandomString(10), str)
-
+	//新的加了水印图片覆盖原来文件
 	if str == "gif" {
-		err = gifFontWater(fileName, newName, typeface)
+		err = gifFontWater(fileName, fileName, typeface)
 	} else {
-		err = staticFontWater(fileName, newName, str, typeface)
+		err = staticFontWater(fileName, fileName, str, typeface)
 	}
 	return err
 }
 
-
 //gif图片水印
-func gifFontWater(file, name string, typeface []FontInfo) (err error) {
-	imgFile, err := os.Open(file)
+func gifFontWater(srcFile, newImage string, typeface []FontInfo) (err error) {
+	imgFile, err := os.Open(srcFile)
 
 	if err != nil {
 		return errors.New("打开文件失败！" + err.Error())
@@ -127,7 +117,7 @@ func gifFontWater(file, name string, typeface []FontInfo) (err error) {
 			return err2
 		}
 		//保存到新文件中
-		newFile, err := os.Create(name)
+		newFile, err := os.Create(newImage)
 		if err != nil {
 			return err
 		}
@@ -146,14 +136,14 @@ func gifFontWater(file, name string, typeface []FontInfo) (err error) {
 }
 
 //png,jpeg图片水印
-func staticFontWater(file, name, status string, typeface []FontInfo) (err error) {
+func staticFontWater(srcFile, newImage, status string, typeface []FontInfo) (err error) {
 	//需要加水印的图片
-	imgFile, err := os.Open(file)
+	imgFile, err := os.Open(srcFile)
 
 	fmt.Println("ddd")
 
 	if err != nil {
-		return errors.New("打开文件失败！" + err.Error() + file)
+		return errors.New("打开文件失败！" + err.Error() + srcFile)
 	}
 
 	defer func(imgFile *os.File) {
@@ -172,14 +162,14 @@ func staticFontWater(file, name, status string, typeface []FontInfo) (err error)
 			img.Set(x, y, staticImg.At(x, y))
 		}
 	}
+
 	img, err = common(img, typeface) //添加文字水印
 	if err != nil {
 		return err
 	}
+
 	//保存到新文件中
-	fmt.Println("start create ...")
-	newFile, err := os.Create(name)
-	fmt.Println("start ok ...")
+	newFile, err := os.Create(newImage)
 	if err != nil {
 		return err
 	}
@@ -197,17 +187,14 @@ func staticFontWater(file, name, status string, typeface []FontInfo) (err error)
 
 //添加文字水印函数
 func common(img *image.NRGBA, typeface []FontInfo) (*image.NRGBA, error) {
-	var err2 error
 	//拷贝一个字体文件到运行目录
-	fontBytes, err := ioutil.ReadFile(Ttf)
+	fontBytes, err := ioutil.ReadFile(app.Config().Upload.WaterFont)
 	if err != nil {
-		err2 = err
-		return nil, err2
+		return nil, errors.New("字体文件打开失败！" + err.Error())
 	}
 	font, err := freetype.ParseFont(fontBytes)
 	if err != nil {
-		err2 = err
-		return nil, err2
+		return nil, errors.New("字体文件解析失败！" + err.Error())
 	}
 	errNum := 1
 Loop:
@@ -247,14 +234,13 @@ Loop:
 		pt := freetype.Pt(first, two)
 		_, err = f.DrawString(info, pt)
 		if err != nil {
-			err2 = err
 			break
 		}
 	}
 	if errNum == 0 {
-		err2 = errors.New("坐标值不对")
+		err = errors.New("坐标值不对")
 	}
-	return img, err2
+	return img, err
 }
 
 // FontInfo 定义添加的文字信息
@@ -269,29 +255,3 @@ type FontInfo struct {
 	B        uint8   //文字颜色值RGBA中的B值
 	A        uint8   //文字颜色值RGBA中的A值
 }
-
-//生成图片名字
-func getRandomString(length int) string {
-	str := "0123456789abcdefghijklmnopqrstuvwxyz"
-	bytes := []byte(str)
-	bytesLen := len(bytes)
-	var result []byte
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < length; i++ {
-		result = append(result, bytes[r.Intn(bytesLen)])
-	}
-	return string(result)
-}
-
-//检查并生成存放图片的目录
-func createDir(SavePath string) (string, error) {
-	_, err := os.Stat(SavePath)
-	if err != nil {
-		err = os.MkdirAll(SavePath, os.ModePerm)
-		if err != nil {
-			return "", errors.New("创建文件夹失败！" + err.Error())
-		}
-	}
-	return SavePath, nil
-}
-

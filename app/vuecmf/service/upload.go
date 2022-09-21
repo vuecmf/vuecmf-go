@@ -66,7 +66,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	var fileSize int
 	var fileExt string
 	//var isFile bool
-	//var isImage bool
+	var isImage bool
 	var fileMime string
 
 	fileHeader, err := ctx.FormFile("file")
@@ -97,7 +97,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 			case "file":
 				//isFile = true
 			case "image":
-				//isImage = true
+				isImage = true
 			case "fileExt":
 				fileExt = row.RuleValue
 			case "fileSize":
@@ -138,9 +138,13 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	currentTime := time.Now().Format("20060102")
 
 	saveDir := config.Upload.Dir + "/" + currentTime + "/"
-	err = os.MkdirAll(saveDir, 0666)
+
+	_, err = os.Stat(saveDir)
 	if err != nil {
-		return nil, errors.New(fieldName + "|上传异常：创建文件夹失败！" + err.Error())
+		err = os.MkdirAll(saveDir, 0666)
+		if err != nil {
+			return nil, errors.New(fieldName + "|上传异常：创建文件夹失败！" + err.Error())
+		}
 	}
 
 	dst := saveDir + newFileName + "." + currentFileExt
@@ -149,6 +153,30 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	if err != nil {
 		return nil, errors.New(fieldName + "|上传异常：文件上传失败！" + err.Error())
 	}
+
+	if isImage == true {
+
+	}
+
+	fontList := []helper.FontInfo{
+		{
+			Size: 14.0,
+			Message: "VUECMF",
+			Position: helper.Center,
+			Dx: 10,
+			Dy: 10,
+			R: 0,
+			G: 0,
+			B: 0,
+			A: 60,
+		},
+	}
+
+	err = helper.Img().FontWater(dst, "uploads/", fontList)
+	if err != nil {
+		return nil, err
+	}
+
 
 	var res = make(map[string]string)
 	res["field_name"] = fieldName

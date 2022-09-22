@@ -36,8 +36,28 @@ func Img() *img {
 	return imgInstance
 }
 
+//
+func (w *img) Resize(fileName string) error {
+	imgFile, err := os.Open(fileName)
+	if err != nil {
+		return errors.New("打开文件失败！" + err.Error())
+	}
+	im, _, err := image.Decode(imgFile)
+	if err != nil {
+		return errors.New("解析图片失败！" + err.Error())
+	}
+
+	rgbImg := im.(*image.YCbCr)
+	subImg := rgbImg.SubImage(image.Rect(0,0, 300,300)).(*image.YCbCr)
+
+	f, err := os.Create("uploads/test.jpg")     //创建文件
+	defer f.Close()                   //关闭文件
+	jpeg.Encode(f, subImg, nil)       //写入文件
+	return err
+}
+
 // FontWater 给图片添加文字水印
-func (w *img) FontWater(fileName string, typeface []FontInfo) error {
+func (w *img) FontWater(fileName string, typeface []app.FontInfo) error {
 	imgFile, err := os.Open(fileName)
 	if err != nil {
 		return errors.New("打开文件失败！" + err.Error())
@@ -62,7 +82,7 @@ func (w *img) FontWater(fileName string, typeface []FontInfo) error {
 }
 
 //gif图片水印
-func gifFontWater(srcFile, newImage string, typeface []FontInfo) (err error) {
+func gifFontWater(srcFile, newImage string, typeface []app.FontInfo) (err error) {
 	imgFile, err := os.Open(srcFile)
 
 	if err != nil {
@@ -80,30 +100,30 @@ func gifFontWater(srcFile, newImage string, typeface []FontInfo) (err error) {
 	y0 := 0
 	yuan := 0
 	for k, gifImg := range gifImg2.Image {
-		img := image.NewNRGBA(gifImg.Bounds())
+		rgbImg := image.NewNRGBA(gifImg.Bounds())
 		if k == 0 {
-			x0 = img.Bounds().Dx()
-			y0 = img.Bounds().Dy()
+			x0 = rgbImg.Bounds().Dx()
+			y0 = rgbImg.Bounds().Dy()
 		}
-		fmt.Printf("%v, %v\n", img.Bounds().Dx(), img.Bounds().Dy())
+		fmt.Printf("%v, %v\n", rgbImg.Bounds().Dx(), rgbImg.Bounds().Dy())
 		if k == 0 && gifImg2.Image[k+1].Bounds().Dx() > x0 && gifImg2.Image[k+1].Bounds().Dy() > y0 {
 			yuan = 1
 			break
 		}
-		if x0 == img.Bounds().Dx() && y0 == img.Bounds().Dy() {
-			for y := 0; y < img.Bounds().Dy(); y++ {
-				for x := 0; x < img.Bounds().Dx(); x++ {
-					img.Set(x, y, gifImg.At(x, y))
+		if x0 == rgbImg.Bounds().Dx() && y0 == rgbImg.Bounds().Dy() {
+			for y := 0; y < rgbImg.Bounds().Dy(); y++ {
+				for x := 0; x < rgbImg.Bounds().Dx(); x++ {
+					rgbImg.Set(x, y, gifImg.At(x, y))
 				}
 			}
-			img, err2 = common(img, typeface) //添加文字水印
+			rgbImg, err2 = common(rgbImg, typeface) //添加文字水印
 			if err2 != nil {
 				break
 			}
 			//定义一个新的图片调色板img.Bounds()：使用原图的颜色域，gifImg.Palette：使用原图的调色板
 			p1 := image.NewPaletted(gifImg.Bounds(), gifImg.Palette)
 			//把绘制过文字的图片添加到新的图片调色板上
-			draw.Draw(p1, gifImg.Bounds(), img, image.Point{}, draw.Src)
+			draw.Draw(p1, gifImg.Bounds(), rgbImg, image.Point{}, draw.Src)
 			//把添加过文字的新调色板放入调色板slice
 			gifs = append(gifs, p1)
 		} else {
@@ -136,11 +156,9 @@ func gifFontWater(srcFile, newImage string, typeface []FontInfo) (err error) {
 }
 
 //png,jpeg图片水印
-func staticFontWater(srcFile, newImage, status string, typeface []FontInfo) (err error) {
+func staticFontWater(srcFile, newImage, status string, typeface []app.FontInfo) (err error) {
 	//需要加水印的图片
 	imgFile, err := os.Open(srcFile)
-
-	fmt.Println("ddd")
 
 	if err != nil {
 		return errors.New("打开文件失败！" + err.Error() + srcFile)
@@ -156,14 +174,14 @@ func staticFontWater(srcFile, newImage, status string, typeface []FontInfo) (err
 	} else {
 		staticImg, _ = jpeg.Decode(imgFile)
 	}
-	img := image.NewNRGBA(staticImg.Bounds())
-	for y := 0; y < img.Bounds().Dy(); y++ {
-		for x := 0; x < img.Bounds().Dx(); x++ {
-			img.Set(x, y, staticImg.At(x, y))
+	rgbImg := image.NewNRGBA(staticImg.Bounds())
+	for y := 0; y < rgbImg.Bounds().Dy(); y++ {
+		for x := 0; x < rgbImg.Bounds().Dx(); x++ {
+			rgbImg.Set(x, y, staticImg.At(x, y))
 		}
 	}
 
-	img, err = common(img, typeface) //添加文字水印
+	rgbImg, err = common(rgbImg, typeface) //添加文字水印
 	if err != nil {
 		return err
 	}
@@ -178,17 +196,17 @@ func staticFontWater(srcFile, newImage, status string, typeface []FontInfo) (err
 	}(newFile)
 
 	if status == "png" {
-		err = png.Encode(newFile, img)
+		err = png.Encode(newFile, rgbImg)
 	} else {
-		err = jpeg.Encode(newFile, img, &jpeg.Options{Quality: 100})
+		err = jpeg.Encode(newFile, rgbImg, &jpeg.Options{Quality: 100})
 	}
 	return err
 }
 
 //添加文字水印函数
-func common(img *image.NRGBA, typeface []FontInfo) (*image.NRGBA, error) {
+func common(rgbImg *image.NRGBA, typeface []app.FontInfo) (*image.NRGBA, error) {
 	//拷贝一个字体文件到运行目录
-	fontBytes, err := ioutil.ReadFile(app.Config().Upload.WaterFont)
+	fontBytes, err := ioutil.ReadFile(app.Conf().Water.WaterFont)
 	if err != nil {
 		return nil, errors.New("字体文件打开失败！" + err.Error())
 	}
@@ -204,8 +222,8 @@ Loop:
 		f.SetDPI(108)
 		f.SetFont(font)
 		f.SetFontSize(t.Size)
-		f.SetClip(img.Bounds())
-		f.SetDst(img)
+		f.SetClip(rgbImg.Bounds())
+		f.SetDst(rgbImg)
 		f.SetSrc(image.NewUniform(color.RGBA{R: t.R, G: t.G, B: t.B, A: t.A}))
 
 		first := 0
@@ -215,17 +233,17 @@ Loop:
 			first = t.Dx
 			two = t.Dy + int(f.PointToFixed(t.Size)>>6)
 		case TopRight:
-			first = img.Bounds().Dx() - len(info)*4 - t.Dx
+			first = rgbImg.Bounds().Dx() - len(info)*4 - t.Dx
 			two = t.Dy + int(f.PointToFixed(t.Size)>>6)
 		case BottomLeft:
 			first = t.Dx
-			two = img.Bounds().Dy() - t.Dy
+			two = rgbImg.Bounds().Dy() - t.Dy
 		case BottomRight:
-			first = img.Bounds().Dx() - len(info)*4 - t.Dx
-			two = img.Bounds().Dy() - t.Dy
+			first = rgbImg.Bounds().Dx() - len(info)*4 - t.Dx
+			two = rgbImg.Bounds().Dy() - t.Dy
 		case Center:
-			first = (img.Bounds().Dx() - len(info)*4) / 2
-			two = (img.Bounds().Dy() - t.Dy) / 2
+			first = (rgbImg.Bounds().Dx() - len(info)*4) / 2
+			two = (rgbImg.Bounds().Dy() - t.Dy) / 2
 		default:
 			errNum = 0
 			break Loop
@@ -240,18 +258,6 @@ Loop:
 	if errNum == 0 {
 		err = errors.New("坐标值不对")
 	}
-	return img, err
+	return rgbImg, err
 }
 
-// FontInfo 定义添加的文字信息
-type FontInfo struct {
-	Size     float64 //文字大小
-	Message  string  //文字内容
-	Position int     //文字存放位置
-	Dx       int     //文字x轴留白距离
-	Dy       int     //文字y轴留白距离
-	R        uint8   //文字颜色值RGBA中的R值
-	G        uint8   //文字颜色值RGBA中的G值
-	B        uint8   //文字颜色值RGBA中的B值
-	A        uint8   //文字颜色值RGBA中的A值
-}

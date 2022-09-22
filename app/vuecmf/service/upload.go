@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"mime/multipart"
 	"net/http"
@@ -66,7 +67,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	var fileSize int
 	var fileExt string
 	//var isFile bool
-	var isImage bool
+	//var isImage bool
 	var fileMime string
 
 	fileHeader, err := ctx.FormFile("file")
@@ -97,7 +98,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 			case "file":
 				//isFile = true
 			case "image":
-				isImage = true
+				//isImage = true
 			case "fileExt":
 				fileExt = row.RuleValue
 			case "fileSize":
@@ -154,28 +155,15 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		return nil, errors.New(fieldName + "|上传异常：文件上传失败！" + err.Error())
 	}
 
-	if isImage == true {
-
+	if  config.Water.Enable == true {
+		fontList := []app.FontInfo{ config.Water.Conf }
+		err = helper.Img().FontWater(dst, fontList)
+		if err != nil {
+			return nil, errors.New(fieldName + "|上传异常：添加水印失败！" + err.Error())
+		}
 	}
 
-	fontList := []helper.FontInfo{
-		{
-			Size:     14.0,
-			Message:  "VUECMF",
-			Position: helper.Center,
-			Dx:       0,
-			Dy:       0,
-			R:        0,
-			G:        0,
-			B:        0,
-			A:        60,
-		},
-	}
-
-	err = helper.Img().FontWater(dst, fontList)
-	if err != nil {
-		return nil, err
-	}
+	helper.Img().Resize(dst)
 
 	var res = make(map[string]string)
 	res["field_name"] = fieldName

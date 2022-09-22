@@ -20,7 +20,7 @@ import (
 var db *gorm.DB
 var ns schema.Namer
 var CacheUser = "vuecmf_user"
-var config *app.AppConfig
+var config *app.Config
 
 type baseService struct {
 }
@@ -28,7 +28,7 @@ type baseService struct {
 func init() {
 	db = app.Db("default")
 	ns = db.NamingStrategy
-	config = app.Config()
+	config = app.Conf()
 }
 
 // fullModelFields 模型的所有字段相关信息（字段、表单、字段选项、字段关联、表单验证规则）

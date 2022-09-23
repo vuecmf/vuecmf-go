@@ -36,6 +36,87 @@ func Img() *img {
 	return imgInstance
 }
 
+
+func (w *img) Make(fileName string) {
+	//生成一个透明背景图片
+	/*img := image.NewNRGBA(image.Rect(0,0,300,300))
+	f, _ := os.Create("uploads/tst.jpg")
+	defer f.Close()
+	buf := bufio.NewWriter(f)
+	_ = jpeg.Encode(buf,img, &jpeg.Options{
+		Quality: 100,
+	})
+	buf.Flush()*/
+
+	//裁切图片
+	/*f, _ := os.Open(fileName)
+	defer f.Close()
+	imgRes, _ := png.Decode(f)
+	tmp := image.NewNRGBA(imgRes.Bounds())
+	draw.Draw(tmp, imgRes.Bounds(), imgRes, imgRes.Bounds().Min, draw.Src)
+	subImg := tmp.SubImage(image.Rect(0,0, 200, 200))
+	f2, _ := os.Create("uploads/tst.jpg")
+	defer f2.Close()
+	buf := bufio.NewWriter(f2)
+	_ = png.Encode(buf, subImg)
+	buf.Flush()*/
+
+	//缩放图片
+
+
+}
+
+//图片绽放
+//img   为要缩放的图片
+//width、height   为缩放后的大小
+//keepRatio  为是否保持比例缩放
+//fill为填充的颜色  （R、G、B都为fill）
+//centerAlign： 保持比例缩放时，图片是否居中存放
+func resizePic(img image.Image, width int, height int, keepRatio bool, fill int, centerAlign bool) image.Image {
+	outImg := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	if !keepRatio {
+		draw.BiLinear.Scale(outImg, outImg.Bounds(), img, img.Bounds(), draw.Over, nil)
+		return outImg
+	}
+
+	if fill != 0 {
+		fillColor := color.RGBA{R: uint8(fill), G: uint8(fill), B: uint8(fill), A: 255}
+		draw.Draw(outImg, outImg.Bounds(), &image.Uniform{C: fillColor}, image.Point{}, draw.Src)
+	}
+	dst := calcResizedRect(width, img.Bounds(), height, centerAlign)
+	draw.ApproxBiLinear.Scale(outImg, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
+	return outImg
+}
+
+//计算缩放后的大小
+func calcResizedRect(width int, src image.Rectangle, height int, centerAlign bool) image.Rectangle {
+	var dst image.Rectangle
+	if width*src.Dy() < height*src.Dx() { // width/src.width < height/src.height
+		ratio := float64(width) / float64(src.Dx())
+
+		tH := int(float64(src.Dy()) * ratio)
+		pad := 0
+		if centerAlign {
+			pad = (height - tH) / 2
+		}
+		dst = image.Rect(0, pad, width, pad+tH)
+	} else {
+		ratio := float64(height) / float64(src.Dy())
+		tW := int(float64(src.Dx()) * ratio)
+		pad := 0
+		if centerAlign {
+			pad = (width - tW) / 2
+		}
+		dst = image.Rect(pad, 0, pad+tW, height)
+	}
+
+	return dst
+}
+
+
+
+
 //
 func (w *img) Resize(fileName string) error {
 	imgFile, err := os.Open(fileName)
@@ -123,6 +204,11 @@ func gifFontWater(srcFile, newImage string, typeface []app.FontInfo) (err error)
 			//定义一个新的图片调色板img.Bounds()：使用原图的颜色域，gifImg.Palette：使用原图的调色板
 			p1 := image.NewPaletted(gifImg.Bounds(), gifImg.Palette)
 			//把绘制过文字的图片添加到新的图片调色板上
+			//dst：绘图的背景图
+			//r：背景图的绘图区域
+			//src：要绘制的图
+			//sp：要绘制图src的开始点
+			//op：组合方式
 			draw.Draw(p1, gifImg.Bounds(), rgbImg, image.Point{}, draw.Src)
 			//把添加过文字的新调色板放入调色板slice
 			gifs = append(gifs, p1)

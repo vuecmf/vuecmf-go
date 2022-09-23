@@ -163,7 +163,8 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		}
 	}
 
-	helper.Img().Resize(dst)
+	//helper.Img().Resize(dst)
+	helper.Img().Make(dst)
 
 	var res = make(map[string]string)
 	res["field_name"] = fieldName

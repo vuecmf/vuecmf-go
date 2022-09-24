@@ -1,13 +1,14 @@
 package helper
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"github.com/golang/freetype"
 	"github.com/vuecmf/vuecmf-go/app"
+	"golang.org/x/image/draw"
 	"image"
 	"image/color"
-	"image/draw"
 	"image/gif"
 	"image/jpeg"
 	"image/png"
@@ -62,80 +63,90 @@ func (w *img) Make(fileName string) {
 	buf.Flush()*/
 
 	//缩放图片
+	f, _ := os.Open(fileName)
+	defer f.Close()
+	imgRes, _ := png.Decode(f)
+	outImg := Resize(imgRes, 200, 200,true, 255,true, true)
 
+	f2, _ := os.Create("uploads/tst.jpg")
+	defer f2.Close()
+	buf := bufio.NewWriter(f2)
+	_ = png.Encode(buf, outImg)
+	buf.Flush()
 
 }
 
-//图片绽放
-//img   为要缩放的图片
-//width、height   为缩放后的大小
-//keepRatio  为是否保持比例缩放
-//fill为填充的颜色  （R、G、B都为fill）
-//centerAlign： 保持比例缩放时，图片是否居中存放
-func resizePic(img image.Image, width int, height int, keepRatio bool, fill int, centerAlign bool) image.Image {
+// Resize 图片绽放
+// 	参数：
+//		img   		为要缩放的图片 image实例
+//		width		缩放后的宽度
+//		height  	缩放后的高度
+//		keepRatio	是否保持等比例缩放
+//		fill		填充的背景颜色 0 - 255 （R、G、B）的值共一个数值， 0 = 透明背景， 255 = 白色背景
+//		centerAlign	是否以图片的中心来进行等比缩放
+//		crop		是否裁切
+func Resize(img image.Image, width int, height int, keepRatio bool, fill int, centerAlign bool, crop bool) image.Image {
 	outImg := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	if !keepRatio {
+		//非等比缩放
 		draw.BiLinear.Scale(outImg, outImg.Bounds(), img, img.Bounds(), draw.Over, nil)
 		return outImg
 	}
 
-	if fill != 0 {
+	//填充背景色
+	if fill != 0 && crop == false {
 		fillColor := color.RGBA{R: uint8(fill), G: uint8(fill), B: uint8(fill), A: 255}
 		draw.Draw(outImg, outImg.Bounds(), &image.Uniform{C: fillColor}, image.Point{}, draw.Src)
 	}
-	dst := calcResizedRect(width, img.Bounds(), height, centerAlign)
+
+	//计算缩放后大小
+	ratio := 1
+	var dst image.Rectangle
+	if width * img.Bounds().Dy() < height * img.Bounds().Dx() {
+		ratio := float64(width) / float64(img.Bounds().Dx())
+		targetHeight := int(float64(img.Bounds().Dy()) * ratio)
+		padding := 0
+		if centerAlign {
+			padding = (height - targetHeight) / 2
+		}
+		dst = image.Rect(0, padding, width, padding + targetHeight)
+	} else {
+		ratio := float64(height) / float64(img.Bounds().Dy())
+		targetWidth := int(float64(img.Bounds().Dx()) * ratio)
+		padding := 0
+		if centerAlign {
+			padding = (width - targetWidth) / 2
+		}
+		dst = image.Rect(padding, 0, padding + targetWidth, height)
+	}
+
+	if crop == true {
+		cropWidth := 0
+		cropHeight := 0
+		if width < img.Bounds().Dx() {
+			cropWidth := (img.Bounds().Dx() - width) * ratio
+		}
+		if height < img.Bounds().Dy() {
+			cropHeight := (img.Bounds().Dy() - height) * ratio
+		}
+
+		//裁切图片
+		tmp := image.NewNRGBA(imgRes.Bounds())
+		draw.Draw(outImg, imgRes.Bounds(), imgRes, imgRes.Bounds().Min, draw.Src)
+		subImg := tmp.SubImage(image.Rect(0,0, 200, 200))
+
+	}
+
+	//缩放图片
 	draw.ApproxBiLinear.Scale(outImg, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
+
 	return outImg
 }
 
-//计算缩放后的大小
-func calcResizedRect(width int, src image.Rectangle, height int, centerAlign bool) image.Rectangle {
-	var dst image.Rectangle
-	if width*src.Dy() < height*src.Dx() { // width/src.width < height/src.height
-		ratio := float64(width) / float64(src.Dx())
-
-		tH := int(float64(src.Dy()) * ratio)
-		pad := 0
-		if centerAlign {
-			pad = (height - tH) / 2
-		}
-		dst = image.Rect(0, pad, width, pad+tH)
-	} else {
-		ratio := float64(height) / float64(src.Dy())
-		tW := int(float64(src.Dx()) * ratio)
-		pad := 0
-		if centerAlign {
-			pad = (width - tW) / 2
-		}
-		dst = image.Rect(pad, 0, pad+tW, height)
-	}
-
-	return dst
-}
 
 
 
-
-//
-func (w *img) Resize(fileName string) error {
-	imgFile, err := os.Open(fileName)
-	if err != nil {
-		return errors.New("打开文件失败！" + err.Error())
-	}
-	im, _, err := image.Decode(imgFile)
-	if err != nil {
-		return errors.New("解析图片失败！" + err.Error())
-	}
-
-	rgbImg := im.(*image.YCbCr)
-	subImg := rgbImg.SubImage(image.Rect(0,0, 300,300)).(*image.YCbCr)
-
-	f, err := os.Create("uploads/test.jpg")     //创建文件
-	defer f.Close()                   //关闭文件
-	jpeg.Encode(f, subImg, nil)       //写入文件
-	return err
-}
 
 // FontWater 给图片添加文字水印
 func (w *img) FontWater(fileName string, typeface []app.FontInfo) error {

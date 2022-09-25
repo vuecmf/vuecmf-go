@@ -37,8 +37,7 @@ func Img() *img {
 	return imgInstance
 }
 
-
-func (w *img) Make(fileName string) {
+func (w *img) Make(fileName string, fileExt string) error {
 	//生成一个透明背景图片
 	/*img := image.NewNRGBA(image.Rect(0,0,300,300))
 	f, _ := os.Create("uploads/tst.jpg")
@@ -63,17 +62,79 @@ func (w *img) Make(fileName string) {
 	buf.Flush()*/
 
 	//缩放图片
-	f, _ := os.Open(fileName)
-	defer f.Close()
-	imgRes, _ := png.Decode(f)
-	outImg := Resize(imgRes, 200, 200,true, 255,true, true)
+	imgRes, fileExt, err := GetImage(fileName)
 
-	f2, _ := os.Create("uploads/tst.jpg")
-	defer f2.Close()
-	buf := bufio.NewWriter(f2)
-	_ = png.Encode(buf, outImg)
-	buf.Flush()
+	outImg := Resize(imgRes, 400, 300, true, 255, true, true)
 
+	err = SaveImage(outImg, fileExt, "uploads/tst.jpg")
+
+	return err
+
+}
+
+// GetImage 获取image实例及图片类型
+func GetImage(fileName string) (image.Image, string, error) {
+	fileExt := GetFileExt(fileName)
+	f, err := os.Open(fileName)
+	if err != nil {
+		return nil, fileExt, errors.New("图像文件读取失败！" + err.Error())
+	}
+
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
+
+	var imgObj image.Image
+
+	switch fileExt {
+	case "gif":
+		imgObj, err = gif.Decode(f)
+	case "jpeg":
+		fallthrough
+	case "jpg":
+		imgObj, err = jpeg.Decode(f)
+	case "png":
+		imgObj, err = png.Decode(f)
+	default:
+		err = errors.New("未知的图像类型: " + fileExt)
+	}
+
+	if err != nil {
+		err = errors.New("图像文件解析错误：" + err.Error())
+	}
+
+	return imgObj, fileExt, err
+}
+
+// SaveImage 保存图像文件
+func SaveImage(outImg image.Image, fileExt string, saveFileName string) error {
+	f, _ := os.Create(saveFileName)
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
+
+	buf := bufio.NewWriter(f)
+	var err error
+
+	switch fileExt {
+	case "gif":
+		err = gif.Encode(buf, outImg, &gif.Options{NumColors: 256})
+	case "jpeg":
+		fallthrough
+	case "jpg":
+		err = jpeg.Encode(buf, outImg, &jpeg.Options{Quality: 100})
+	case "png":
+		err = png.Encode(buf, outImg)
+	default:
+		err = errors.New("未知的图片类型: " + fileExt)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	err = buf.Flush()
+	return err
 }
 
 // Resize 图片绽放
@@ -95,47 +156,59 @@ func Resize(img image.Image, width int, height int, keepRatio bool, fill int, ce
 	}
 
 	//填充背景色
-	if fill != 0 && crop == false {
+	if fill != 0 {
 		fillColor := color.RGBA{R: uint8(fill), G: uint8(fill), B: uint8(fill), A: 255}
 		draw.Draw(outImg, outImg.Bounds(), &image.Uniform{C: fillColor}, image.Point{}, draw.Src)
 	}
 
-	//计算缩放后大小
-	ratio := 1
+	srcWidth := img.Bounds().Dx()
+	srcHeight := img.Bounds().Dy()
 	var dst image.Rectangle
-	if width * img.Bounds().Dy() < height * img.Bounds().Dx() {
-		ratio := float64(width) / float64(img.Bounds().Dx())
-		targetHeight := int(float64(img.Bounds().Dy()) * ratio)
-		padding := 0
-		if centerAlign {
-			padding = (height - targetHeight) / 2
-		}
-		dst = image.Rect(0, padding, width, padding + targetHeight)
-	} else {
-		ratio := float64(height) / float64(img.Bounds().Dy())
-		targetWidth := int(float64(img.Bounds().Dx()) * ratio)
-		padding := 0
-		if centerAlign {
-			padding = (width - targetWidth) / 2
-		}
-		dst = image.Rect(padding, 0, padding + targetWidth, height)
-	}
 
 	if crop == true {
+		//计算需要裁切掉的宽度和高度
 		cropWidth := 0
 		cropHeight := 0
-		if width < img.Bounds().Dx() {
-			cropWidth := (img.Bounds().Dx() - width) * ratio
-		}
-		if height < img.Bounds().Dy() {
-			cropHeight := (img.Bounds().Dy() - height) * ratio
+		if srcWidth > width && srcHeight <= height {
+			cropWidth = (srcWidth - width) / 2
+		} else if srcWidth <= width && srcHeight > height {
+			cropHeight = (srcHeight - height) / 2
+		} else if srcWidth > width && srcHeight > height {
+			wRatio := srcWidth / width
+			hRatio := srcHeight / height
+			if wRatio > hRatio {
+				cropWidth = (srcWidth - srcHeight*(width/height)) / 2
+			} else if wRatio < hRatio {
+				cropHeight = (srcHeight - srcWidth*(height/width)) / 2
+			}
 		}
 
 		//裁切图片
-		tmp := image.NewNRGBA(imgRes.Bounds())
-		draw.Draw(outImg, imgRes.Bounds(), imgRes, imgRes.Bounds().Min, draw.Src)
-		subImg := tmp.SubImage(image.Rect(0,0, 200, 200))
+		tmp := image.NewNRGBA(img.Bounds())
+		draw.Draw(tmp, img.Bounds(), img, img.Bounds().Min, draw.Src)
+		img = tmp.SubImage(image.Rect(cropWidth, cropHeight, srcWidth-cropWidth, srcHeight-cropHeight))
 
+		dst = image.Rect(0, 0, width, height)
+
+	} else {
+		//计算缩放后大小
+		if width*srcHeight < height*srcWidth {
+			ratio := float64(width) / float64(srcWidth)
+			targetHeight := int(float64(srcHeight) * ratio)
+			padding := 0
+			if centerAlign {
+				padding = (height - targetHeight) / 2
+			}
+			dst = image.Rect(0, padding, width, padding+targetHeight)
+		} else {
+			ratio := float64(height) / float64(srcHeight)
+			targetWidth := int(float64(srcWidth) * ratio)
+			padding := 0
+			if centerAlign {
+				padding = (width - targetWidth) / 2
+			}
+			dst = image.Rect(padding, 0, padding+targetWidth, height)
+		}
 	}
 
 	//缩放图片
@@ -144,12 +217,9 @@ func Resize(img image.Image, width int, height int, keepRatio bool, fill int, ce
 	return outImg
 }
 
-
-
-
-
 // FontWater 给图片添加文字水印
 func (w *img) FontWater(fileName string, typeface []app.FontInfo) error {
+	//需要加水印的图片
 	imgFile, err := os.Open(fileName)
 	if err != nil {
 		return errors.New("打开文件失败！" + err.Error())
@@ -159,33 +229,20 @@ func (w *img) FontWater(fileName string, typeface []app.FontInfo) error {
 		_ = imgFile.Close()
 	}(imgFile)
 
-	_, str, err := image.DecodeConfig(imgFile)
-	if err != nil {
-		return err
-	}
+	fileExt := GetFileExt(fileName)
 
 	//新的加了水印图片覆盖原来文件
-	if str == "gif" {
-		err = gifFontWater(fileName, fileName, typeface)
+	if fileExt == "gif" {
+		err = gifFontWater(imgFile, fileName, typeface)
 	} else {
-		err = staticFontWater(fileName, fileName, str, typeface)
+		err = staticFontWater(imgFile, fileName, fileExt, typeface)
 	}
 	return err
 }
 
 //gif图片水印
-func gifFontWater(srcFile, newImage string, typeface []app.FontInfo) (err error) {
-	imgFile, err := os.Open(srcFile)
-
-	if err != nil {
-		return errors.New("打开文件失败！" + err.Error())
-	}
-
-	defer func(imgFile *os.File) {
-		_ = imgFile.Close()
-	}(imgFile)
-
-	var err2 error
+func gifFontWater(imgFile *os.File, newImage string, typeface []app.FontInfo) error {
+	var err error
 	gifImg2, _ := gif.DecodeAll(imgFile)
 	gifs := make([]*image.Paletted, 0)
 	x0 := 0
@@ -208,8 +265,8 @@ func gifFontWater(srcFile, newImage string, typeface []app.FontInfo) (err error)
 					rgbImg.Set(x, y, gifImg.At(x, y))
 				}
 			}
-			rgbImg, err2 = common(rgbImg, typeface) //添加文字水印
-			if err2 != nil {
+			rgbImg, err = common(rgbImg, typeface) //添加文字水印
+			if err != nil {
 				break
 			}
 			//定义一个新的图片调色板img.Bounds()：使用原图的颜色域，gifImg.Palette：使用原图的调色板
@@ -230,8 +287,8 @@ func gifFontWater(srcFile, newImage string, typeface []app.FontInfo) (err error)
 	if yuan == 1 {
 		return errors.New("gif: image block is out of bounds")
 	} else {
-		if err2 != nil {
-			return err2
+		if err != nil {
+			return err
 		}
 		//保存到新文件中
 		newFile, err := os.Create(newImage)
@@ -253,18 +310,7 @@ func gifFontWater(srcFile, newImage string, typeface []app.FontInfo) (err error)
 }
 
 //png,jpeg图片水印
-func staticFontWater(srcFile, newImage, status string, typeface []app.FontInfo) (err error) {
-	//需要加水印的图片
-	imgFile, err := os.Open(srcFile)
-
-	if err != nil {
-		return errors.New("打开文件失败！" + err.Error() + srcFile)
-	}
-
-	defer func(imgFile *os.File) {
-		_ = imgFile.Close()
-	}(imgFile)
-
+func staticFontWater(imgFile *os.File, newImage, status string, typeface []app.FontInfo) (err error) {
 	var staticImg image.Image
 	if status == "png" {
 		staticImg, _ = png.Decode(imgFile)
@@ -357,4 +403,3 @@ Loop:
 	}
 	return rgbImg, err
 }
-

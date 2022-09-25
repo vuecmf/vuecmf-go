@@ -155,21 +155,21 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		return nil, errors.New(fieldName + "|上传异常：文件上传失败！" + err.Error())
 	}
 
-	if  config.Water.Enable == true {
-		fontList := []app.FontInfo{ config.Water.Conf }
+	//helper.Img().Resize(dst)
+	err = helper.Img().Make(dst, currentFileExt)
+
+	if config.Water.Enable == true {
+		fontList := []app.FontInfo{config.Water.Conf}
 		err = helper.Img().FontWater(dst, fontList)
 		if err != nil {
 			return nil, errors.New(fieldName + "|上传异常：添加水印失败！" + err.Error())
 		}
 	}
 
-	//helper.Img().Resize(dst)
-	helper.Img().Make(dst)
-
 	var res = make(map[string]string)
 	res["field_name"] = fieldName
 	res["url"] = uploadUrl + dst
 
-	return res, nil
+	return res, err
 
 }

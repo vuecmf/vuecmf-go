@@ -37,43 +37,8 @@ func Img() *img {
 	return imgInstance
 }
 
-func (w *img) Make(fileName string, fileExt string) error {
-	//生成一个透明背景图片
-	/*img := image.NewNRGBA(image.Rect(0,0,300,300))
-	f, _ := os.Create("uploads/tst.jpg")
-	defer f.Close()
-	buf := bufio.NewWriter(f)
-	_ = jpeg.Encode(buf,img, &jpeg.Options{
-		Quality: 100,
-	})
-	buf.Flush()*/
-
-	//裁切图片
-	/*f, _ := os.Open(fileName)
-	defer f.Close()
-	imgRes, _ := png.Decode(f)
-	tmp := image.NewNRGBA(imgRes.Bounds())
-	draw.Draw(tmp, imgRes.Bounds(), imgRes, imgRes.Bounds().Min, draw.Src)
-	subImg := tmp.SubImage(image.Rect(0,0, 200, 200))
-	f2, _ := os.Create("uploads/tst.jpg")
-	defer f2.Close()
-	buf := bufio.NewWriter(f2)
-	_ = png.Encode(buf, subImg)
-	buf.Flush()*/
-
-	//缩放图片
-	imgRes, fileExt, err := GetImage(fileName)
-
-	outImg := Resize(imgRes, 400, 300, true, 255, true, true)
-
-	err = SaveImage(outImg, fileExt, "uploads/tst.jpg")
-
-	return err
-
-}
-
 // GetImage 获取image实例及图片类型
-func GetImage(fileName string) (image.Image, string, error) {
+func (im *img) GetImage(fileName string) (image.Image, string, error) {
 	fileExt := GetFileExt(fileName)
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -107,7 +72,8 @@ func GetImage(fileName string) (image.Image, string, error) {
 }
 
 // SaveImage 保存图像文件
-func SaveImage(outImg image.Image, fileExt string, saveFileName string) error {
+func (im *img) SaveImage(outImg image.Image,  saveFileName string) error {
+	fileExt := GetFileExt(saveFileName)
 	f, _ := os.Create(saveFileName)
 	defer func(f *os.File) {
 		_ = f.Close()
@@ -139,86 +105,111 @@ func SaveImage(outImg image.Image, fileExt string, saveFileName string) error {
 
 // Resize 图片绽放
 // 	参数：
-//		img   		为要缩放的图片 image实例
+//		srcFileName 原文件名
+//		newFileName 保存新的文件名
 //		width		缩放后的宽度
 //		height  	缩放后的高度
 //		keepRatio	是否保持等比例缩放
 //		fill		填充的背景颜色 0 - 255 （R、G、B）的值共一个数值， 0 = 透明背景， 255 = 白色背景
 //		centerAlign	是否以图片的中心来进行等比缩放
 //		crop		是否裁切
-func Resize(img image.Image, width int, height int, keepRatio bool, fill int, centerAlign bool, crop bool) image.Image {
+func (im *img) Resize(srcFileName string, newFileName string, width int, height int, keepRatio bool, fill int, centerAlign bool, crop bool) error {
+	imgRes, _, err := im.GetImage(srcFileName)
+	if err != nil {
+		return err
+	}
+
 	outImg := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	if !keepRatio {
 		//非等比缩放
-		draw.BiLinear.Scale(outImg, outImg.Bounds(), img, img.Bounds(), draw.Over, nil)
-		return outImg
-	}
-
-	//填充背景色
-	if fill != 0 {
-		fillColor := color.RGBA{R: uint8(fill), G: uint8(fill), B: uint8(fill), A: 255}
-		draw.Draw(outImg, outImg.Bounds(), &image.Uniform{C: fillColor}, image.Point{}, draw.Src)
-	}
-
-	srcWidth := img.Bounds().Dx()
-	srcHeight := img.Bounds().Dy()
-	var dst image.Rectangle
-
-	if crop == true {
-		//计算需要裁切掉的宽度和高度
-		cropWidth := 0
-		cropHeight := 0
-		if srcWidth > width && srcHeight <= height {
-			cropWidth = (srcWidth - width) / 2
-		} else if srcWidth <= width && srcHeight > height {
-			cropHeight = (srcHeight - height) / 2
-		} else if srcWidth > width && srcHeight > height {
-			wRatio := srcWidth / width
-			hRatio := srcHeight / height
-			if wRatio > hRatio {
-				cropWidth = (srcWidth - srcHeight*(width/height)) / 2
-			} else if wRatio < hRatio {
-				cropHeight = (srcHeight - srcWidth*(height/width)) / 2
-			}
-		}
-
-		//裁切图片
-		tmp := image.NewNRGBA(img.Bounds())
-		draw.Draw(tmp, img.Bounds(), img, img.Bounds().Min, draw.Src)
-		img = tmp.SubImage(image.Rect(cropWidth, cropHeight, srcWidth-cropWidth, srcHeight-cropHeight))
-
-		dst = image.Rect(0, 0, width, height)
-
+		draw.BiLinear.Scale(outImg, outImg.Bounds(), imgRes, imgRes.Bounds(), draw.Over, nil)
 	} else {
-		//计算缩放后大小
-		if width*srcHeight < height*srcWidth {
-			ratio := float64(width) / float64(srcWidth)
-			targetHeight := int(float64(srcHeight) * ratio)
-			padding := 0
-			if centerAlign {
-				padding = (height - targetHeight) / 2
-			}
-			dst = image.Rect(0, padding, width, padding+targetHeight)
-		} else {
-			ratio := float64(height) / float64(srcHeight)
-			targetWidth := int(float64(srcWidth) * ratio)
-			padding := 0
-			if centerAlign {
-				padding = (width - targetWidth) / 2
-			}
-			dst = image.Rect(padding, 0, padding+targetWidth, height)
+		//填充背景色
+		if fill != 0 {
+			fillColor := color.RGBA{R: uint8(fill), G: uint8(fill), B: uint8(fill), A: 255}
+			draw.Draw(outImg, outImg.Bounds(), &image.Uniform{C: fillColor}, image.Point{}, draw.Src)
 		}
+
+		srcWidth := imgRes.Bounds().Dx()
+		srcHeight := imgRes.Bounds().Dy()
+		var dst image.Rectangle
+
+		if crop == true {
+			//计算需要裁切掉的宽度和高度
+			cropWidth := 0
+			cropHeight := 0
+			var srcBounds image.Rectangle
+			var tmpBounds image.Rectangle
+
+			if srcWidth > width && srcHeight <= height {
+				cropWidth = (srcWidth - width) / 2
+				padding := (height - srcHeight) / 2
+				srcBounds = image.Rect(0, padding, srcWidth, srcHeight + padding)
+				tmpBounds = image.Rect(0, 0, srcWidth, height)
+				srcHeight = height
+			} else if srcWidth <= width && srcHeight > height {
+				cropHeight = (srcHeight - height) / 2
+				padding := (width - srcWidth) / 2
+				srcBounds = image.Rect(padding,0, srcWidth + padding, srcHeight)
+				tmpBounds = image.Rect(0, 0, width, srcHeight)
+				srcWidth = width
+			} else if srcWidth <= width && srcHeight <= height {
+				wPadding := (width - srcWidth) / 2
+				hPadding := (height - srcHeight) / 2
+				srcBounds = image.Rect(wPadding,hPadding, srcWidth + wPadding, srcHeight + hPadding)
+				tmpBounds = image.Rect(0, 0, width, height)
+				srcWidth = width
+				srcHeight = height
+			} else if srcWidth > width && srcHeight > height {
+				wRatio := float64(srcWidth) / float64(width)
+				hRatio := float64(srcHeight) / float64(height)
+				if wRatio > hRatio {
+					cropWidth = (srcWidth - int(float64(srcHeight) * (float64(width) / float64(height))) ) / 2
+				} else if wRatio < hRatio {
+					cropHeight = (srcHeight - int(float64(srcWidth) * (float64(height) / float64(width))) ) / 2
+				}
+				srcBounds = imgRes.Bounds()
+				tmpBounds = srcBounds
+			}
+
+			//裁切图片
+			tmp := image.NewNRGBA(tmpBounds)
+			draw.Draw(tmp, srcBounds, imgRes, imgRes.Bounds().Min, draw.Over)
+			imgRes = tmp.SubImage(image.Rect(cropWidth, cropHeight, srcWidth-cropWidth, srcHeight-cropHeight))
+
+			dst = image.Rect(0, 0, width, height)
+
+		} else {
+			//计算缩放后大小
+			if width*srcHeight < height*srcWidth {
+				ratio := float64(width) / float64(srcWidth)
+				targetHeight := int(float64(srcHeight) * ratio)
+				padding := 0
+				if centerAlign {
+					padding = (height - targetHeight) / 2
+				}
+				dst = image.Rect(0, padding, width, padding+targetHeight)
+			} else {
+				ratio := float64(height) / float64(srcHeight)
+				targetWidth := int(float64(srcWidth) * ratio)
+				padding := 0
+				if centerAlign {
+					padding = (width - targetWidth) / 2
+				}
+				dst = image.Rect(padding, 0, padding+targetWidth, height)
+			}
+		}
+
+		//缩放图片
+		draw.ApproxBiLinear.Scale(outImg, dst.Bounds(), imgRes, imgRes.Bounds(), draw.Over, nil)
 	}
 
-	//缩放图片
-	draw.ApproxBiLinear.Scale(outImg, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
-
-	return outImg
+	return im.SaveImage(outImg, newFileName)
 }
 
 // FontWater 给图片添加文字水印
-func (w *img) FontWater(fileName string, typeface []app.FontInfo) error {
+func (im *img) FontWater(fileName string, typeface []app.FontInfo) error {
 	//需要加水印的图片
 	imgFile, err := os.Open(fileName)
 	if err != nil {

@@ -155,8 +155,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		return nil, errors.New(fieldName + "|上传异常：文件上传失败！" + err.Error())
 	}
 
-	//helper.Img().Resize(dst)
-	err = helper.Img().Make(dst, currentFileExt)
+	err = helper.Img().Resize(dst, dst, 200, 300, true, 255, true, true)
 
 	if config.Water.Enable == true {
 		fontList := []app.FontInfo{config.Water.Conf}

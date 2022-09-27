@@ -6,15 +6,25 @@ import (
 	"os"
 )
 
+// uploadImage 图像文件上传配置
+type uploadImage struct {
+	ResizeEnable   bool `yaml:"resize_enable"`   //是否缩放图片
+	ImageWidth     int  `yaml:"image_width"`     //上传的图片裁切后的宽度
+	ImageHeight    int  `yaml:"image_height"`    //上传的图片裁切后的高度
+	KeepRatio      bool `yaml:"keep_ratio"`      //是否保持等比例缩放
+	FillBackground int  `yaml:"fill_background"` //填充的背景颜色 0 - 255 （R、G、B）的值共一个数值， 0 = 透明背景， 255 = 白色背景
+	CenterAlign    bool `yaml:"center_align"`    //是否以图片的中心来进行等比缩放
+	Crop           bool `yaml:"crop"`            //是否裁切图片
+}
+
 // upload 上传配置
 type upload struct {
-	AllowFileSize int    `yaml:"allow_file_size"` //允许上传的最大文件，单位M
-	AllowFileType string `yaml:"allow_file_type"` //支持上传的文件类型
-	AllowFileMime string `yaml:"allow_file_mime"` //支持上传文件的MIME类型
-	Dir           string `yaml:"dir"`             //文件保存目录
-	Url           string `yaml:"url"`             //文件访问链接域名
-	ImageWidth    int    `yaml:"image_width"`     //上传的图片裁切后的宽度
-	ImageHeight   int    `yaml:"image_height"`    //上传的图片裁切后的高度
+	AllowFileSize int         `yaml:"allow_file_size"` //允许上传的最大文件，单位M
+	AllowFileType string      `yaml:"allow_file_type"` //支持上传的文件类型
+	AllowFileMime string      `yaml:"allow_file_mime"` //支持上传文件的MIME类型
+	Dir           string      `yaml:"dir"`             //文件保存目录
+	Url           string      `yaml:"url"`             //文件访问链接域名
+	Image         uploadImage `yaml:"image"`           //图像文件上传配置
 }
 
 // FontInfo 水印文字配置信息

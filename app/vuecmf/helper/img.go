@@ -13,6 +13,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -224,15 +225,15 @@ func (im *img) FontWater(fileName string, typeface []app.FontInfo) error {
 
 	//新的加了水印图片覆盖原来文件
 	if fileExt == "gif" {
-		err = gifFontWater(imgFile, fileName, typeface)
+		err = im.gifFontWater(imgFile, fileName, typeface)
 	} else {
-		err = staticFontWater(imgFile, fileName, fileExt, typeface)
+		err = im.staticFontWater(imgFile, fileName, fileExt, typeface)
 	}
 	return err
 }
 
 //gif图片水印
-func gifFontWater(imgFile *os.File, newImage string, typeface []app.FontInfo) error {
+func (im *img) gifFontWater(imgFile *os.File, newImage string, typeface []app.FontInfo) error {
 	var err error
 	gifImg2, _ := gif.DecodeAll(imgFile)
 	gifs := make([]*image.Paletted, 0)
@@ -256,7 +257,7 @@ func gifFontWater(imgFile *os.File, newImage string, typeface []app.FontInfo) er
 					rgbImg.Set(x, y, gifImg.At(x, y))
 				}
 			}
-			rgbImg, err = common(rgbImg, typeface) //添加文字水印
+			rgbImg, err = im.common(rgbImg, typeface) //添加文字水印
 			if err != nil {
 				break
 			}
@@ -301,21 +302,23 @@ func gifFontWater(imgFile *os.File, newImage string, typeface []app.FontInfo) er
 }
 
 //png,jpeg图片水印
-func staticFontWater(imgFile *os.File, newImage, status string, typeface []app.FontInfo) (err error) {
+func (im *img) staticFontWater(imgFile *os.File, newImage, status string, typeface []app.FontInfo) (err error) {
 	var staticImg image.Image
 	if status == "png" {
 		staticImg, _ = png.Decode(imgFile)
 	} else {
 		staticImg, _ = jpeg.Decode(imgFile)
 	}
+	//新建一个RGB图像
 	rgbImg := image.NewNRGBA(staticImg.Bounds())
 	for y := 0; y < rgbImg.Bounds().Dy(); y++ {
 		for x := 0; x < rgbImg.Bounds().Dx(); x++ {
+			//设置每个像素点颜色，颜色来自要添加水印的图像文件（相当于将图像复制一份为 rgbImg）
 			rgbImg.Set(x, y, staticImg.At(x, y))
 		}
 	}
 
-	rgbImg, err = common(rgbImg, typeface) //添加文字水印
+	rgbImg, err = im.common(rgbImg, typeface) //开始添加文字水印
 	if err != nil {
 		return err
 	}
@@ -338,7 +341,7 @@ func staticFontWater(imgFile *os.File, newImage, status string, typeface []app.F
 }
 
 //添加文字水印函数
-func common(rgbImg *image.NRGBA, typeface []app.FontInfo) (*image.NRGBA, error) {
+func (im *img) common(rgbImg *image.NRGBA, typeface []app.FontInfo) (*image.NRGBA, error) {
 	//拷贝一个字体文件到运行目录
 	fontBytes, err := ioutil.ReadFile(app.Conf().Water.WaterFont)
 	if err != nil {
@@ -351,39 +354,50 @@ func common(rgbImg *image.NRGBA, typeface []app.FontInfo) (*image.NRGBA, error) 
 	errNum := 1
 Loop:
 	for _, t := range typeface {
-		info := t.Message
-		f := freetype.NewContext()
-		f.SetDPI(108)
-		f.SetFont(font)
-		f.SetFontSize(t.Size)
-		f.SetClip(rgbImg.Bounds())
-		f.SetDst(rgbImg)
+		info := t.Message  //水印文字内容
+		f := freetype.NewContext() //创建字体上下文
+		f.SetDPI(108)  //设置字体分辨率（屏幕每英寸的分辨率）
+		f.SetFont(font)  //设置字体
+		f.SetFontSize(t.Size)  //设置字号（字体大小）
+		f.SetClip(rgbImg.Bounds()) //设置文字可绘制区域的尺寸
+		f.SetDst(rgbImg)  //设置最终输出的图片
+		//设置字体颜色
 		f.SetSrc(image.NewUniform(color.RGBA{R: t.R, G: t.G, B: t.B, A: t.A}))
 
-		first := 0
-		two := 0
+		//文本左下角
+		writeX := 0  //水印文字起始x位置
+		writeY := 0  //水印文字起始y位置
+
+		//f.PointToFixed 表示将字号大小转成像素值
+
 		switch t.Position {
 		case TopLeft:
-			first = t.Dx
-			two = t.Dy + int(f.PointToFixed(t.Size)>>6)
+			writeX = t.Dx
+			writeY = t.Dy + int(f.PointToFixed(t.Size)>>6)
 		case TopRight:
-			first = rgbImg.Bounds().Dx() - len(info)*4 - t.Dx
-			two = t.Dy + int(f.PointToFixed(t.Size)>>6)
+			writeX = rgbImg.Bounds().Dx() - len(info)*4 - t.Dx
+			writeY = t.Dy + int(f.PointToFixed(t.Size)>>6)
 		case BottomLeft:
-			first = t.Dx
-			two = rgbImg.Bounds().Dy() - t.Dy
+			writeX = t.Dx
+			writeY = rgbImg.Bounds().Dy() - t.Dy
 		case BottomRight:
-			first = rgbImg.Bounds().Dx() - len(info)*4 - t.Dx
-			two = rgbImg.Bounds().Dy() - t.Dy
+			writeX = rgbImg.Bounds().Dx() - len(info)*4 - t.Dx
+			writeY = rgbImg.Bounds().Dy() - t.Dy
 		case Center:
-			first = (rgbImg.Bounds().Dx() - len(info)*4) / 2
-			two = (rgbImg.Bounds().Dy() - t.Dy) / 2
+			//writeX = (rgbImg.Bounds().Dx() - len(info) * 4 ) / 2
+			//writeY = (rgbImg.Bounds().Dy() - t.Dy ) / 2
+
+			writeX = (rgbImg.Bounds().Dx() - len(info) * int(f.PointToFixed(t.Size)>>8) ) / 2
+			writeY = (rgbImg.Bounds().Dy() - int(f.PointToFixed(t.Size)>>8) ) / 2
+			fmt.Println(rgbImg.Bounds().Dx(), len(info), int(f.PointToFixed(t.Size)>>8) )
+			fmt.Println(rgbImg.Bounds().Dy(), int(f.PointToFixed(t.Size)))
+			fmt.Println("x=" , writeX, "  y=", writeY)
 		default:
 			errNum = 0
 			break Loop
 		}
 
-		pt := freetype.Pt(first, two)
+		pt := freetype.Pt(writeX, writeY) //设置字体的位置
 		_, err = f.DrawString(info, pt)
 		if err != nil {
 			break
@@ -393,4 +407,60 @@ Loop:
 		err = errors.New("坐标值不对")
 	}
 	return rgbImg, err
+}
+
+
+func (im *img) Test(){
+	//图片的宽度
+	srcWidth := 200
+	//图片的高度
+	srcHeight := 200
+	imgfile, _ := os.Create("uploads/out.png")
+	defer imgfile.Close()
+
+	img := image.NewRGBA(image.Rect(0, 0, srcWidth, srcHeight))
+
+	//为背景图片设置颜色
+	for y := 0; y < srcWidth; y++ {
+		for x := 0; x < srcHeight; x++ {
+			img.Set(x, y, color.RGBA{255, 255, 255, 255})
+		}
+	}
+
+	//读取字体数据
+	fontBytes, err := ioutil.ReadFile(app.Conf().Water.WaterFont)
+	if err != nil {
+		log.Println(err)
+	}
+	//载入字体数据
+	font, err := freetype.ParseFont(fontBytes)
+	if err != nil {
+		log.Println("载入字体失败", err)
+	}
+	f := freetype.NewContext()
+	//设置分辨率
+	f.SetDPI(100)
+	//设置字体
+	f.SetFont(font)
+	//设置尺寸
+	f.SetFontSize(26)
+	f.SetClip(img.Bounds())
+	//设置输出的图片
+	f.SetDst(img)
+	//设置字体颜色(红色)
+	f.SetSrc(image.NewUniform(color.RGBA{255, 0, 0, 30}))
+
+	//设置字体的位置
+	pt := freetype.Pt(20, 40)
+
+	_, err = f.DrawString("hello,你好", pt)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//以png 格式写入文件
+	err = png.Encode(imgfile, img)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

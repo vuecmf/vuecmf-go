@@ -121,6 +121,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		fileMime = config.Upload.AllowFileMime
 	}
 
+	//文件类型检测
 	if helper.InSlice(currentFileMime, strings.Split(fileMime, ",")) == false {
 		return nil, errors.New(fieldName + "|上传异常：不支持该文件类型 " + currentFileMime)
 	}
@@ -129,6 +130,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	fileName := fileHeader.Filename
 	currentFileExt := helper.GetFileExt(fileName)
 
+	//文件扩展名检测
 	if helper.InSlice(currentFileExt, strings.Split(fileExt, ",")) == false {
 		return nil, errors.New(fieldName + "|上传异常：不支持该文件类型 " + currentFileExt)
 	}
@@ -155,8 +157,20 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		return nil, errors.New(fieldName + "|上传异常：文件上传失败！" + err.Error())
 	}
 
-	err = helper.Img().Resize(dst, dst, 200, 300, true, 255, true, true)
+	//缩放图像文件
+	if config.Upload.Image.ResizeEnable == true {
+		err = helper.Img().Resize(
+			dst,
+			dst,
+			config.Upload.Image.ImageWidth,
+			config.Upload.Image.ImageHeight,
+			config.Upload.Image.KeepRatio,
+			config.Upload.Image.FillBackground,
+			config.Upload.Image.CenterAlign,
+			config.Upload.Image.Crop)
+	}
 
+	//给图像添加水印
 	if config.Water.Enable == true {
 		fontList := []app.FontInfo{config.Water.Conf}
 		err = helper.Img().FontWater(dst, fontList)
@@ -164,6 +178,8 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 			return nil, errors.New(fieldName + "|上传异常：添加水印失败！" + err.Error())
 		}
 	}
+
+	helper.Img().Test()
 
 	var res = make(map[string]string)
 	res["field_name"] = fieldName

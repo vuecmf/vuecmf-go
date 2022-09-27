@@ -5,15 +5,21 @@ upload:
   allow_file_mime: "image/gif,image/jpeg,image/png,application/zip,application/octet-stream,text/plain; charset=utf-8,application/pdf"
   dir: "uploads"            #文件保存目录
   url: "http://www.vf.com/"  #文件访问链接域名
-  image_width: 600   #上传的图片裁切后的宽度
-  image_height: 600  #上传的图片裁切后的高度
+  image:
+    resize_enable: true #是否缩放图片
+    image_width: 600   #上传的图片裁切后的宽度
+    image_height: 600  #上传的图片裁切后的高度
+    keep_ratio: true #是否保持等比例缩放
+    fill_background: 255 #填充的背景颜色 0 - 255 （R、G、B）的值共一个数值， 0 = 透明背景， 255 = 白色背景
+    center_align: true #是否以图片的中心来进行等比缩放
+    crop: true #是否裁切图片
 
 #水印配置
 water:
   enable: true
   water_font: "config/simhei.ttf"   #水印字体路径
   conf:
-    size: 24.0 #水印文字大小
+    size: 72.0 #水印文字大小
     message: "vuecmf" #水印文本内容
     position: 4  #水印位置， 0=左上角， 1=右上角，2=左下角，3=右下角，4=中间
     dx: 0  #文字x轴留白距离

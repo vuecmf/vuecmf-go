@@ -13,7 +13,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io/ioutil"
-	"log"
 	"os"
 )
 
@@ -73,7 +72,7 @@ func (im *img) GetImage(fileName string) (image.Image, string, error) {
 }
 
 // SaveImage 保存图像文件
-func (im *img) SaveImage(outImg image.Image,  saveFileName string) error {
+func (im *img) SaveImage(outImg image.Image, saveFileName string) error {
 	fileExt := GetFileExt(saveFileName)
 	f, _ := os.Create(saveFileName)
 	defer func(f *os.File) {
@@ -146,19 +145,19 @@ func (im *img) Resize(srcFileName string, newFileName string, width int, height 
 			if srcWidth > width && srcHeight <= height {
 				cropWidth = (srcWidth - width) / 2
 				padding := (height - srcHeight) / 2
-				srcBounds = image.Rect(0, padding, srcWidth, srcHeight + padding)
+				srcBounds = image.Rect(0, padding, srcWidth, srcHeight+padding)
 				tmpBounds = image.Rect(0, 0, srcWidth, height)
 				srcHeight = height
 			} else if srcWidth <= width && srcHeight > height {
 				cropHeight = (srcHeight - height) / 2
 				padding := (width - srcWidth) / 2
-				srcBounds = image.Rect(padding,0, srcWidth + padding, srcHeight)
+				srcBounds = image.Rect(padding, 0, srcWidth+padding, srcHeight)
 				tmpBounds = image.Rect(0, 0, width, srcHeight)
 				srcWidth = width
 			} else if srcWidth <= width && srcHeight <= height {
 				wPadding := (width - srcWidth) / 2
 				hPadding := (height - srcHeight) / 2
-				srcBounds = image.Rect(wPadding,hPadding, srcWidth + wPadding, srcHeight + hPadding)
+				srcBounds = image.Rect(wPadding, hPadding, srcWidth+wPadding, srcHeight+hPadding)
 				tmpBounds = image.Rect(0, 0, width, height)
 				srcWidth = width
 				srcHeight = height
@@ -166,9 +165,9 @@ func (im *img) Resize(srcFileName string, newFileName string, width int, height 
 				wRatio := float64(srcWidth) / float64(width)
 				hRatio := float64(srcHeight) / float64(height)
 				if wRatio > hRatio {
-					cropWidth = (srcWidth - int(float64(srcHeight) * (float64(width) / float64(height))) ) / 2
+					cropWidth = (srcWidth - int(float64(srcHeight)*(float64(width)/float64(height)))) / 2
 				} else if wRatio < hRatio {
-					cropHeight = (srcHeight - int(float64(srcWidth) * (float64(height) / float64(width))) ) / 2
+					cropHeight = (srcHeight - int(float64(srcWidth)*(float64(height)/float64(width)))) / 2
 				}
 				srcBounds = imgRes.Bounds()
 				tmpBounds = srcBounds
@@ -354,44 +353,40 @@ func (im *img) common(rgbImg *image.NRGBA, typeface []app.FontInfo) (*image.NRGB
 	errNum := 1
 Loop:
 	for _, t := range typeface {
-		info := t.Message  //水印文字内容
+		info := t.Message          //水印文字内容
 		f := freetype.NewContext() //创建字体上下文
-		f.SetDPI(108)  //设置字体分辨率（屏幕每英寸的分辨率）
-		f.SetFont(font)  //设置字体
-		f.SetFontSize(t.Size)  //设置字号（字体大小）
+		f.SetDPI(72)               //设置字体分辨率（屏幕每英寸的分辨率）
+		f.SetFont(font)            //设置字体
+		f.SetFontSize(t.Size)      //设置字号（字体大小）
 		f.SetClip(rgbImg.Bounds()) //设置文字可绘制区域的尺寸
-		f.SetDst(rgbImg)  //设置最终输出的图片
+		f.SetDst(rgbImg)           //设置最终输出的图片
 		//设置字体颜色
 		f.SetSrc(image.NewUniform(color.RGBA{R: t.R, G: t.G, B: t.B, A: t.A}))
 
 		//文本左下角
-		writeX := 0  //水印文字起始x位置
-		writeY := 0  //水印文字起始y位置
+		writeX := 0 //水印文字起始x位置
+		writeY := 0 //水印文字起始y位置
 
 		//f.PointToFixed 表示将字号大小转成像素值
+		fontWidth := len(info) * int(f.PointToFixed(t.Size)>>7) //文字宽度
+		fontHeight := int(t.Size / 72.0 * 50)                   //文字高度
 
 		switch t.Position {
 		case TopLeft:
 			writeX = t.Dx
-			writeY = t.Dy + int(f.PointToFixed(t.Size)>>6)
+			writeY = t.Dy + fontHeight
 		case TopRight:
-			writeX = rgbImg.Bounds().Dx() - len(info)*4 - t.Dx
-			writeY = t.Dy + int(f.PointToFixed(t.Size)>>6)
+			writeX = rgbImg.Bounds().Dx() - fontWidth - t.Dx
+			writeY = t.Dy + fontHeight
 		case BottomLeft:
 			writeX = t.Dx
 			writeY = rgbImg.Bounds().Dy() - t.Dy
 		case BottomRight:
-			writeX = rgbImg.Bounds().Dx() - len(info)*4 - t.Dx
+			writeX = rgbImg.Bounds().Dx() - fontWidth - t.Dx
 			writeY = rgbImg.Bounds().Dy() - t.Dy
 		case Center:
-			//writeX = (rgbImg.Bounds().Dx() - len(info) * 4 ) / 2
-			//writeY = (rgbImg.Bounds().Dy() - t.Dy ) / 2
-
-			writeX = (rgbImg.Bounds().Dx() - len(info) * int(f.PointToFixed(t.Size)>>8) ) / 2
-			writeY = (rgbImg.Bounds().Dy() - int(f.PointToFixed(t.Size)>>8) ) / 2
-			fmt.Println(rgbImg.Bounds().Dx(), len(info), int(f.PointToFixed(t.Size)>>8) )
-			fmt.Println(rgbImg.Bounds().Dy(), int(f.PointToFixed(t.Size)))
-			fmt.Println("x=" , writeX, "  y=", writeY)
+			writeX = (rgbImg.Bounds().Dx() - fontWidth) / 2
+			writeY = (rgbImg.Bounds().Dy()-fontHeight)/2 + fontHeight
 		default:
 			errNum = 0
 			break Loop
@@ -404,63 +399,7 @@ Loop:
 		}
 	}
 	if errNum == 0 {
-		err = errors.New("坐标值不对")
+		err = errors.New("不支持的位置值（只能为0到4的整数，0=左上角， 1=右上角，2=左下角，3=右下角，4=中间）")
 	}
 	return rgbImg, err
-}
-
-
-func (im *img) Test(){
-	//图片的宽度
-	srcWidth := 200
-	//图片的高度
-	srcHeight := 200
-	imgfile, _ := os.Create("uploads/out.png")
-	defer imgfile.Close()
-
-	img := image.NewRGBA(image.Rect(0, 0, srcWidth, srcHeight))
-
-	//为背景图片设置颜色
-	for y := 0; y < srcWidth; y++ {
-		for x := 0; x < srcHeight; x++ {
-			img.Set(x, y, color.RGBA{255, 255, 255, 255})
-		}
-	}
-
-	//读取字体数据
-	fontBytes, err := ioutil.ReadFile(app.Conf().Water.WaterFont)
-	if err != nil {
-		log.Println(err)
-	}
-	//载入字体数据
-	font, err := freetype.ParseFont(fontBytes)
-	if err != nil {
-		log.Println("载入字体失败", err)
-	}
-	f := freetype.NewContext()
-	//设置分辨率
-	f.SetDPI(100)
-	//设置字体
-	f.SetFont(font)
-	//设置尺寸
-	f.SetFontSize(26)
-	f.SetClip(img.Bounds())
-	//设置输出的图片
-	f.SetDst(img)
-	//设置字体颜色(红色)
-	f.SetSrc(image.NewUniform(color.RGBA{255, 0, 0, 30}))
-
-	//设置字体的位置
-	pt := freetype.Pt(20, 40)
-
-	_, err = f.DrawString("hello,你好", pt)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//以png 格式写入文件
-	err = png.Encode(imgfile, img)
-	if err != nil {
-		log.Fatal(err)
-	}
 }

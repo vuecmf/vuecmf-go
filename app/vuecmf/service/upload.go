@@ -67,7 +67,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	var fileSize int
 	var fileExt string
 	//var isFile bool
-	//var isImage bool
+	var isImage bool
 	var fileMime string
 
 	fileHeader, err := ctx.FormFile("file")
@@ -98,7 +98,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 			case "file":
 				//isFile = true
 			case "image":
-				//isImage = true
+				isImage = true
 			case "fileExt":
 				fileExt = row.RuleValue
 			case "fileSize":
@@ -157,29 +157,29 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		return nil, errors.New(fieldName + "|上传异常：文件上传失败！" + err.Error())
 	}
 
-	//缩放图像文件
-	if config.Upload.Image.ResizeEnable == true {
-		err = helper.Img().Resize(
-			dst,
-			dst,
-			config.Upload.Image.ImageWidth,
-			config.Upload.Image.ImageHeight,
-			config.Upload.Image.KeepRatio,
-			config.Upload.Image.FillBackground,
-			config.Upload.Image.CenterAlign,
-			config.Upload.Image.Crop)
-	}
+	if isImage == true {
+		//缩放图像文件
+		if config.Upload.Image.ResizeEnable == true {
+			err = helper.Img().Resize(
+				dst,
+				dst,
+				config.Upload.Image.ImageWidth,
+				config.Upload.Image.ImageHeight,
+				config.Upload.Image.KeepRatio,
+				config.Upload.Image.FillBackground,
+				config.Upload.Image.CenterAlign,
+				config.Upload.Image.Crop)
+		}
 
-	//给图像添加水印
-	if config.Water.Enable == true {
-		fontList := []app.FontInfo{config.Water.Conf}
-		err = helper.Img().FontWater(dst, fontList)
-		if err != nil {
-			return nil, errors.New(fieldName + "|上传异常：添加水印失败！" + err.Error())
+		//给图像添加水印
+		if config.Water.Enable == true {
+			fontList := []app.FontInfo{config.Water.Conf}
+			err = helper.Img().FontWater(dst, fontList)
+			if err != nil {
+				return nil, errors.New(fieldName + "|上传异常：添加水印失败！" + err.Error())
+			}
 		}
 	}
-
-	helper.Img().Test()
 
 	var res = make(map[string]string)
 	res["field_name"] = fieldName

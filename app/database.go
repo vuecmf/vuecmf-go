@@ -18,8 +18,8 @@ import (
 	"time"
 )
 
-// databaseConf 数据库配置
-type databaseConf struct {
+// connConf 数据库配置
+type connConf struct {
 	Type            string `yaml:"type"`
 	Host            string `yaml:"host"`
 	Port            string `yaml:"port"`
@@ -34,12 +34,17 @@ type databaseConf struct {
 	Debug           bool   `yaml:"debug"`
 }
 
-var conf = make(map[string]databaseConf)
+// databaseConf 数据库配置
+type databaseConf struct {
+	Connect map[string]connConf `yaml:"connect"`
+}
+
+var conf databaseConf
 var conn = make(map[string]*gorm.DB)
 
 // Connect 连接数据库
 func connect(confName string) *gorm.DB {
-	_, isExist := conf[confName]
+	_, isExist := conf.Connect[confName]
 	if isExist && conn[confName] != nil {
 		return conn[confName]
 	}
@@ -54,7 +59,7 @@ func connect(confName string) *gorm.DB {
 		log.Fatal("数据库配置文件解析错误！")
 	}
 
-	cfg, ok := conf[confName]
+	cfg, ok := conf.Connect[confName]
 	if ok == false {
 		log.Fatal("数据库配置（" + confName + "）不存在")
 	}
@@ -87,10 +92,10 @@ func connect(confName string) *gorm.DB {
 	// SetMaxIdleConns 设置空闲连接池中连接的最大数量
 	sqlDB.SetMaxIdleConns(cfg.MaxIdleConnNums)
 
-	// SetMaxOpenConns 设置打开数据库连接的最大数量。
+	// SetMaxOpenConns 设置打开数据库连接的最大数量
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConnNums)
 
-	// SetConnMaxLifetime 设置了连接可复用的最大时间。
+	// SetConnMaxLifetime 设置了连接可复用的最大时间
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime * int64(time.Minute)))
 
 	return conn[confName]

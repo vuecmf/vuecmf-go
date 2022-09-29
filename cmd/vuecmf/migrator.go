@@ -8,8 +8,8 @@ import (
 )
 
 
-// Migrate 数据库迁移
-func Migrate(aType string){
+// Migrator 数据库迁移
+func Migrator(aType string){
 	var err error
 	switch aType {
 	case "init":
@@ -34,6 +34,21 @@ func Migrate(aType string){
 
 }
 
+/**
+sqlType := "bigint"
+	switch {
+	case field.Size <= 8:
+		sqlType = "tinyint"
+	case field.Size <= 16:
+		sqlType = "smallint"
+	case field.Size <= 24:
+		sqlType = "mediumint"
+	case field.Size <= 32:
+		sqlType = "int"
+	}
+ */
+
+
 // initDb 数据库初始化
 func initDb() error {
 	db := app.Db("demo")
@@ -41,12 +56,10 @@ func initDb() error {
 
 
 
-	if err != nil {
-		fmt.Println("数据库初始化失败！" + err.Error())
-	}
 
 
-	return nil
+
+	return err
 }
 
 // up 数据库升级

@@ -22,28 +22,38 @@ type makeService struct {
 	*baseService
 }
 
-// modelRules 表单规则
-type modelRules struct {
-	model.ModelField
+// formRow 表单字段信息
+type formRow struct {
+	FieldName string  //字段名
+	Gorm string  //gorm表信息
+	Type string  //字段类型
+	IsSigned string //是否为负数
+	Rules  []string  //验证规则
+	ErrTips []string //错误提示语
+}
+
+// formRules 表单字段验证规则
+type formRules struct {
 	RuleType  string `json:"rule_type"`  //验证规则类型
 	RuleValue string `json:"rule_value"` //规则值
 	ErrorTips string `json:"error_tips"` //错误提示
 }
 
+
 //Model 功能：生成模型代码文件
 //		参数：tableName string 表名（不带表前缀）
 func (makeSer *makeService) Model(tableName string) error {
-	var result []modelRules
+	var result []model.ModelField
 
 	//查出需要生成模型表的字段相关信息
 	db.Table(ns.TableName("model_field")+" VMF").
-		Select("VMF.*, VMFR.rule_type, VMFR.rule_value, VMFR.error_tips").
-		Joins("left join "+ns.TableName("model_form")+" VMF2 on VMF2.model_field_id = VMF.id").
-		Joins("left join "+ns.TableName("model_form_rules")+" VMFR on VMF2.id = VMFR.model_form_id").
+		Select("VMF.*").
 		Joins("left join "+ns.TableName("model_config")+" MC on VMF.model_id = MC.id").
 		Where("VMF.status = 10").
 		Where("MC.status = 10").
-		Where("MC.table_name = ?", tableName).Find(&result)
+		Where("MC.table_name = ?", tableName).
+		Order("VMF.sort_num").
+		Find(&result)
 
 	tplFile := "model.stub"
 	modelConf := ModelConfig().GetModelConfig(tableName)
@@ -57,13 +67,11 @@ func (makeSer *makeService) Model(tableName string) error {
 		return errors.New("读取model模板失败")
 	}
 
-	formList := make(map[string]map[string][]string)
+	var formList []*formRow
 	ruleMaps := getRuleMaps()
 
 	for _, value := range result {
-		if formList[value.FieldName] == nil {
-			formList[value.FieldName] = map[string][]string{}
-		}
+		fr := &formRow{}
 
 		//gorm 处理
 		notNull := ""
@@ -86,7 +94,9 @@ func (makeSer *makeService) Model(tableName string) error {
 		} else if value.DefaultValue == "CURRENT_TIMESTAMP" {
 			autoCreateTime = "autoCreateTime;"
 		} else {
-			defaultVal = "default:" + value.DefaultValue + ";"
+			if value.IsAutoIncrement != 10 {
+				defaultVal = "default:" + value.DefaultValue + ";"
+			}
 			size = "size:" + strconv.Itoa(int(value.Length)) + ";"
 		}
 
@@ -103,57 +113,73 @@ func (makeSer *makeService) Model(tableName string) error {
 		gormCnf := " gorm:\"column:" + value.FieldName + ";" + autoIncrement + size + uniqueIndex + notNull + autoCreateTime + defaultVal +
 			"comment:" + value.Note + "\""
 
-		formList[value.FieldName]["gorm"] = []string{gormCnf}                                //gorm表信息
-		formList[value.FieldName]["type"] = []string{value.Type}                             //字段类型
-		formList[value.FieldName]["is_signed"] = []string{strconv.Itoa(int(value.IsSigned))} //是否为负数
-		rules := ""
-		if ruleMaps[value.RuleType] != "" {
-			switch ruleMaps[value.RuleType] {
-			case "eq", "gt", "lt", "gte", "lte", "datetime", "len", "max", "min", "required_if", "required_with", "required_without":
-				rules = ruleMaps[value.RuleType]
-				if value.RuleValue != "" {
-					rules += "=" + value.RuleValue
-				}
-			default:
-				rules = ruleMaps[value.RuleType]
-			}
+		fr.FieldName = value.FieldName  //字段名
+		fr.Gorm = gormCnf  //gorm表信息
+		fr.Type = value.Type  //字段类型
+		fr.IsSigned = strconv.Itoa(int(value.IsSigned))  //是否为负数
 
-			//验证规则
-			formList[value.FieldName]["rules"] = append(formList[value.FieldName]["rules"], rules)
-			//错误提示语句
-			formList[value.FieldName]["tips"] = append(formList[value.FieldName]["tips"], ruleMaps[value.RuleType]+"_tips:\""+value.ErrorTips+"\"")
+		rules := ""
+		var formRulesList []formRules
+
+		db.Table(ns.TableName("model_form")+" VMF").
+			Select("VMFR.rule_type, VMFR.rule_value, VMFR.error_tips").
+			Joins("left join "+ns.TableName("model_form_rules")+" VMFR on VMF.id = VMFR.model_form_id").
+			Where("VMF.status = 10").
+			Where("VMFR.status = 10").
+			Where("VMF.model_field_id = ?", value.Id).
+			Find(&formRulesList)
+
+		for _, rule := range formRulesList {
+			if ruleMaps[rule.RuleType] != "" {
+				switch ruleMaps[rule.RuleType] {
+				case "eq", "gt", "lt", "gte", "lte", "datetime", "len", "max", "min", "required_if", "required_with", "required_without":
+					rules = ruleMaps[rule.RuleType]
+					if rule.RuleValue != "" {
+						rules += "=" + rule.RuleValue
+					}
+				default:
+					rules = ruleMaps[rule.RuleType]
+				}
+
+				fr.Rules = append(fr.Rules, rules)   //验证规则
+				//错误提示语句
+				fr.ErrTips = append(fr.ErrTips, ruleMaps[rule.RuleType]+"_tips:\""+rule.ErrorTips+"\"")
+
+			}
 		}
+
+		formList = append(formList, fr)
 	}
 
 	modelContent := ""
 	hasTime := false
 
 	//模型字段信息处理
-	for fieldName, value := range formList {
+	for _, row := range formList {
 		fieldType := "string"
 		timeFormat := ""
 
-		switch value["type"][0] {
+		switch row.Type {
 		case "timestamp", "datetime", "date":
 			hasTime = true
 			fieldType = "time.Time"
 			timeFormat = "time_format:\"2006-01-02 15:04:05\" "
-			if value["type"][0] == "date" {
+			if row.Type == "date" {
 				timeFormat = "time_format:\"2006-01-02\" "
 			}
 		case "int", "bigint":
 			fieldType = "int"
-			if value["is_signed"][0] == "20" {
+			if row.IsSigned == "20" {
 				fieldType = "uint"
 			}
 		case "smallint":
 			fieldType = "int16"
-			if value["is_signed"][0] == "20" {
+			if row.IsSigned == "20" {
 				fieldType = "uint16"
 			}
 		case "tinyint":
 			fieldType = "int8"
-			if value["is_signed"][0] == "20" {
+			if row.IsSigned == "20" {
 				fieldType = "uint8"
 			}
 		case "float":
@@ -162,12 +188,12 @@ func (makeSer *makeService) Model(tableName string) error {
 			fieldType = "float64"
 		}
 
-		modelContent += helper.UnderToCamel(fieldName) + " " + fieldType + " `json:\"" + fieldName +
-			"\" form:\"" + fieldName + "\" " + timeFormat
-		if len(value["rules"]) > 0 {
-			modelContent += "binding:\"" + strings.Join(value["rules"], ",") + "\" " + strings.Join(value["tips"], " ")
+		modelContent += helper.UnderToCamel(row.FieldName) + " " + fieldType + " `json:\"" + row.FieldName +
+			"\" form:\"" + row.FieldName + "\" " + timeFormat
+		if len(row.Rules) > 0 {
+			modelContent += "binding:\"" + strings.Join(row.Rules, ",") + "\" " + strings.Join(row.ErrTips, " ")
 		}
-		modelContent += value["gorm"][0] + "`\n\t"
+		modelContent += row.Gorm + "`\n\t"
 	}
 
 	//获取模型标签名称

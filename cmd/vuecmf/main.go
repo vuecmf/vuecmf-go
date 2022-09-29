@@ -62,7 +62,7 @@ Options:
 	} else {
 		switch *action {
 		case "migrate":
-			Migrate(*atype)
+			Migrator(*atype)
 		case "make":
 			Make(*atype, *name)
 		case "version":

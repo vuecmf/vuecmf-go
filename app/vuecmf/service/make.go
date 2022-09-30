@@ -10,6 +10,7 @@ package service
 
 import (
 	"errors"
+	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"io/ioutil"
@@ -70,6 +71,8 @@ func (makeSer *makeService) Model(tableName string) error {
 	var formList []*formRow
 	ruleMaps := getRuleMaps()
 
+	dbType := app.DbConf().Connect["default"].Type
+
 	for _, value := range result {
 		fr := &formRow{}
 
@@ -97,6 +100,23 @@ func (makeSer *makeService) Model(tableName string) error {
 			if value.IsAutoIncrement != 10 {
 				defaultVal = "default:" + value.DefaultValue + ";"
 			}
+
+			if strings.ToLower(dbType) == "mysql" && (
+				value.Type == "int" || value.Type == "bigint" || value.Type == "smallint" || value.Type == "tinyint") {
+				switch {
+				case value.Length <= 4:
+					value.Length = 8
+				case value.Length <= 6:
+					value.Length = 16
+				case value.Length <= 9:
+					value.Length = 24
+				case value.Length <= 11:
+					value.Length = 32
+				default:
+					value.Length = 64
+				}
+			}
+
 			size = "size:" + strconv.Itoa(int(value.Length)) + ";"
 		}
 

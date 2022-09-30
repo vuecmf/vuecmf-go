@@ -17,7 +17,7 @@ type delRoleForm struct {
 	AppName  string   `json:"app_name" form:"app_name"`
 }
 
-// DataDelRoleForm 用户名表单
+// DataDelRoleForm 删除角色表单
 type DataDelRoleForm struct {
 	Data *delRoleForm `json:"data" form:"data"`
 }

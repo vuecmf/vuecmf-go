@@ -52,8 +52,24 @@ sqlType := "bigint"
 // initDb 数据库初始化
 func initDb() error {
 	db := app.Db("demo")
-	err := db.AutoMigrate(&model.Admin{})
 
+	//创建管理员表
+	err := db.Migrator().DropTable(&model.Admin{})
+	if err != nil {
+		return errors.New("删除历史表"+ db.NamingStrategy.TableName("admin") +"失败:" + err.Error())
+	}
+	err = db.Set("gorm:table_options","ENGINE=InnoDB COLLATE=utf8mb4_unicode_ci COMMENT='系统--管理员表'").
+		AutoMigrate(&model.Admin{})
+	if err != nil {
+		return errors.New("创建表"+ db.NamingStrategy.TableName("admin") +"失败:" + err.Error())
+	}
+
+
+
+
+
+
+	
 
 
 

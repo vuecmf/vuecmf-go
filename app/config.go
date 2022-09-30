@@ -57,6 +57,10 @@ var appConf *Config
 
 // Conf 读取app应用配置
 func Conf() *Config {
+	if appConf != nil {
+		return appConf
+	}
+
 	confContent, err := os.Open("config/app.yaml")
 	if err != nil {
 		log.Fatal("无法读取应用配置文件app.yaml")

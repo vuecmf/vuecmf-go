@@ -1,22 +1,25 @@
 package model
 
+
+
 // Roles 角色 模型结构
 type Roles struct {
-	Remark   string `json:"remark" form:"remark"  gorm:"column:remark;size:255;not null;default:;comment:角色的备注信息"`
-	Status   uint   `json:"status" form:"status"  gorm:"column:status;size:4;not null;default:10;comment:状态：10=开启，20=禁用"`
+	Id uint `json:"id" form:"id"  gorm:"column:id;primaryKey;autoIncrement;size:32;not null;comment:自增ID"`
 	RoleName string `json:"role_name" form:"role_name" binding:"required" required_tips:"角色名称必填" gorm:"column:role_name;size:64;uniqueIndex:unique_index;not null;default:;comment:用户的角色名称"`
-	Id       uint   `json:"id" form:"id"  gorm:"column:id;primaryKey;autoIncrement;size:11;not null;default:0;comment:自增ID"`
-	AppName  string `json:"app_name" form:"app_name"  gorm:"column:app_name;size:64;uniqueIndex:unique_index;not null;default:;comment:角色所属应用名称"`
-	Pid      uint   `json:"pid" form:"pid"  gorm:"column:pid;size:11;not null;default:0;comment:父级ID"`
-	IdPath   string `json:"id_path" form:"id_path"  gorm:"column:id_path;size:255;not null;default:;comment:角色ID层级路径"`
-
+	AppName string `json:"app_name" form:"app_name"  gorm:"column:app_name;size:64;uniqueIndex:unique_index;not null;default:;comment:角色所属应用名称"`
+	Pid uint `json:"pid" form:"pid"  gorm:"column:pid;size:32;not null;default:0;comment:父级ID"`
+	IdPath string `json:"id_path" form:"id_path"  gorm:"column:id_path;size:255;not null;default:;comment:角色ID层级路径"`
+	Remark string `json:"remark" form:"remark"  gorm:"column:remark;size:255;not null;default:;comment:角色的备注信息"`
+	Status uint `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
+	
 	Children *RolesTree `json:"children" gorm:"-"`
 }
 
 // DataRolesForm 提交的表单数据
 type DataRolesForm struct {
-	Data *Roles `json:"data" form:"data"`
+    Data *Roles `json:"data" form:"data"`
 }
+
 
 var rolesModel *Roles
 
@@ -56,15 +59,4 @@ func (m *Roles) ToTree(data []*Roles) RolesTree {
 
 	return treeList
 
-}
-
-type roleUsersForm struct {
-	RoleName   string   `json:"role_name" form:"role_name" binding:"required" required_tips:"角色名(role_name)不能为空"`
-	UseridList []string `json:"userid_list" form:"userid_list"`
-	AppName    string   `json:"app_name" form:"app_name"`
-}
-
-// DataRoleUsersForm 角色的用户管理表单
-type DataRoleUsersForm struct {
-	Data *roleUsersForm `json:"data" form:"data"`
 }

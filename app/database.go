@@ -39,17 +39,15 @@ type databaseConf struct {
 	Connect map[string]connConf `yaml:"connect"`
 }
 
-var conf databaseConf
-var conn = make(map[string]*gorm.DB)
+var conf *databaseConf
 
-// Connect 连接数据库
-func connect(confName string) *gorm.DB {
-	_, isExist := conf.Connect[confName]
-	if isExist && conn[confName] != nil {
-		return conn[confName]
+// DbConf 读取数据库配置信息
+func DbConf() *databaseConf{
+	if conf != nil {
+		return conf
 	}
 
-	confContent, err := os.Open("config/database.yaml")
+	confContent, err := os.Open("../config/database.yaml")
 	if err != nil {
 		log.Fatal("无法读取数据库配置文件database.yaml")
 	}
@@ -57,6 +55,20 @@ func connect(confName string) *gorm.DB {
 	err = yaml.NewDecoder(confContent).Decode(&conf)
 	if err != nil {
 		log.Fatal("数据库配置文件解析错误！")
+	}
+	return conf
+}
+
+
+var conn = make(map[string]*gorm.DB)
+
+// Connect 连接数据库
+func connect(confName string) *gorm.DB {
+	conf = DbConf()
+
+	_, isExist := conf.Connect[confName]
+	if isExist && conn[confName] != nil {
+		return conn[confName]
 	}
 
 	cfg, ok := conf.Connect[confName]

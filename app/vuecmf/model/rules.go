@@ -2,7 +2,7 @@ package model
 
 // Rules 权限规则 模型结构
 type Rules struct {
-	ID    uint   `json:"id" form:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	ID uint `json:"id" form:"id"  gorm:"column:id;primaryKey;autoIncrement;size:32;not null;comment:自增ID"`
 	Ptype string `json:"ptype" form:"ptype" gorm:"column:ptype;size:4;uniqueIndex:unique_index;not null;default:;comment:类型：g=组或角色，p=策略"`
 	V0    string `json:"v0" form:"v0" gorm:"column:v0;size:64;uniqueIndex:unique_index;not null;default:;comment:对应定义的sub(用户名或角色名)"`
 	V1    string `json:"v1" form:"v1" gorm:"column:v1;size:64;uniqueIndex:unique_index;not null;default:;comment:对应定义的dom(角色或应用名)"`

@@ -6,10 +6,11 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf"
 )
 
-func main()  {
+func main() {
 	action := flag.String("a", "version", "要执行的动作名称，可选值(version|migrate|make)，默认version")
 	atype := flag.String("t", "", "要执行动作对应的类型值")
 	name := flag.String("n", "", "类型值对应的名称")
+	version := flag.Int("v", 0, "要回滚的版本号")
 	help := flag.Bool("h", false, "帮助文档")
 
 	//自定义帮助文档
@@ -17,16 +18,17 @@ func main()  {
 		fmt.Println(`
 vuecmf工具使用介绍：
 1、数据库迁移
-  用法: vuecmf -a migrate -t [type]
+  用法: vuecmf -a migrate -t [type] -v [version]
   选项值：
     type 要执行的操作，可选值有 init(数据库初始化)、up(升级数据库)、down(回滚数据库)
+    version 当执行down操作时，需指定回滚的版本号
   例如：
     初始化数据库：
     vuecmf -a migrate init
     升级数据库：
     vuecmf -a migrate up
     回滚数据库：
-    vuecmf -a migrate down
+    vuecmf -a migrate down -v 20221002101042
 
 2、代码生成
   用法: vuecmf -a make -t [type] -n [name]
@@ -62,7 +64,7 @@ Options:
 	} else {
 		switch *action {
 		case "migrate":
-			Migrator(*atype)
+			Migrator(*atype, *version)
 		case "make":
 			Make(*atype, *name)
 		case "version":

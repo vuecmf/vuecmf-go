@@ -71,7 +71,7 @@ func (ctrl *Base) Index(c *gin.Context) {
 }
 
 // Save 新增/更新 单条数据
-func (ctrl *Admin) Save(c *gin.Context) {
+func (ctrl *Base) Save(c *gin.Context) {
 	common(c, ctrl.saveForm, func() (interface{}, error) {
 		data := reflect.ValueOf(ctrl.saveForm).Elem().FieldByName("Data").Interface()
 		id := reflect.ValueOf(data).Elem().FieldByName("Id").Interface()
@@ -84,8 +84,8 @@ func (ctrl *Admin) Save(c *gin.Context) {
 	})
 }
 
-// Saveall 批量添加多条数据
-func (ctrl *Admin) Saveall(c *gin.Context) {
+// SaveAll 批量添加多条数据
+func (ctrl *Base) SaveAll(c *gin.Context) {
 	data := &model.DataBatchForm{}
 	common(c, data, func() (interface{}, error) {
 		err := json.Unmarshal([]byte(data.Data), &ctrl.listData)
@@ -113,8 +113,8 @@ func (ctrl *Base) Delete(c *gin.Context) {
 	})
 }
 
-// Deletebatch 根据ID列表批量删除多条数据
-func (ctrl *Admin) Deletebatch(c *gin.Context) {
+// DeleteBatch 根据ID列表批量删除多条数据
+func (ctrl *Base) DeleteBatch(c *gin.Context) {
 	data := &model.DataIdListForm{}
 	common(c, data, func() (interface{}, error) {
 		return service.Base().DeleteBatch(data.Data.IdList, ctrl.Model)

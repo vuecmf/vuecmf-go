@@ -9,8 +9,8 @@ type ModelRelation struct {
 	ModelFieldId uint `json:"model_field_id" form:"model_field_id" binding:"required" required_tips:"请选择" gorm:"column:model_field_id;size:32;uniqueIndex:unique_index;not null;default:0;comment:模型字段ID"`
 	RelationModelId uint `json:"relation_model_id" form:"relation_model_id" binding:"required" required_tips:"请选择" gorm:"column:relation_model_id;size:32;not null;default:0;comment:关联模型ID"`
 	RelationFieldId uint `json:"relation_field_id" form:"relation_field_id" binding:"required" required_tips:"请选择" gorm:"column:relation_field_id;size:32;uniqueIndex:unique_index;not null;default:0;comment:关联模型字段ID"`
-	RelationShowFieldId string `json:"relation_show_field_id" form:"relation_show_field_id" binding:"required" required_tips:"请选择" gorm:"column:relation_show_field_id;size:255;not null;default:;comment:关联模型显示字段ID,多个逗号分隔，全部用*"`
-	Status uint `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
+	RelationShowFieldId string `json:"relation_show_field_id" form:"relation_show_field_id" binding:"required" required_tips:"请选择" gorm:"column:relation_show_field_id;size:255;not null;default:'';comment:关联模型显示字段ID,多个逗号分隔，全部用*"`
+	Status uint16 `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
 	
 }
 

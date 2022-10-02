@@ -20,18 +20,19 @@ import (
 
 // connConf 数据库配置
 type connConf struct {
-	Type            string `yaml:"type"`
-	Host            string `yaml:"host"`
-	Port            string `yaml:"port"`
-	User            string `yaml:"user"`
-	Password        string `yaml:"password"`
-	Database        string `yaml:"database"`
-	Charset         string `yaml:"charset"`
-	Prefix          string `yaml:"prefix"`
-	MaxIdleConnNums int    `yaml:"max_idle_conn_nums"` //默认
-	MaxOpenConnNums int    `yaml:"max_open_conn_nums"`
-	ConnMaxLifetime int64  `yaml:"conn_max_lifetime"`
-	Debug           bool   `yaml:"debug"`
+	Type                   string `yaml:"type"`                     //数据库类型
+	Host                   string `yaml:"host"`                     //数据库地址
+	Port                   string `yaml:"port"`                     //端口
+	User                   string `yaml:"user"`                     //用户名
+	Password               string `yaml:"password"`                 //密码
+	Database               string `yaml:"database"`                 //数据库名称
+	Charset                string `yaml:"charset"`                  //字符编码
+	Prefix                 string `yaml:"prefix"`                   //表前缀
+	MaxIdleConnNums        int    `yaml:"max_idle_conn_nums"`       //设置空闲连接池中连接的最大数量
+	MaxOpenConnNums        int    `yaml:"max_open_conn_nums"`       //设置打开数据库连接的最大数量
+	ConnMaxLifetime        int64  `yaml:"conn_max_lifetime"`        //设置了连接可复用的最大时间，单位：分钟
+	SkipDefaultTransaction bool   `yaml:"skip_default_transaction"` //是否禁用默认事务, 若禁用默认事务 只在需要时使用事务 性能会提升30%+
+	Debug                  bool   `yaml:"debug"`                    //是否开启调试模式，开启后，控制台会打印所执行的SQL语句
 }
 
 // databaseConf 数据库配置
@@ -42,7 +43,7 @@ type databaseConf struct {
 var conf *databaseConf
 
 // DbConf 读取数据库配置信息
-func DbConf() *databaseConf{
+func DbConf() *databaseConf {
 	if conf != nil {
 		return conf
 	}
@@ -58,7 +59,6 @@ func DbConf() *databaseConf{
 	}
 	return conf
 }
-
 
 var conn = make(map[string]*gorm.DB)
 
@@ -82,6 +82,7 @@ func connect(confName string) *gorm.DB {
 
 	var err2 error
 	conn[confName], err2 = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		SkipDefaultTransaction: cfg.SkipDefaultTransaction, //是否禁用默认事务
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   cfg.Prefix, // 表前缀
 			SingularTable: true,       // 使用单数表名
@@ -112,8 +113,6 @@ func connect(confName string) *gorm.DB {
 
 	return conn[confName]
 }
-
-
 
 // Db 获取数据库连接
 //    参数：confName 数据库配置名称

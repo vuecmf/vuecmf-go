@@ -25,12 +25,12 @@ type makeService struct {
 
 // formRow 表单字段信息
 type formRow struct {
-	FieldName string  //字段名
-	Gorm string  //gorm表信息
-	Type string  //字段类型
-	IsSigned string //是否为负数
-	Rules  []string  //验证规则
-	ErrTips []string //错误提示语
+	FieldName string   //字段名
+	Gorm      string   //gorm表信息
+	Type      string   //字段类型
+	IsSigned  string   //是否为负数
+	Rules     []string //验证规则
+	ErrTips   []string //错误提示语
 }
 
 // formRules 表单字段验证规则
@@ -39,7 +39,6 @@ type formRules struct {
 	RuleValue string `json:"rule_value"` //规则值
 	ErrorTips string `json:"error_tips"` //错误提示
 }
-
 
 //Model 功能：生成模型代码文件
 //		参数：tableName string 表名（不带表前缀）
@@ -97,10 +96,15 @@ func (makeSer *makeService) Model(tableName string) error {
 		} else if value.DefaultValue == "CURRENT_TIMESTAMP" {
 			autoCreateTime = "autoCreateTime;"
 		} else {
-			if value.IsAutoIncrement != 10 {
+			//字段默认值
+			switch {
+			case value.IsAutoIncrement != 10 && value.DefaultValue != "":
 				defaultVal = "default:" + value.DefaultValue + ";"
+			case value.IsAutoIncrement != 10 && value.DefaultValue == "":
+				defaultVal = "default:'';"
 			}
 
+			//针对MYSQL整型类型字段长度处理
 			if strings.ToLower(dbType) == "mysql" && (
 				value.Type == "int" || value.Type == "bigint" || value.Type == "smallint" || value.Type == "tinyint") {
 				switch {
@@ -133,10 +137,10 @@ func (makeSer *makeService) Model(tableName string) error {
 		gormCnf := " gorm:\"column:" + value.FieldName + ";" + autoIncrement + size + uniqueIndex + notNull + autoCreateTime + defaultVal +
 			"comment:" + value.Note + "\""
 
-		fr.FieldName = value.FieldName  //字段名
-		fr.Gorm = gormCnf  //gorm表信息
-		fr.Type = value.Type  //字段类型
-		fr.IsSigned = strconv.Itoa(int(value.IsSigned))  //是否为负数
+		fr.FieldName = value.FieldName                  //字段名
+		fr.Gorm = gormCnf                               //gorm表信息
+		fr.Type = value.Type                            //字段类型
+		fr.IsSigned = strconv.Itoa(int(value.IsSigned)) //是否为负数
 
 		rules := ""
 		var formRulesList []formRules
@@ -149,6 +153,7 @@ func (makeSer *makeService) Model(tableName string) error {
 			Where("VMF.model_field_id = ?", value.Id).
 			Find(&formRulesList)
 
+		//数据验证规则
 		for _, rule := range formRulesList {
 			if ruleMaps[rule.RuleType] != "" {
 				switch ruleMaps[rule.RuleType] {
@@ -161,7 +166,7 @@ func (makeSer *makeService) Model(tableName string) error {
 					rules = ruleMaps[rule.RuleType]
 				}
 
-				fr.Rules = append(fr.Rules, rules)   //验证规则
+				fr.Rules = append(fr.Rules, rules) //验证规则
 				//错误提示语句
 				fr.ErrTips = append(fr.ErrTips, ruleMaps[rule.RuleType]+"_tips:\""+rule.ErrorTips+"\"")
 
@@ -277,7 +282,6 @@ func (makeSer *makeService) Controller(tableName string) error {
 	//查询模型是否有需要模糊查询的字段
 	filterFields := ModelField().getFilterFields(tableName)
 	filterFieldStr := "\"" + strings.Join(filterFields, "\",\"") + "\""
-
 
 	tplFile := "controller.stub"
 	modelConf := ModelConfig().GetModelConfig(tableName)

@@ -10,7 +10,7 @@ package service
 
 // modelIndexService modelIndex服务结构
 type modelIndexService struct {
-	*baseService
+	*BaseService
 }
 
 var modelIndex *modelIndexService

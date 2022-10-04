@@ -10,7 +10,7 @@ package service
 
 // modelFormLinkageService modelFormLinkage服务结构
 type modelFormLinkageService struct {
-	*baseService
+	*BaseService
 }
 
 var modelFormLinkage *modelFormLinkageService

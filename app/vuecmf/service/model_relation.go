@@ -16,7 +16,7 @@ import (
 
 // modelRelationService modelRelation服务结构
 type modelRelationService struct {
-	*baseService
+	*BaseService
 }
 
 var modelRelation *modelRelationService
@@ -51,7 +51,7 @@ func (ser *modelRelationService) getRelationLinkage(modelId int) interface{} {
 	var result = make(map[int]map[int]map[string]string)
 
 	//先取出有关联表的字段及关联信息
-	db.Table(ns.TableName("model_form_linkage")).
+	Db.Table(NS.TableName("model_form_linkage")).
 		Select("model_field_id field_id, linkage_field_id, linkage_action_id").
 		Where("model_id = ?", modelId).
 		Where("status = 10").
@@ -59,9 +59,9 @@ func (ser *modelRelationService) getRelationLinkage(modelId int) interface{} {
 
 	for _, val := range fieldInfo {
 		var actionInfo actionInfoST
-		db.Table(ns.TableName("model_action")+" MA").
+		Db.Table(NS.TableName("model_action")+" MA").
 			Select("MA.action_type, MC.table_name").
-			Joins("LEFT JOIN "+ns.TableName("model_config")+" MC ON MA.model_id = MC.id").
+			Joins("LEFT JOIN "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
 			Where("MA.id = ?", val.LinkageActionId).
 			Where("MA.status = 10").
 			Where("MC.status = 10").
@@ -105,10 +105,10 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 	options := map[string]string{}
 
 	//先取出有关联表的字段及关联信息
-	db.Table(ns.TableName("model_relation")+" VMR").
+	Db.Table(NS.TableName("model_relation")+" VMR").
 		Select("model_field_id field_id, relation_model_id, MC.table_name relation_table_name, VMF.field_name relation_field_name, relation_show_field_id").
-		Joins("LEFT JOIN "+ns.TableName("model_field")+" VMF ON VMF.id = VMR.relation_field_id").
-		Joins("LEFT JOIN "+ns.TableName("model_config")+" MC ON MC.id = VMR.relation_model_id").
+		Joins("LEFT JOIN "+NS.TableName("model_field")+" VMF ON VMF.id = VMR.relation_field_id").
+		Joins("LEFT JOIN "+NS.TableName("model_config")+" MC ON MC.id = VMR.relation_model_id").
 		Where("VMR.relation_field_id != 0").
 		Where("VMR.model_id = ?", modelId).
 		Where("VMR.status = 10").
@@ -121,11 +121,11 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 		isTree := ModelConfig().IsTree(val.RelationModelId)
 		if isTree {
 			//若关联的模型是目录树的、则下拉选项需要格式化树型结构
-			helper.FormatTree(options, db, ns.TableName(val.RelationTableName), "id", 0, "title", "pid", "sort_num", 1)
+			helper.FormatTree(options, Db, NS.TableName(val.RelationTableName), "id", 0, "title", "pid", "sort_num", 1)
 
 		} else {
 			var showFieldNameArr []string
-			db.Table(ns.TableName("model_field")).
+			Db.Table(NS.TableName("model_field")).
 				Select("field_name").
 				Where("id IN ?", strings.Split(val.RelationShowFieldId, ",")).
 				Where("status = 10").Find(&showFieldNameArr)
@@ -133,10 +133,10 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 			var reOptions []relationOptions
 
 			if modelTableName == "model_form_rules" && val.RelationTableName == "model_form" && helper.InSlice("model_field_id", showFieldNameArr) && helper.InSlice("type", showFieldNameArr) {
-				query := db.Table(ns.TableName(val.RelationTableName) + " A").
+				query := Db.Table(NS.TableName(val.RelationTableName) + " A").
 					Select("concat(F.field_name,\"(\",F.label,\")-\",FP.option_label) label, A." + val.RelationFieldName + " field_name").
-					Joins("LEFT JOIN " + ns.TableName("model_field") + " F ON F.id = A.model_field_id and F.status = 10").
-					Joins("LEFT JOIN " + ns.TableName("field_option") + " FP ON FP.option_value = A.type and FP.status = 10").
+					Joins("LEFT JOIN " + NS.TableName("model_field") + " F ON F.id = A.model_field_id and F.status = 10").
+					Joins("LEFT JOIN " + NS.TableName("field_option") + " FP ON FP.option_value = A.type and FP.status = 10").
 					Where("A.status = 10").
 					Where("F.status = 10").
 					Where("FP.status = 10")
@@ -157,7 +157,7 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 					}
 				}
 
-				query := db.Table(ns.TableName(val.RelationTableName)).
+				query := Db.Table(NS.TableName(val.RelationTableName)).
 					Select(showFieldStr + " label," + val.RelationFieldName + " field_name").
 					Where("status = 10")
 
@@ -166,7 +166,7 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 						if field == "model_id" {
 							//取出所关联的模型ID
 							var modelIdArr []int
-							db.Table(ns.TableName("model_relation")).Select("relation_model_id").
+							Db.Table(NS.TableName("model_relation")).Select("relation_model_id").
 								Where("model_id = ?", filterVal).Find(&modelIdArr)
 							modelIdArr = append(modelIdArr, helper.InterfaceToInt(filterVal))
 							query = query.Where(field+" IN ?", modelIdArr)

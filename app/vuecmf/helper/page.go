@@ -33,16 +33,16 @@ type DataListParams struct {
 
 // page 分页结构体
 type page struct {
-	tableName string   //模型对应表名
-	db        *gorm.DB //数据库连接实例
-	ns        schema.Namer
+	tableName    string   //模型对应表名
+	db           *gorm.DB //数据库连接实例
+	ns           schema.Namer
 	filterFields []string //需要模糊查询的字段
 }
 
 // result 存放分页列表返回结果
 type result struct {
-	Data interface{} `json:"data"`
-	Total int64 `json:"total"`
+	Data  interface{} `json:"data"`
+	Total int64       `json:"total"`
 }
 
 // Filter 列表过滤器
@@ -85,6 +85,28 @@ func (p *page) Filter(model interface{}, params *DataListParams) (interface{}, e
 		}
 
 	} else if len(data.Filter) > 0 {
+		//过滤掉空值
+		for k, v := range data.Filter {
+			switch val := v.(type) {
+			case string:
+				if val == "" {
+					delete(data.Filter, k)
+				}
+			case []string:
+				if len(val) == 0 {
+					delete(data.Filter, k)
+				}
+			case []interface{}:
+				if len(val) == 0 {
+					delete(data.Filter, k)
+				}
+			case []int:
+				if len(val) == 0 {
+					delete(data.Filter, k)
+				}
+			}
+		}
+
 		query = query.Where(data.Filter)
 		totalQuery = totalQuery.Where(data.Filter)
 	}
@@ -95,7 +117,7 @@ func (p *page) Filter(model interface{}, params *DataListParams) (interface{}, e
 	totalQuery.Count(&total)
 
 	res := &result{
-		Data: model,
+		Data:  model,
 		Total: total,
 	}
 
@@ -113,9 +135,9 @@ func Page(tableName string, filterFields []string, db *gorm.DB, ns schema.Namer)
 	p, ok := pInstances[tableName]
 	if ok == false {
 		pInstances[tableName] = &page{
-			tableName: tableName,
-			db:        db,
-			ns:        ns,
+			tableName:    tableName,
+			db:           db,
+			ns:           ns,
 			filterFields: filterFields,
 		}
 		return pInstances[tableName]

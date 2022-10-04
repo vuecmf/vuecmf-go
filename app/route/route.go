@@ -51,6 +51,12 @@ func InitRoute(eng *gin.Engine) {
 	//上传目录 静态文件服务
 	Engine.StaticFS("/uploads", http.Dir("uploads"))
 
+	//静态文件目录（css、js、gif、jpg等）
+	Engine.StaticFS("/static", http.Dir("static"))
+
+	//加载模板目录
+	Engine.LoadHTMLGlob("views/**/**/*")
+
 	//获取所有中间件
 	mw := middleware.GetMiddleWares()
 
@@ -76,6 +82,10 @@ func InitRoute(eng *gin.Engine) {
 				if arr[0] == "index" {
 					indexUrl = "/" + ctrlName + "/"
 					indexUrl2 = "/" + ctrlName
+				}
+
+				if ctrlName == "index" {
+					indexUrl2 = "/"
 				}
 
 				if arr[1] == "GET" {

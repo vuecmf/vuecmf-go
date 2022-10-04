@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm/schema"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -48,7 +49,7 @@ func DbConf() *databaseConf {
 		return conf
 	}
 
-	confContent, err := os.Open("../config/database.yaml")
+	confContent, err := os.Open("config/database.yaml")
 	if err != nil {
 		log.Fatal("无法读取数据库配置文件database.yaml")
 	}
@@ -117,6 +118,13 @@ func connect(confName string) *gorm.DB {
 // Db 获取数据库连接
 //    参数：confName 数据库配置名称
 func Db(confName string) *gorm.DB {
+	//初始化项目时，不返回数据库连接
+	args := os.Args
+	if (len(args) > 1 && (strings.ToLower(args[1]) == "init" || strings.ToLower(args[1]) == "-h")) ||
+		(len(args) == 1 && (strings.HasSuffix(args[0], "vuecmf.exe") || strings.HasSuffix(args[0], "vuecmf"))) {
+		return nil
+	}
+
 	if conn[confName] == nil {
 		conn[confName] = connect(confName)
 	}

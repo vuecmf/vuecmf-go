@@ -14,16 +14,16 @@ import (
 )
 
 type ModelIndex struct {
-    Base
+	Base
 }
 
 func init() {
 	modelIndex := &ModelIndex{}
-    modelIndex.TableName = "model_index"
-    modelIndex.Model = &model.ModelIndex{}
-    modelIndex.listData = &[]model.ModelIndex{}
-    modelIndex.saveForm = &model.DataModelIndexForm{}
-    modelIndex.filterFields = []string{"index_type"}
+	modelIndex.TableName = "model_index"
+	modelIndex.Model = &model.ModelIndex{}
+	modelIndex.ListData = &[]model.ModelIndex{}
+	modelIndex.SaveForm = &model.DataModelIndexForm{}
+	modelIndex.FilterFields = []string{"index_type"}
 
-    route.Register(modelIndex, "POST", "vuecmf")
+	route.Register(modelIndex, "POST", "vuecmf")
 }

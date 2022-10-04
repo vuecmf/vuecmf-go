@@ -25,7 +25,7 @@ import (
 
 // uploadService upload服务结构
 type uploadService struct {
-	*baseService
+	*BaseService
 }
 
 var upload *uploadService
@@ -82,9 +82,9 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		return nil, errors.New(fieldName + "|上传异常：" + err2.Error())
 	}
 
-	db.Table(ns.TableName("model_form_rules")+" vmfr").Select("rule_type, rule_value, error_tips").
-		Joins("left join "+ns.TableName("model_form")+" vmf on vmfr.model_form_id = vmf.id").
-		Joins("left join "+ns.TableName("model_field")+" vmf2 on vmf.model_field_id = vmf2.id").
+	Db.Table(NS.TableName("model_form_rules")+" vmfr").Select("rule_type, rule_value, error_tips").
+		Joins("left join "+NS.TableName("model_form")+" vmf on vmfr.model_form_id = vmf.id").
+		Joins("left join "+NS.TableName("model_field")+" vmf2 on vmf.model_field_id = vmf2.id").
 		Where("rule_type in ('file','image','fileExt','fileMime','fileSize')").
 		Where("vmfr.status = 10").
 		Where("vmf.status = 10").
@@ -110,15 +110,15 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	}
 
 	if fileSize == 0 {
-		fileSize = config.Upload.AllowFileSize
+		fileSize = Conf.Upload.AllowFileSize
 	}
 
 	if fileExt == "" {
-		fileExt = config.Upload.AllowFileType
+		fileExt = Conf.Upload.AllowFileType
 	}
 
 	if fileMime == "" {
-		fileMime = config.Upload.AllowFileMime
+		fileMime = Conf.Upload.AllowFileMime
 	}
 
 	//文件类型检测
@@ -126,7 +126,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 		return nil, errors.New(fieldName + "|上传异常：不支持该文件类型 " + currentFileMime)
 	}
 
-	uploadUrl := config.Upload.Url
+	uploadUrl := Conf.Upload.Url
 	fileName := fileHeader.Filename
 	currentFileExt := helper.GetFileExt(fileName)
 
@@ -140,7 +140,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	newFileName := fmt.Sprintf("%x", codeByte)
 	currentTime := time.Now().Format("20060102")
 
-	saveDir := config.Upload.Dir + "/" + currentTime + "/"
+	saveDir := Conf.Upload.Dir + "/" + currentTime + "/"
 
 	_, err = os.Stat(saveDir)
 	if err != nil {
@@ -159,21 +159,21 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 
 	if isImage == true {
 		//缩放图像文件
-		if config.Upload.Image.ResizeEnable == true {
+		if Conf.Upload.Image.ResizeEnable == true {
 			err = helper.Img().Resize(
 				dst,
 				dst,
-				config.Upload.Image.ImageWidth,
-				config.Upload.Image.ImageHeight,
-				config.Upload.Image.KeepRatio,
-				config.Upload.Image.FillBackground,
-				config.Upload.Image.CenterAlign,
-				config.Upload.Image.Crop)
+				Conf.Upload.Image.ImageWidth,
+				Conf.Upload.Image.ImageHeight,
+				Conf.Upload.Image.KeepRatio,
+				Conf.Upload.Image.FillBackground,
+				Conf.Upload.Image.CenterAlign,
+				Conf.Upload.Image.Crop)
 		}
 
 		//给图像添加水印
-		if config.Water.Enable == true {
-			fontList := []app.FontInfo{config.Water.Conf}
+		if Conf.Water.Enable == true {
+			fontList := []app.FontInfo{Conf.Water.Conf}
 			err = helper.Img().FontWater(dst, fontList)
 			if err != nil {
 				return nil, errors.New(fieldName + "|上传异常：添加水印失败！" + err.Error())

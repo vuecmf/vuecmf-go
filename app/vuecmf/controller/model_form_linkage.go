@@ -14,16 +14,16 @@ import (
 )
 
 type ModelFormLinkage struct {
-    Base
+	Base
 }
 
 func init() {
 	modelFormLinkage := &ModelFormLinkage{}
-    modelFormLinkage.TableName = "model_form_linkage"
-    modelFormLinkage.Model = &model.ModelFormLinkage{}
-    modelFormLinkage.listData = &[]model.ModelFormLinkage{}
-    modelFormLinkage.saveForm = &model.DataModelFormLinkageForm{}
-    modelFormLinkage.filterFields = []string{""}
+	modelFormLinkage.TableName = "model_form_linkage"
+	modelFormLinkage.Model = &model.ModelFormLinkage{}
+	modelFormLinkage.ListData = &[]model.ModelFormLinkage{}
+	modelFormLinkage.SaveForm = &model.DataModelFormLinkageForm{}
+	modelFormLinkage.FilterFields = []string{""}
 
-    route.Register(modelFormLinkage, "POST", "vuecmf")
+	route.Register(modelFormLinkage, "POST", "vuecmf")
 }

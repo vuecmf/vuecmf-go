@@ -18,25 +18,25 @@ import (
 )
 
 type Menu struct {
-    Base
+	Base
 }
 
 func init() {
 	menu := &Menu{}
-    menu.TableName = "menu"
-    menu.Model = &model.Menu{}
-    menu.listData = &[]model.Menu{}
-    menu.saveForm = &model.DataMenuForm{}
-    menu.filterFields = []string{"title","icon"}
+	menu.TableName = "menu"
+	menu.Model = &model.Menu{}
+	menu.ListData = &[]model.Menu{}
+	menu.SaveForm = &model.DataMenuForm{}
+	menu.FilterFields = []string{"title", "icon"}
 
-    route.Register(menu, "POST", "vuecmf")
+	route.Register(menu, "POST", "vuecmf")
 }
 
 // Index 列表页
 func (ctrl *Menu) Index(c *gin.Context) {
-    listParams := &helper.DataListParams{}
+	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-        return service.Menu().List(listParams)
+		return service.Menu().List(listParams)
 	})
 }
 
@@ -52,4 +52,3 @@ func (ctrl *Menu) Nav(c *gin.Context) {
 		)
 	})
 }
-

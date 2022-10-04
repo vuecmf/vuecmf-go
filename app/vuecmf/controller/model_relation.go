@@ -14,16 +14,16 @@ import (
 )
 
 type ModelRelation struct {
-    Base
+	Base
 }
 
 func init() {
 	modelRelation := &ModelRelation{}
-    modelRelation.TableName = "model_relation"
-    modelRelation.Model = &model.ModelRelation{}
-    modelRelation.listData = &[]model.ModelRelation{}
-    modelRelation.saveForm = &model.DataModelRelationForm{}
-    modelRelation.filterFields = []string{"relation_show_field_id"}
+	modelRelation.TableName = "model_relation"
+	modelRelation.Model = &model.ModelRelation{}
+	modelRelation.ListData = &[]model.ModelRelation{}
+	modelRelation.SaveForm = &model.DataModelRelationForm{}
+	modelRelation.FilterFields = []string{"relation_show_field_id"}
 
-    route.Register(modelRelation, "POST", "vuecmf")
+	route.Register(modelRelation, "POST", "vuecmf")
 }

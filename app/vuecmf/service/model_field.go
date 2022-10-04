@@ -10,7 +10,7 @@ package service
 
 // modelFieldService modelField服务结构
 type modelFieldService struct {
-	*baseService
+	*BaseService
 }
 
 var modelField *modelFieldService
@@ -42,7 +42,7 @@ type fieldInfo struct {
 func (ser *modelFieldService) GetFieldInfo(modelId int) []fieldInfo {
 	var list []fieldInfo
 
-	db.Table(ns.TableName("model_field")).Select(
+	Db.Table(NS.TableName("model_field")).Select(
 		"id field_id,"+
 			"field_name prop,"+
 			"label,"+
@@ -65,8 +65,8 @@ func (ser *modelFieldService) GetFieldInfo(modelId int) []fieldInfo {
 // getFilterFields 根据表名获取该表需要模糊查询的字段
 func (ser *modelFieldService) getFilterFields(tableName string) []string {
 	var filterFields []string
-	db.Table(ns.TableName("model_field")+" MF").Select("field_name").
-		Joins("left join "+ns.TableName("model_config")+" MC on MF.model_id = MC.id").
+	Db.Table(NS.TableName("model_field")+" MF").Select("field_name").
+		Joins("left join "+NS.TableName("model_config")+" MC on MF.model_id = MC.id").
 		Where("MF.is_filter = 10").
 		Where("MF.type in (?)", []string{"char", "varchar"}).
 		Where("MC.table_name = ?", tableName).

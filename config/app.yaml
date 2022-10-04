@@ -1,3 +1,12 @@
+#项目名称
+module: "github.com/vuecmf/vuecmf-go" #项目名称，与go.mod中module保持一致
+
+#应用配置
+app:
+  vuecmf: #应用名称
+    login_enable: true #是否开启登录验证
+    auth_enable: true  #是否开启权限验证
+
 #上传配置
 upload:
   allow_file_size: 5        #允许上传的最大文件，单位M
@@ -16,8 +25,8 @@ upload:
 
 #水印配置
 water:
-  enable: true
-  water_font: "config/simhei.ttf"   #水印字体路径
+  enable: false
+  water_font: "config/simhei.ttf"   #水印字体文件
   conf:
     size: 72.0 #水印文字大小
     message: "vuecmf" #水印文本内容

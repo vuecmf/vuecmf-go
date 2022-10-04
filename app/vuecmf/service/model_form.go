@@ -10,7 +10,7 @@ package service
 
 // modelFormService modelForm服务结构
 type modelFormService struct {
-	*baseService
+	*BaseService
 }
 
 var modelForm *modelFormService
@@ -38,9 +38,9 @@ type formInfo struct {
 func (ser *modelFormService) GetFormInfo(modelId int) []formInfo {
 	var list []formInfo
 
-	db.Table(ns.TableName("model_form")+" VMF").
+	Db.Table(NS.TableName("model_form")+" VMF").
 		Select("VMF.model_field_id field_id, VMF.`type`, VMF.default_value, VMF.is_disabled, VMF.sort_num, VMF2.field_name, VMF2.label").
-		Joins("inner join "+ns.TableName("model_field")+" VMF2 ON VMF.model_field_id = VMF2.id").
+		Joins("inner join "+NS.TableName("model_field")+" VMF2 ON VMF.model_field_id = VMF2.id").
 		Where("VMF.model_id = ?", modelId).
 		Where("VMF.status = 10").
 		Where("VMF2.status = 10").

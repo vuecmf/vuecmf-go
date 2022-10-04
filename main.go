@@ -2,15 +2,16 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app/route"
 	_ "github.com/vuecmf/vuecmf-go/app/vuecmf/controller"
+
+	"github.com/vuecmf/vuecmf-go/app/route"
 	"log"
 )
 
 func main() {
 	engine := gin.Default()
 
-	//初始路由
+	//初始化路由
 	route.InitRoute(engine)
 
 	err := engine.Run(":8080")
@@ -19,5 +20,3 @@ func main() {
 	}
 
 }
-
-

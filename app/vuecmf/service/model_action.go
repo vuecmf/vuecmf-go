@@ -12,7 +12,7 @@ import "errors"
 
 // modelActionService modelAction服务结构
 type modelActionService struct {
-	*baseService
+	*BaseService
 }
 
 // GetAllApiMap 根据动作ID获取 api 路径映射
@@ -27,8 +27,8 @@ func (ser *modelActionService) GetAllApiMap(apiIdList []string) interface{} {
 
 	var ac []actionList
 
-	db.Table(ns.TableName("model_action")+" ma").Select("mc.table_name, ma.action_type, ma.api_path").
-		Joins("inner join "+ns.TableName("model_config")+" mc on ma.model_id = mc.id").
+	Db.Table(NS.TableName("model_action")+" ma").Select("mc.table_name, ma.action_type, ma.api_path").
+		Joins("inner join "+NS.TableName("model_config")+" mc on ma.model_id = mc.id").
 		Where("ma.id in ?", apiIdList).
 		Where("ma.status = 10").
 		Where("mc.status = 10").
@@ -47,7 +47,7 @@ func (ser *modelActionService) GetAllApiMap(apiIdList []string) interface{} {
 // GetModelIdListById 根据动作ID获取对应模型ID列表
 func (ser *modelActionService) GetModelIdListById(apiIdList []string) []string {
 	var res []string
-	db.Table(ns.TableName("model_action")).Select("model_id").
+	Db.Table(NS.TableName("model_action")).Select("model_id").
 		Where("id in ?", apiIdList).
 		Where("status = 10").
 		Group("model_id").
@@ -59,8 +59,8 @@ func (ser *modelActionService) GetModelIdListById(apiIdList []string) []string {
 // GetApiMap 获取API映射的路径
 func (ser *modelActionService) GetApiMap(tableName string, actionType string) string {
 	var apiPath string
-	db.Table(ns.TableName("model_action")+" ma").Select("api_path").
-		Joins("inner join "+ns.TableName("model_config")+" mc on ma.model_id = mc.id").
+	Db.Table(NS.TableName("model_action")+" ma").Select("api_path").
+		Joins("inner join "+NS.TableName("model_config")+" mc on ma.model_id = mc.id").
 		Where("mc.table_name = ?", tableName).
 		Where("ma.action_type = ?", actionType).
 		Where("ma.status = 10").
@@ -80,7 +80,7 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 	if roleName != "" {
 		//若传入角色名称，则只取当前角色的父级角色拥有的权限
 		var pid uint
-		db.Table(ns.TableName("roles")).
+		Db.Table(NS.TableName("roles")).
 			Select("pid").
 			Where("role_name = ?", roleName).
 			Where("status = 10").Find(&pid)
@@ -91,7 +91,7 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 
 		//父级角色
 		var pidRoleName string
-		db.Table(ns.TableName("roles")).
+		Db.Table(NS.TableName("roles")).
 			Select("role_name").
 			Where("id = ?", pid).
 			Where("status = 10").Find(&pidRoleName)
@@ -111,7 +111,7 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 
 		for modelName, actionIdList := range perList {
 			var actionRes []row
-			db.Table(ns.TableName("model_action")).Select("id, label").
+			Db.Table(NS.TableName("model_action")).Select("id, label").
 				Where("id in ?", actionIdList).
 				Where("status = 10").Find(&actionRes)
 			res[modelName] = map[uint]string{}
@@ -125,11 +125,11 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 
 	//否则，获取所有权限列表
 	var modelListRes []row
-	db.Table(ns.TableName("model_config")).Select("id, label").
+	Db.Table(NS.TableName("model_config")).Select("id, label").
 		Where("status = 10").Find(&modelListRes)
 	for _, mc := range modelListRes {
 		var maList []row
-		db.Table(ns.TableName("model_action")).Select("id, label").
+		Db.Table(NS.TableName("model_action")).Select("id, label").
 			Where("model_id = ?", mc.Id).
 			Where("status = 10").Find(&maList)
 		res[mc.Label] = map[uint]string{}

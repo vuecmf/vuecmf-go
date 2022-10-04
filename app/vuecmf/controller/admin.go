@@ -25,9 +25,9 @@ func init() {
 	admin := &Admin{}
 	admin.TableName = "admin"
 	admin.Model = &model.Admin{}
-	admin.listData = &[]model.Admin{}
-	admin.saveForm = &model.DataAdminForm{}
-	admin.filterFields = []string{"username", "email", "mobile", "token"}
+	admin.ListData = &[]model.Admin{}
+	admin.SaveForm = &model.DataAdminForm{}
+	admin.FilterFields = []string{"username", "email", "mobile", "token"}
 	admin.AppName = "vuecmf"
 
 	route.Register(admin, "POST", admin.AppName)

@@ -25,9 +25,9 @@ func init() {
 	upload := &Upload{}
 	upload.TableName = "upload"
 	upload.Model = &model.Upload{}
-	upload.listData = &[]model.Upload{}
-	upload.saveForm = &model.DataUploadForm{}
-	upload.filterFields = []string{""}
+	upload.ListData = &[]model.Upload{}
+	upload.SaveForm = &model.DataUploadForm{}
+	upload.FilterFields = []string{""}
 
 	route.Register(upload, "POST", "vuecmf")
 }

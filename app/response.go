@@ -18,6 +18,11 @@ type response struct {
 	*gin.Context
 }
 
+// SendHtml 输出并渲染网页
+func (r *response) SendHtml(tplName string, obj any) {
+	r.HTML(http.StatusOK, tplName, obj)
+}
+
 // SendJson 输出JSON内容到客户端
 func (r *response) SendJson(code int, msg string, data interface{}) {
 	r.JSON(http.StatusOK, gin.H{

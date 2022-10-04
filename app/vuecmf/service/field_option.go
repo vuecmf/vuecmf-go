@@ -15,7 +15,7 @@ import (
 
 // fieldOptionService fieldOption服务结构
 type fieldOptionService struct {
-	*baseService
+	*BaseService
 	TableName string
 }
 
@@ -41,7 +41,7 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 	var list = make(map[int]map[string]string)
 	var result []modelFieldOption
 
-	db.Table(ns.TableName("field_option")).
+	Db.Table(NS.TableName("field_option")).
 		Select("model_field_id field_id, option_value, option_label").
 		Where("model_id = ?", modelId).
 		Where("status = 10").
@@ -65,14 +65,14 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 		}
 
 		var pidFieldId int
-		db.Table(ns.TableName("model_field")).
+		Db.Table(NS.TableName("model_field")).
 			Select("id").
 			Where("field_name = 'pid'").
 			Where("model_id = ?", modelId).
 			Limit(1).Find(&pidFieldId)
 
 		tree := map[string]string{}
-		helper.FormatTree(tree, db, ns.TableName(tableName), "id", 0, labelFieldName, "pid", orderField, 1)
+		helper.FormatTree(tree, Db, NS.TableName(tableName), "id", 0, labelFieldName, "pid", orderField, 1)
 		list[pidFieldId] = tree
 	}
 

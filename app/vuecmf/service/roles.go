@@ -16,7 +16,7 @@ import (
 
 // rolesService roles服务结构
 type rolesService struct {
-	*baseService
+	*BaseService
 	TableName string
 }
 
@@ -66,7 +66,7 @@ func (ser *rolesService) AddUsers(roleName string, userIdList []string, appName 
 	}
 
 	var userList []string
-	db.Table(ns.TableName("admin")).Select("username").
+	Db.Table(NS.TableName("admin")).Select("username").
 		Where("id in ?", userIdList).
 		Where("status = 10").Find(&userList)
 
@@ -85,7 +85,7 @@ func (ser *rolesService) GetUsers(roleName string, appName string) (interface{},
 	}
 
 	var userIdList []string
-	db.Table(ns.TableName("admin")).Select("id").
+	Db.Table(NS.TableName("admin")).Select("id").
 		Where("username in ?", userList).
 		Where("status = 10").Find(&userIdList)
 
@@ -102,7 +102,7 @@ func (ser *rolesService) GetAllUsers() (interface{}, error) {
 
 	var res []*row
 
-	db.Table(ns.TableName("admin")).Select("id `key`, username label, false disabled").
+	Db.Table(NS.TableName("admin")).Select("id `key`, username label, false disabled").
 		Where("status = 10").
 		Where("is_super != 10").Find(&res)
 

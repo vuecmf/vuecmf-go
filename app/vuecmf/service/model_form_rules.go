@@ -12,7 +12,7 @@ import "strings"
 
 // modelFormRulesService modelFormRules服务结构
 type modelFormRulesService struct {
-	*baseService
+	*BaseService
 }
 
 var modelFormRules *modelFormRulesService
@@ -33,7 +33,7 @@ type ruleListFormST struct {
 func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 	var data []ruleListFormST
 
-	db.Table(ns.TableName("model_form_rules")+" VMFR").
+	Db.Table(NS.TableName("model_form_rules")+" VMFR").
 		Select("VMF2.field_name, rule_type, rule_value, error_tips").
 		Joins("LEFT JOIN model_form VMF ON VMFR.model_form_id = VMF.id").
 		Joins("INNER JOIN model_field VMF2 ON VMF.model_field_id = VMF2.id").

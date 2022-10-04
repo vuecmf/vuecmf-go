@@ -10,20 +10,21 @@ package controller
 
 import (
 	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/app/{{.app_name}}/model"
+	{{.import_base}}
 )
 
 type {{.controller_name}} struct {
-    Base
+    {{.extend_base}}
 }
 
 func init() {
 	{{.controller_var_name}} := &{{.controller_name}}{}
     {{.controller_var_name}}.TableName = "{{.table_name}}"
     {{.controller_var_name}}.Model = &model.{{.controller_name}}{}
-    {{.controller_var_name}}.listData = &[]model.{{.controller_name}}{}
-    {{.controller_var_name}}.saveForm = &model.Data{{.controller_name}}Form{}
-    {{.controller_var_name}}.filterFields = []string{{{.filter_fields}}}
+    {{.controller_var_name}}.ListData = &[]model.{{.controller_name}}{}
+    {{.controller_var_name}}.SaveForm = &model.Data{{.controller_name}}Form{}
+    {{.controller_var_name}}.FilterFields = []string{{{.filter_fields}}}
 
-    route.Register({{.controller_var_name}}, "POST", "vuecmf")
+    route.Register({{.controller_var_name}}, "POST", "{{.app_name}}")
 }

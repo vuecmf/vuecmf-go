@@ -8,9 +8,12 @@
 // +----------------------------------------------------------------------
 package service
 
+{{.import_base}}
+
+
 // {{.service_name}}Service {{.service_name}}服务结构
 type {{.service_name}}Service struct {
-	*baseService
+	{{.extend_base}}
 }
 
 var {{.service_name}} *{{.service_name}}Service

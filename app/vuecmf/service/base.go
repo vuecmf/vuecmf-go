@@ -17,18 +17,20 @@ import (
 	"strings"
 )
 
-var db *gorm.DB
-var ns schema.Namer
+var Db *gorm.DB
+var NS schema.Namer
 var CacheUser = "vuecmf_user"
-var config *app.Config
+var Conf *app.Config
 
-type baseService struct {
+type BaseService struct {
 }
 
 func init() {
-	db = app.Db("default")
-	ns = db.NamingStrategy
-	config = app.Conf()
+	Db = app.Db("default")
+	if Db != nil {
+		NS = Db.NamingStrategy
+		Conf = app.AppConfig()
+	}
 }
 
 // fullModelFields 模型的所有字段相关信息（字段、表单、字段选项、字段关联、表单验证规则）
@@ -42,16 +44,16 @@ type fullModelFields struct {
 }
 
 // CommonList 公共列表 服务方法
-func (b *baseService) CommonList(modelData interface{}, tableName string, filterFields []string, params *helper.DataListParams) (interface{}, error) {
+func (b *BaseService) CommonList(modelData interface{}, tableName string, filterFields []string, params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
 		return b.getFieldList(tableName, params.Data.Filter)
 	} else {
-		return helper.Page(tableName, filterFields, db, ns).Filter(modelData, params)
+		return helper.Page(tableName, filterFields, Db, NS).Filter(modelData, params)
 	}
 }
 
 // getFieldList 根据表名获取对应所有字段信息
-func (b *baseService) getFieldList(tableName string, filter map[string]interface{}) (*fullModelFields, error) {
+func (b *BaseService) getFieldList(tableName string, filter map[string]interface{}) (*fullModelFields, error) {
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	modelId := modelConf.ModelId
 	fieldInfo := ModelField().GetFieldInfo(modelId) //模型的字段信息
@@ -79,8 +81,8 @@ func (b *baseService) getFieldList(tableName string, filter map[string]interface
 //		dataList  需要填充的列表数据
 //		tableName 表名
 //		params    过滤条件
-func (b *baseService) getList(dataList interface{}, tableName string, params *helper.DataListParams) {
-	query := db.Table(ns.TableName(tableName)).Select("*").Where("status = 10")
+func (b *BaseService) getList(dataList interface{}, tableName string, params *helper.DataListParams) {
+	query := Db.Table(NS.TableName(tableName)).Select("*").Where("status = 10")
 
 	modelConf := ModelConfig().GetModelConfig(tableName)
 
@@ -101,33 +103,33 @@ func (b *baseService) getList(dataList interface{}, tableName string, params *he
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数
-func (b *baseService) Create(data interface{}) (int64, error) {
-	res := db.Create(data)
+func (b *BaseService) Create(data interface{}) (int64, error) {
+	res := Db.Create(data)
 	return res.RowsAffected, res.Error
 }
 
 // Update 更新数据, 成功返回影响行数
-func (b *baseService) Update(data interface{}) (int64, error) {
-	res := db.Updates(data)
+func (b *BaseService) Update(data interface{}) (int64, error) {
+	res := Db.Updates(data)
 	return res.RowsAffected, res.Error
 }
 
 // Detail 根据ID获取详情
-func (b *baseService) Detail(id uint, result interface{}) error {
-	res := db.First(&result, id)
+func (b *BaseService) Detail(id uint, result interface{}) error {
+	res := Db.First(&result, id)
 	return res.Error
 }
 
 // Delete 根据ID删除数据
-func (b *baseService) Delete(id uint, model interface{}) (int64, error) {
-	res := db.Delete(model, id)
+func (b *BaseService) Delete(id uint, model interface{}) (int64, error) {
+	res := Db.Delete(model, id)
 	return res.RowsAffected, res.Error
 }
 
 // DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
-func (b *baseService) DeleteBatch(idList string, model interface{}) (int64, error) {
+func (b *BaseService) DeleteBatch(idList string, model interface{}) (int64, error) {
 	idArr := strings.Split(idList, ",")
-	res := db.Delete(model, idArr)
+	res := Db.Delete(model, idArr)
 	return res.RowsAffected, res.Error
 }
 
@@ -137,7 +139,7 @@ type DropdownList struct {
 }
 
 // Dropdown 获取模型的下拉列表
-func (b *baseService) Dropdown(form *model.DropdownForm, modelName string) (interface{}, error) {
+func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (interface{}, error) {
 	if form.RelationModelId > 0 {
 		form.ModelId = form.RelationModelId
 	}
@@ -146,7 +148,7 @@ func (b *baseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 	}
 
 	if form.TableName != "" {
-		db.Table(ns.TableName("model_config")).Select("id").
+		Db.Table(NS.TableName("model_config")).Select("id").
 			Where("table_name = ?", form.TableName).
 			Where("status = 10").
 			Find(&form.ModelId)
@@ -154,7 +156,7 @@ func (b *baseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 
 	modelId := ModelConfig().GetModelId(modelName)
 	var labelFieldList []string
-	db.Table(ns.TableName("model_field")).Select("field_name").
+	Db.Table(NS.TableName("model_field")).Select("field_name").
 		Where("model_id = ?", modelId).
 		Where("is_label = 10").
 		Where("status = 10").
@@ -172,7 +174,7 @@ func (b *baseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 
 	var result []DropdownList
 
-	db.Table(ns.TableName(modelName)).Select(labelField+" label, id").
+	Db.Table(NS.TableName(modelName)).Select(labelField+" label, id").
 		Where("model_id = ?", form.ModelId).
 		Where("status = 10").
 		Find(&result)
@@ -181,12 +183,12 @@ func (b *baseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 
 }
 
-var base *baseService
+var base *BaseService
 
-// Base 获取baseService服务实例
-func Base() *baseService {
+// Base 获取BaseService服务实例
+func Base() *BaseService {
 	if base == nil {
-		base = &baseService{}
+		base = &BaseService{}
 	}
 	return base
 }

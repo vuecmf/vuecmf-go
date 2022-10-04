@@ -10,7 +10,7 @@ package service
 
 // modelConfigService modelConfig服务结构
 type modelConfigService struct {
-	*baseService
+	*BaseService
 }
 
 var modelConfig *modelConfigService
@@ -26,7 +26,7 @@ func ModelConfig() *modelConfigService {
 // GetModelId 根据表名获取模型ID
 func (s *modelConfigService) GetModelId(tableName string) int {
 	var modelId int
-	db.Table(ns.TableName("model_config")).Select("id").
+	Db.Table(NS.TableName("model_config")).Select("id").
 		Where("table_name = ?", tableName).
 		Where("status = 10").
 		Limit(1).Find(&modelId)
@@ -36,7 +36,7 @@ func (s *modelConfigService) GetModelId(tableName string) int {
 // GetModelTableName 根据模型ID获取模型对应表名
 func (s *modelConfigService) GetModelTableName(modelId int) string {
 	var tableName string
-	db.Table(ns.TableName("model_config")).Select("table_name").
+	Db.Table(NS.TableName("model_config")).Select("table_name").
 		Where("id = ?", modelId).
 		Limit(1).Find(&tableName)
 	return tableName
@@ -45,7 +45,7 @@ func (s *modelConfigService) GetModelTableName(modelId int) string {
 // IsTree 根据模型ID判断是否为目录树
 func (s *modelConfigService) IsTree(modelId int) bool {
 	var isTree int
-	db.Table(ns.TableName("model_config")).Select("is_tree").
+	Db.Table(NS.TableName("model_config")).Select("is_tree").
 		Where("id = ?", modelId).
 		Limit(1).Find(&isTree)
 	return isTree == 10
@@ -61,7 +61,7 @@ type modelConf struct {
 // GetModelConfig 根据模型表名获取模型的配置信息
 func (s *modelConfigService) GetModelConfig(tableName string) modelConf {
 	var modelConfig modelConf
-	db.Table(ns.TableName("model_config")).
+	Db.Table(NS.TableName("model_config")).
 		Select("table_name, if(is_tree = 10, true, false) is_tree, id model_id, '' label_field_name").
 		Where("status = 10").
 		Where("table_name = ?", tableName).
@@ -69,7 +69,7 @@ func (s *modelConfigService) GetModelConfig(tableName string) modelConf {
 		Find(&modelConfig)
 
 	var labelFieldName string
-	db.Table(ns.TableName("model_field")).
+	Db.Table(NS.TableName("model_field")).
 		Select("field_name").
 		Where("status = 10").
 		Where("model_id = ?", modelConfig.ModelId).

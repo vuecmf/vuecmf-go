@@ -9,18 +9,17 @@
 package service
 
 import (
-	"errors"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 )
 
 // makeService make服务结构
 type makeService struct {
-	*baseService
+	*BaseService
 }
 
 // formRow 表单字段信息
@@ -42,30 +41,97 @@ type formRules struct {
 
 //Model 功能：生成模型代码文件
 //		参数：tableName string 表名（不带表前缀）
-func (makeSer *makeService) Model(tableName string) error {
+func (makeSer *makeService) Model(tableName string, appName string) error {
+	if appName == "" {
+		appName = "vuecmf"
+	}
+
 	var result []model.ModelField
 
 	//查出需要生成模型表的字段相关信息
-	db.Table(ns.TableName("model_field")+" VMF").
+	Db.Table(NS.TableName("model_field")+" VMF").
 		Select("VMF.*").
-		Joins("left join "+ns.TableName("model_config")+" MC on VMF.model_id = MC.id").
+		Joins("left join "+NS.TableName("model_config")+" MC on VMF.model_id = MC.id").
 		Where("VMF.status = 10").
 		Where("MC.status = 10").
 		Where("MC.table_name = ?", tableName).
 		Order("VMF.sort_num").
 		Find(&result)
 
-	tplFile := "model.stub"
+	txt := `package model
+
+{{.import}}
+
+// {{.model_name}} {{.comment}} 模型结构
+type {{.model_name}} struct {
+	{{.body}}
+}
+
+// Data{{.model_name}}Form 提交的表单数据
+type Data{{.model_name}}Form struct {
+    Data *{{.model_name}} |json:"data" form:"data"|
+}`
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	if modelConf.IsTree == true {
-		tplFile = "tree_model.stub"
+		txt = `package model
+
+{{.import}}
+
+// {{.model_name}} {{.comment}} 模型结构
+type {{.model_name}} struct {
+	{{.body}}
+	Children *{{.model_name}}Tree |json:"children" gorm:"-"|
+}
+
+// Data{{.model_name}}Form 提交的表单数据
+type Data{{.model_name}}Form struct {
+    Data *{{.model_name}} |json:"data" form:"data"|
+}
+
+
+var {{.model_value}}Model *{{.model_name}}
+
+// {{.model_name}}Model 获取{{.model_name}}模型实例
+func {{.model_name}}Model() *{{.model_name}} {
+	if {{.model_value}}Model == nil {
+		{{.model_value}}Model = &{{.model_name}}{}
+	}
+	return {{.model_value}}Model
+}
+
+type {{.model_name}}Tree []*{{.model_name}}
+
+// ToTree 将列表数据转换树形结构
+func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
+	treeData := make(map[uint]*{{.model_name}})
+	for _, val := range data {
+		treeData[val.Id] = val
 	}
 
-	//读取模型模板文件
-	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/" + tplFile)
-	if err != nil {
-		return errors.New("读取model模板失败")
+	var treeList {{.model_name}}Tree
+
+	for _, item := range treeData {
+		if item.Pid == 0 {
+			treeList = append(treeList, item)
+			continue
+		}
+		if pItem, ok := treeData[item.Pid]; ok {
+			if pItem.Children == nil {
+				children := {{.model_name}}Tree{item}
+				pItem.Children = &children
+				continue
+			}
+			*pItem.Children = append(*pItem.Children, item)
+		}
 	}
+
+	return treeList
+
+}
+`
+	}
+
+	txt = strings.Replace(txt, "|", "`", -1)
 
 	var formList []*formRow
 	ruleMaps := getRuleMaps()
@@ -105,8 +171,7 @@ func (makeSer *makeService) Model(tableName string) error {
 			}
 
 			//针对MYSQL整型类型字段长度处理
-			if strings.ToLower(dbType) == "mysql" && (
-				value.Type == "int" || value.Type == "bigint" || value.Type == "smallint" || value.Type == "tinyint") {
+			if strings.ToLower(dbType) == "mysql" && (value.Type == "int" || value.Type == "bigint" || value.Type == "smallint" || value.Type == "tinyint") {
 				switch {
 				case value.Length <= 4:
 					value.Length = 8
@@ -127,7 +192,7 @@ func (makeSer *makeService) Model(tableName string) error {
 		//字段唯一索引处理
 		modelIndexId := 0
 		id := strconv.Itoa(int(value.Id))
-		db.Table(ns.TableName("model_index")).Select("id").
+		Db.Table(NS.TableName("model_index")).Select("id").
 			Where("model_field_id = ? or model_field_id like ? or model_field_id like ?", id, id+",%", "%,"+id).
 			Find(&modelIndexId)
 
@@ -145,9 +210,9 @@ func (makeSer *makeService) Model(tableName string) error {
 		rules := ""
 		var formRulesList []formRules
 
-		db.Table(ns.TableName("model_form")+" VMF").
+		Db.Table(NS.TableName("model_form")+" VMF").
 			Select("VMFR.rule_type, VMFR.rule_value, VMFR.error_tips").
-			Joins("left join "+ns.TableName("model_form_rules")+" VMFR on VMF.id = VMFR.model_form_id").
+			Joins("left join "+NS.TableName("model_form_rules")+" VMFR on VMF.id = VMFR.model_form_id").
 			Where("VMF.status = 10").
 			Where("VMFR.status = 10").
 			Where("VMF.model_field_id = ?", value.Id).
@@ -223,14 +288,14 @@ func (makeSer *makeService) Model(tableName string) error {
 
 	//获取模型标签名称
 	modelLabel := ""
-	db.Table(ns.TableName("model_config")).Select("label").
+	Db.Table(NS.TableName("model_config")).Select("label").
 		Where("table_name = ?", tableName).Find(&modelLabel)
 
 	modelName := helper.UnderToCamel(tableName)
 	modelValue := strings.ToLower(modelName)
 
 	//替换模板文件中内容
-	txt := string(tplContent)
+	txt = strings.Replace(txt, "{{.app_name}}", appName, -1)
 	txt = strings.Replace(txt, "{{.comment}}", modelLabel, -1)
 	txt = strings.Replace(txt, "{{.model_name}}", modelName, -1)
 	txt = strings.Replace(txt, "{{.model_value}}", modelValue, -1)
@@ -242,40 +307,116 @@ func (makeSer *makeService) Model(tableName string) error {
 	}
 
 	txt = strings.Replace(txt, "{{.body}}", modelContent, -1)
-	err = ioutil.WriteFile("app/vuecmf/model/"+tableName+".go", []byte(txt), 0666)
+	err := os.WriteFile("app/"+appName+"/model/"+tableName+".go", []byte(txt), 0666)
 	return err
 }
 
 //Service 功能：生成服务代码文件
 //		  参数：tableName string 表名（不带表前缀）
-func (makeSer *makeService) Service(tableName string) error {
+func (makeSer *makeService) Service(tableName string, appName string) error {
+	if appName == "" {
+		appName = "vuecmf"
+	}
+
 	serviceMethod := helper.UnderToCamel(tableName)
 	nameArr := []rune(serviceMethod)
 	nameArr[0] += 32
 	serviceName := string(nameArr)
 
-	tplFile := "service.stub"
+	txt := `package service
+
+{{.import_base}}
+
+
+// {{.service_name}}Service {{.service_name}}服务结构
+type {{.service_name}}Service struct {
+	{{.extend_base}}
+}
+
+var {{.service_name}} *{{.service_name}}Service
+
+// {{.service_method}} 获取{{.service_name}}服务实例
+func {{.service_method}}() *{{.service_name}}Service {
+	if {{.service_name}} == nil {
+		{{.service_name}} = &{{.service_name}}Service{}
+	}
+	return {{.service_name}}
+}`
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	if modelConf.IsTree == true {
-		tplFile = "tree_service.stub"
+		txt = `package service
+
+import (
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/app/{{.app_name}}/model"
+	{{.import_base2}}
+)
+
+// {{.service_name}}Service {{.service_name}}服务结构
+type {{.service_name}}Service struct {
+	{{.extend_base}}
+	TableName string
+}
+
+var {{.service_name}} *{{.service_name}}Service
+
+// {{.service_method}} 获取{{.service_name}}服务实例
+func {{.service_method}}() *{{.service_name}}Service {
+	if {{.service_name}} == nil {
+		{{.service_name}} = &{{.service_name}}Service{TableName: "{{.service_name}}"}
+	}
+	return {{.service_name}}
+}
+
+// List 获取列表数据
+// 		参数：params 查询参数
+func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interface{} , error) {
+	if params.Data.Action == "getField" {
+		//拉取列表的字段信息
+		return ser.getFieldList(ser.TableName, params.Data.Filter)
+	}else{
+		//拉取列表的数据
+		var {{.service_name}}List []*model.{{.service_method}}
+		var res = make(map[string]interface{})
+
+		ser.getList(&{{.service_name}}List, ser.TableName, params)
+
+		//转换成树形列表
+		tree := model.{{.service_method}}Model().ToTree({{.service_name}}List)
+		res["data"] = tree
+		return res, nil
+	}
+}
+`
 	}
 
-	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/" + tplFile)
-	if err != nil {
-		return errors.New("读取service模板失败")
+	importBase := ""
+	importBase2 := ""
+	extendBase := "*BaseService"
+	if appName != "vuecmf" {
+		importBase = "import \"github.com/vuecmf/vuecmf-go/app/vuecmf/service\""
+		importBase2 = "\"github.com/vuecmf/vuecmf-go/app/vuecmf/service\""
+		extendBase = "*service.BaseService"
 	}
 
-	txt := string(tplContent)
+	txt = strings.Replace(txt, "{{.app_name}}", appName, -1)
 	txt = strings.Replace(txt, "{{.service_name}}", serviceName, -1)
 	txt = strings.Replace(txt, "{{.service_method}}", serviceMethod, -1)
+	txt = strings.Replace(txt, "{{.import_base}}", importBase, -1)
+	txt = strings.Replace(txt, "{{.import_base2}}", importBase2, -1)
+	txt = strings.Replace(txt, "{{.extend_base}}", extendBase, -1)
 
-	err = ioutil.WriteFile("app/vuecmf/service/"+tableName+".go", []byte(txt), 0666)
+	err := os.WriteFile("app/"+appName+"/service/"+tableName+".go", []byte(txt), 0666)
 	return err
 }
 
 //Controller 功能：生成控制器代码文件
 //		  参数：tableName string 表名（不带表前缀）
-func (makeSer *makeService) Controller(tableName string) error {
+func (makeSer *makeService) Controller(tableName string, appName string) error {
+	if appName == "" {
+		appName = "vuecmf"
+	}
+
 	controllerName := helper.UnderToCamel(tableName)
 	ctrlValName := helper.ToFirstLower(controllerName)
 
@@ -283,24 +424,87 @@ func (makeSer *makeService) Controller(tableName string) error {
 	filterFields := ModelField().getFilterFields(tableName)
 	filterFieldStr := "\"" + strings.Join(filterFields, "\",\"") + "\""
 
-	tplFile := "controller.stub"
+	moduleName := app.AppConfig().Module
+
+	txt := `package controller
+
+import (
+	"github.com/vuecmf/vuecmf-go/app/route"
+	"{{.module_name}}/app/{{.app_name}}/model"
+	{{.import_base}}
+)
+
+type {{.controller_name}} struct {
+    {{.extend_base}}
+}
+
+func init() {
+	{{.controller_var_name}} := &{{.controller_name}}{}
+    {{.controller_var_name}}.TableName = "{{.table_name}}"
+    {{.controller_var_name}}.Model = &model.{{.controller_name}}{}
+    {{.controller_var_name}}.ListData = &[]model.{{.controller_name}}{}
+    {{.controller_var_name}}.SaveForm = &model.Data{{.controller_name}}Form{}
+    {{.controller_var_name}}.FilterFields = []string{{{.filter_fields}}}
+
+    route.Register({{.controller_var_name}}, "POST", "{{.app_name}}")
+}
+`
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	if modelConf.IsTree == true {
-		tplFile = "tree_controller.stub"
+		txt = `package controller
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/app/route"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"{{.module_name}}/app/{{.app_name}}/model"
+	"{{.module_name}}/app/{{.app_name}}/service"
+	{{.import_base}}
+)
+
+type {{.controller_name}} struct {
+    {{.extend_base}}
+}
+
+func init() {
+	{{.controller_var_name}} := &{{.controller_name}}{}
+    {{.controller_var_name}}.TableName = "{{.controller_var_name}}"
+    {{.controller_var_name}}.Model = &model.{{.controller_name}}{}
+    {{.controller_var_name}}.ListData = &[]model.{{.controller_name}}{}
+    {{.controller_var_name}}.SaveForm = &model.Data{{.controller_name}}Form{}
+    {{.controller_var_name}}.FilterFields = []string{{{.filter_fields}}}
+
+    route.Register({{.controller_var_name}}, "POST", "{{.app_name}}")
+}
+
+// Index 列表页
+func (ctrl *{{.controller_name}}) Index(c *gin.Context) {
+    listParams := &helper.DataListParams{}
+	common(c, listParams, func() (interface{}, error) {
+        return service.{{.controller_name}}().List(listParams)
+	})
+}
+
+`
 	}
 
-	tplContent, err := ioutil.ReadFile("app/vuecmf/make/stubs/" + tplFile)
-	if err != nil {
-		return errors.New("读取controller模板失败")
+	importBase := ""
+	extendBase := "Base"
+	if appName != "vuecmf" {
+		importBase = "\"github.com/vuecmf/vuecmf-go/app/vuecmf/controller\""
+		extendBase = "controller.Base"
 	}
 
-	txt := string(tplContent)
+	txt = strings.Replace(txt, "{{.module_name}}", moduleName, -1)
+	txt = strings.Replace(txt, "{{.app_name}}", appName, -1)
 	txt = strings.Replace(txt, "{{.controller_name}}", controllerName, -1)
 	txt = strings.Replace(txt, "{{.controller_var_name}}", ctrlValName, -1)
 	txt = strings.Replace(txt, "{{.table_name}}", tableName, -1)
 	txt = strings.Replace(txt, "{{.filter_fields}}", filterFieldStr, -1)
+	txt = strings.Replace(txt, "{{.import_base}}", importBase, -1)
+	txt = strings.Replace(txt, "{{.extend_base}}", extendBase, -1)
 
-	err = ioutil.WriteFile("app/vuecmf/controller/"+tableName+".go", []byte(txt), 0666)
+	err := os.WriteFile("app/"+appName+"/controller/"+tableName+".go", []byte(txt), 0666)
 	return err
 }
 

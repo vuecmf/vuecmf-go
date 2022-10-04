@@ -21,9 +21,9 @@ import (
 type Base struct {
 	TableName    string      //表名称
 	Model        interface{} //表对应的模型实例
-	listData     interface{} //存储列表结果
-	saveForm     interface{} //保存单条数据的form
-	filterFields []string    //支持模糊查询的字段
+	ListData     interface{} //存储列表结果
+	SaveForm     interface{} //保存单条数据的form
+	FilterFields []string    //支持模糊查询的字段
 	AppName      string      //当前应用标识
 }
 
@@ -66,14 +66,14 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 func (ctrl *Base) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
-		return service.Base().CommonList(ctrl.listData, ctrl.TableName, ctrl.filterFields, listParams)
+		return service.Base().CommonList(ctrl.ListData, ctrl.TableName, ctrl.FilterFields, listParams)
 	})
 }
 
 // Save 新增/更新 单条数据
 func (ctrl *Base) Save(c *gin.Context) {
-	common(c, ctrl.saveForm, func() (interface{}, error) {
-		data := reflect.ValueOf(ctrl.saveForm).Elem().FieldByName("Data").Interface()
+	common(c, ctrl.SaveForm, func() (interface{}, error) {
+		data := reflect.ValueOf(ctrl.SaveForm).Elem().FieldByName("Data").Interface()
 		id := reflect.ValueOf(data).Elem().FieldByName("Id").Interface()
 
 		if id == uint(0) {
@@ -88,11 +88,11 @@ func (ctrl *Base) Save(c *gin.Context) {
 func (ctrl *Base) SaveAll(c *gin.Context) {
 	data := &model.DataBatchForm{}
 	common(c, data, func() (interface{}, error) {
-		err := json.Unmarshal([]byte(data.Data), &ctrl.listData)
+		err := json.Unmarshal([]byte(data.Data), &ctrl.ListData)
 		if err != nil {
 			return nil, err
 		}
-		return service.Base().Create(ctrl.listData)
+		return service.Base().Create(ctrl.ListData)
 	})
 }
 

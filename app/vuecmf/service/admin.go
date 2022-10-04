@@ -23,7 +23,7 @@ import (
 
 // adminService admin服务结构
 type adminService struct {
-	*baseService
+	*BaseService
 	TableName string
 	AppName   string
 }
@@ -34,7 +34,7 @@ var admin *adminService
 func Admin(tableName string, appName string) *adminService {
 	if admin == nil {
 		admin = &adminService{
-			TableName: ns.TableName(tableName),
+			TableName: NS.TableName(tableName),
 			AppName:   appName,
 		}
 	}
@@ -58,7 +58,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 
 	var adminInfo model.Admin
 
-	db.Table(ser.TableName).
+	Db.Table(ser.TableName).
 		Where("username = ? or email = ? or mobile = ?", loginForm.LoginName, loginForm.LoginName, loginForm.LoginName).
 		Where("status = 10").
 		Find(&adminInfo)
@@ -72,7 +72,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 	codeByte := md5.Sum([]byte(adminInfo.Username + adminInfo.Password + loginForm.LastLoginIp))
 	token := fmt.Sprintf("%x", codeByte)
 
-	res := db.Table(ser.TableName).Where("id = ?", adminInfo.Id).
+	res := Db.Table(ser.TableName).Where("id = ?", adminInfo.Id).
 		Updates(model.Admin{
 			LastLoginTime: loginForm.LastLoginTime,
 			LastLoginIp:   loginForm.LastLoginIp,
@@ -84,7 +84,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 	}
 
 	var mysqlVersion string
-	db.Raw("select version() as v").Scan(&mysqlVersion)
+	Db.Raw("select version() as v").Scan(&mysqlVersion)
 
 	role := "超级管理员"
 	if adminInfo.IsSuper != 10 {
@@ -122,7 +122,7 @@ func (ser *adminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
 		return false, errors.New("token不能为空")
 	}
 
-	db.Table(ser.TableName).Where("token = ?", logoutForm.Token).
+	Db.Table(ser.TableName).Where("token = ?", logoutForm.Token).
 		Where("status = 10").Update("token", "")
 
 	//清除系统缓存
@@ -130,6 +130,3 @@ func (ser *adminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
 
 	return true, nil
 }
-
-
-

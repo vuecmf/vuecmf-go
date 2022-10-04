@@ -28,7 +28,7 @@ type auth struct {
 func Auth() *auth {
 	var enf *casbin.Enforcer
 	db := app.Db("default")
-	a, err := gormadapter.NewAdapterByDBWithCustomTable(db, &model.Rules{}, ns.TableName("rules"))
+	a, err := gormadapter.NewAdapterByDBWithCustomTable(db, &model.Rules{}, NS.TableName("rules"))
 	if err != nil {
 		log.Fatalln("初始化权限异常：" + err.Error())
 		return nil
@@ -51,7 +51,7 @@ func (au *auth) AddRolesForUser(username string, roles []string, appName string)
 		appName = "vuecmf"
 	}
 
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := Db.Transaction(func(tx *gorm.DB) error {
 		_, err2 := au.Enforcer.AddRolesForUser(username, roles, appName)
 		return err2
 	})
@@ -68,7 +68,7 @@ func (au *auth) DelRolesForUser(username string, roles []string, appName string)
 		appName = "vuecmf"
 	}
 
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := Db.Transaction(func(tx *gorm.DB) error {
 		for _, role := range roles {
 			_, err2 := au.Enforcer.DeleteRoleForUser(username, role, appName)
 			if err2 != nil {
@@ -90,7 +90,7 @@ func (au *auth) DelAllRolesForUser(username string, appName string) (bool, error
 		appName = "vuecmf"
 	}
 
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := Db.Transaction(func(tx *gorm.DB) error {
 		_, err2 := au.Enforcer.DeleteRolesForUser(username, appName)
 		if err2 != nil {
 			return err2
@@ -110,7 +110,7 @@ func (au *auth) AddUsersForRole(role string, username []string, appName string) 
 		appName = "vuecmf"
 	}
 
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := Db.Transaction(func(tx *gorm.DB) error {
 		roleArr := []string{role}
 		for _, user := range username {
 			_, err2 := au.Enforcer.AddRolesForUser(user, roleArr, appName)
@@ -133,7 +133,7 @@ func (au *auth) DelUsersForRole(role string, username []string, appName string) 
 		appName = "vuecmf"
 	}
 
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := Db.Transaction(func(tx *gorm.DB) error {
 		for _, user := range username {
 			_, err2 := au.Enforcer.DeleteRoleForUser(user, role, appName)
 			if err2 != nil {
@@ -153,12 +153,12 @@ func (au *auth) DelUsersForRole(role string, username []string, appName string) 
 func (au *auth) AddPermission(userOrRole string, actionIdList string) (bool, error) {
 	actionIdArr := strings.Split(actionIdList, ",")
 	var actionPathArr []string
-	db.Table(ns.TableName("model_action")).Select("api_path").
+	Db.Table(NS.TableName("model_action")).Select("api_path").
 		Where("id in ?", actionIdArr).
 		Where("status = 10").
 		Find(&actionPathArr)
 
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := Db.Transaction(func(tx *gorm.DB) error {
 		//先清空原有权限
 		_, err2 := au.Enforcer.DeletePermissionsForUser(userOrRole)
 		if err2 != nil {
@@ -195,12 +195,12 @@ func (au *auth) AddPermission(userOrRole string, actionIdList string) (bool, err
 func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, error) {
 	actionIdArr := strings.Split(actionIdList, ",")
 	var actionPathArr []string
-	db.Table(ns.TableName("model_action")).Select("api_path").
+	Db.Table(NS.TableName("model_action")).Select("api_path").
 		Where("id in ?", actionIdArr).
 		Where("status = 10").
 		Find(&actionPathArr)
 
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := Db.Transaction(func(tx *gorm.DB) error {
 		//再解析出路径中的控制器及动作，并分配权限
 		for _, path := range actionPathArr {
 			arr := strings.Split(strings.Trim(path, "/"), "/")
@@ -248,8 +248,8 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 		//超级管理员拥有所有权限
 		var actionList []action
 
-		db.Table(ns.TableName("model_action") + " MA").Select("MA.id, MC.label").
-			Joins("left join " + ns.TableName("model_config") + " MC ON MA.model_id = MC.id").
+		Db.Table(NS.TableName("model_action") + " MA").Select("MA.id, MC.label").
+			Joins("left join " + NS.TableName("model_config") + " MC ON MA.model_id = MC.id").
 			Where("MA.status = 10").
 			Where("MC.status = 10").
 			Find(&actionList)
@@ -275,8 +275,8 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 			n++
 			if n%100 == 0 {
 				var actionList []action
-				db.Table(ns.TableName("model_action")+" MA").Select("MA.id, MC.label").
-					Joins("left join "+ns.TableName("model_config")+" MC ON MA.model_id = MC.id").
+				Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
+					Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
 					Where("MA.api_path in ?", pathList).
 					Where("MA.status = 10").
 					Where("MC.status = 10").
@@ -291,8 +291,8 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 
 		if pathList != nil {
 			var actionList []action
-			db.Table(ns.TableName("model_action")+" MA").Select("MA.id, MC.label").
-				Joins("left join "+ns.TableName("model_config")+" MC ON MA.model_id = MC.id").
+			Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
+				Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
 				Where("MA.api_path in ?", pathList).
 				Where("MA.status = 10").
 				Where("MC.status = 10").
@@ -350,7 +350,7 @@ type roleList struct {
 // GetAllRoles 获取所有角色列表
 func (au *auth) GetAllRoles() interface{} {
 	var result roleList
-	db.Table(ns.TableName("roles")).Select("id `key`, role_name label, false disabled").
+	Db.Table(NS.TableName("roles")).Select("id `key`, role_name label, false disabled").
 		Where("status = 10").
 		Find(&result)
 

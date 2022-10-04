@@ -14,16 +14,16 @@ import (
 )
 
 type FieldOption struct {
-    Base
+	Base
 }
 
 func init() {
 	fieldOption := &FieldOption{}
-    fieldOption.TableName = "field_option"
-    fieldOption.Model = &model.FieldOption{}
-    fieldOption.listData = &[]model.FieldOption{}
-    fieldOption.saveForm = &model.DataFieldOptionForm{}
-    fieldOption.filterFields = []string{"option_value","option_label"}
+	fieldOption.TableName = "field_option"
+	fieldOption.Model = &model.FieldOption{}
+	fieldOption.ListData = &[]model.FieldOption{}
+	fieldOption.SaveForm = &model.DataFieldOptionForm{}
+	fieldOption.FilterFields = []string{"option_value", "option_label"}
 
-    route.Register(fieldOption, "POST", "vuecmf")
+	route.Register(fieldOption, "POST", "vuecmf")
 }

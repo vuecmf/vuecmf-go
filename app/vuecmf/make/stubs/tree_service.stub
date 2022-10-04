@@ -10,12 +10,13 @@ package service
 
 import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/app/{{.app_name}}/model"
+	{{.import_base2}}
 )
 
 // {{.service_name}}Service {{.service_name}}服务结构
 type {{.service_name}}Service struct {
-	*baseService
+	{{.extend_base}}
 	TableName string
 }
 

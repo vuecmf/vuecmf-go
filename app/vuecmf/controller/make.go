@@ -26,10 +26,10 @@ func init() {
 // Model 生成模型代码文件
 func (ctrl *Make) Model(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
-	err := service.Make().Model(tableName)
+	err := service.Make().Model(tableName, "vuecmf")
 
 	if err != nil {
-		app.Response(c).SendFailure("模型代码文件生成失败!" + err.Error(), nil)
+		app.Response(c).SendFailure("模型代码文件生成失败!"+err.Error(), nil)
 	} else {
 		app.Response(c).SendSuccess("模型代码文件生成成功", nil)
 	}
@@ -38,10 +38,10 @@ func (ctrl *Make) Model(c *gin.Context) {
 // Service 生成服务代码文件
 func (ctrl *Make) Service(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
-	err := service.Make().Service(tableName)
+	err := service.Make().Service(tableName, "vuecmf")
 
 	if err != nil {
-		app.Response(c).SendFailure("服务代码文件生成失败!" + err.Error(), nil)
+		app.Response(c).SendFailure("服务代码文件生成失败!"+err.Error(), nil)
 	} else {
 		app.Response(c).SendSuccess("服务代码文件生成成功", nil)
 	}
@@ -50,12 +50,11 @@ func (ctrl *Make) Service(c *gin.Context) {
 // Controller 生成服务代码文件
 func (ctrl *Make) Controller(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
-	err := service.Make().Controller(tableName)
+	err := service.Make().Controller(tableName, "vuecmf")
 
 	if err != nil {
-		app.Response(c).SendFailure("控制器代码文件生成失败!" + err.Error(), nil)
+		app.Response(c).SendFailure("控制器代码文件生成失败!"+err.Error(), nil)
 	} else {
 		app.Response(c).SendSuccess("控制器代码文件生成成功", nil)
 	}
 }
-

@@ -14,16 +14,16 @@ import (
 )
 
 type ModelField struct {
-    Base
+	Base
 }
 
 func init() {
 	modelField := &ModelField{}
-    modelField.TableName = "model_field"
-    modelField.Model = &model.ModelField{}
-    modelField.listData = &[]model.ModelField{}
-    modelField.saveForm = &model.DataModelFieldForm{}
-    modelField.filterFields = []string{"field_name","label","type","note","default_value"}
+	modelField.TableName = "model_field"
+	modelField.Model = &model.ModelField{}
+	modelField.ListData = &[]model.ModelField{}
+	modelField.SaveForm = &model.DataModelFieldForm{}
+	modelField.FilterFields = []string{"field_name", "label", "type", "note", "default_value"}
 
-    route.Register(modelField, "POST", "vuecmf")
+	route.Register(modelField, "POST", "vuecmf")
 }

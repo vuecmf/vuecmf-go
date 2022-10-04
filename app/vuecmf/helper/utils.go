@@ -196,32 +196,3 @@ func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string
 		FormatTree(tree, db, tableName, pk, val.Id, label, pidField, orderField, level+1)
 	}
 }
-
-/*func TreeList(tree []model.MenuTree, db *gorm.DB, tableName string, pid int, keywords string, pidField string, searchField string, orderField string) []model.MenuTree {
-	query := db.Table(tableName).Select("*").Where(pidField+" = ?", pid)
-	if keywords != "" {
-		query.Where(searchField+" like ?", "%"+keywords+"%")
-	}
-	if orderField != "" {
-		query.Order(orderField)
-	}
-	var res = make([]model.Menu, 0)
-	query.Find(&res)
-
-	fmt.Println(res)
-
-	for key, val := range res {
-
-
-		child := TreeList(tree, db, tableName, int(val.Id), keywords, pidField, searchField, orderField)
-
-		if child != nil {
-			treeItem.Children = child
-		}
-
-
-	}
-	fmt.Println("res=", res)
-
-	return tree
-}*/

@@ -52,18 +52,18 @@ type Water struct {
 	Conf      FontInfo `yaml:"conf"`       //水印配置
 }
 
-// Config 应用配置
-type Config struct {
+// Conf 应用配置
+type Conf struct {
 	Module string             `yaml:"module"` //项目名称，与go.mod中module保持一致
 	Upload *upload            `yaml:"upload"`
 	Water  *Water             `yaml:"water"`
 	App    map[string]appInfo `yaml:"app"`
 }
 
-var appConf *Config
+var appConf *Conf
 
-// AppConfig 读取app应用配置
-func AppConfig() *Config {
+// Config 读取app应用配置
+func Config() *Conf {
 	if appConf != nil {
 		return appConf
 	}

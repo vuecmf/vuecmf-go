@@ -20,7 +20,7 @@ import (
 var Db *gorm.DB
 var NS schema.Namer
 var CacheUser = "vuecmf_user"
-var Conf *app.Config
+var Conf *app.Conf
 
 type BaseService struct {
 }
@@ -29,7 +29,7 @@ func init() {
 	Db = app.Db("default")
 	if Db != nil {
 		NS = Db.NamingStrategy
-		Conf = app.AppConfig()
+		Conf = app.Config()
 	}
 }
 

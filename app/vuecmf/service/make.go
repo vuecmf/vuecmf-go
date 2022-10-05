@@ -9,6 +9,8 @@
 package service
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
@@ -41,6 +43,7 @@ type formRules struct {
 
 //Model 功能：生成模型代码文件
 //		参数：tableName string 表名（不带表前缀）
+//			 appName string 应用名称
 func (makeSer *makeService) Model(tableName string, appName string) error {
 	if appName == "" {
 		appName = "vuecmf"
@@ -313,6 +316,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 
 //Service 功能：生成服务代码文件
 //		  参数：tableName string 表名（不带表前缀）
+//			   appName string 应用名称
 func (makeSer *makeService) Service(tableName string, appName string) error {
 	if appName == "" {
 		appName = "vuecmf"
@@ -412,6 +416,7 @@ func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interf
 
 //Controller 功能：生成控制器代码文件
 //		  参数：tableName string 表名（不带表前缀）
+//			   appName string 应用名称
 func (makeSer *makeService) Controller(tableName string, appName string) error {
 	if appName == "" {
 		appName = "vuecmf"
@@ -424,7 +429,7 @@ func (makeSer *makeService) Controller(tableName string, appName string) error {
 	filterFields := ModelField().getFilterFields(tableName)
 	filterFieldStr := "\"" + strings.Join(filterFields, "\",\"") + "\""
 
-	moduleName := app.AppConfig().Module
+	moduleName := app.Config().Module
 
 	txt := `package controller
 
@@ -504,7 +509,584 @@ func (ctrl *{{.controller_name}}) Index(c *gin.Context) {
 	txt = strings.Replace(txt, "{{.import_base}}", importBase, -1)
 	txt = strings.Replace(txt, "{{.extend_base}}", extendBase, -1)
 
-	err := os.WriteFile("app/"+appName+"/controller/"+tableName+".go", []byte(txt), 0666)
+	if err := makeSer.UpdateRunFile(); err != nil {
+		return err
+	}
+
+	return os.WriteFile("app/"+appName+"/controller/"+tableName+".go", []byte(txt), 0666)
+}
+
+//RemoveModel 功能：删除模型代码文件
+//				参数：tableName string 表名（不带表前缀）
+//			 		 appName string 应用名称
+func (makeSer *makeService) RemoveModel(tableName string, appName string) error {
+	return os.Remove("app/" + appName + "/model/" + tableName + ".go")
+}
+
+// RemoveService 功能：删除服务代码文件
+//		  			参数：tableName string 表名（不带表前缀）
+//			   			 appName string 应用名称
+func (makeSer *makeService) RemoveService(tableName string, appName string) error {
+	return os.Remove("app/" + appName + "/service/" + tableName + ".go")
+}
+
+// RemoveController 功能：删除控制器代码文件
+//		  参数：tableName string 表名（不带表前缀）
+//			   appName string 应用名称
+func (makeSer *makeService) RemoveController(tableName string, appName string) error {
+	if err := makeSer.UpdateRunFile(); err != nil {
+		return err
+	}
+
+	return os.Remove("app/" + appName + "/controller/" + tableName + ".go")
+}
+
+// UpdateRunFile 更新启动文件
+func (makeSer *makeService) UpdateRunFile() error {
+	projectName := app.Config().Module
+	mainFile := `package main
+
+import (
+	"github.com/gin-gonic/gin"
+${import_package}
+	"github.com/vuecmf/vuecmf-go/app/route"
+	_ "github.com/vuecmf/vuecmf-go/app/vuecmf/controller"
+	"log"
+)
+
+func main() {
+	engine := gin.Default()
+
+	//初始化路由
+	route.InitRoute(engine)
+
+	err := engine.Run(":8080")
+	if err != nil {
+		log.Fatal("服务启动失败！", err)
+	}
+
+}
+`
+	var appList []string
+	Db.Table(NS.TableName("app_config") + " A").Select("app_name").
+		Joins("left join " + NS.TableName("app_model") + " AM on A.id = AM.app_id").
+		Where("A.status = 10").
+		Where("AM.status = 10").
+		Group("app_name").Find(&appList)
+
+	importPackage := ""
+	for _, appName := range appList {
+		importPackage = importPackage + "\t_ \"" + projectName + "/app/" + appName + "/controller\"\n"
+	}
+
+	mainFile = strings.Replace(mainFile, "${import_package}", importPackage, -1)
+	if err := os.WriteFile("main.go", []byte(mainFile), 0666); err != nil {
+		return errors.New("更新启动文件main.go失败！" + err.Error())
+	}
+	return nil
+}
+
+// RemoveAll 删除表名相关所有控制器、模型及服务
+func (makeSer *makeService) RemoveAll(tableName string) error {
+	var err error
+	//先根据tableName查出所有相关的模型、服务及控制器，然后全部删除
+	appList := AppModel().GetAppList(tableName)
+
+	if len(appList) > 0 {
+		for _, appName := range appList {
+			if err = makeSer.RemoveController(tableName, appName); err != nil {
+				break
+			}
+			if err = makeSer.RemoveModel(tableName, appName); err != nil {
+				break
+			}
+			if err = makeSer.RemoveService(tableName, appName); err != nil {
+				break
+			}
+		}
+	}
+	return nil
+}
+
+// MakeAll 根据表名生成相关的所有控制器、模型及服务
+func (makeSer *makeService) MakeAll(tableName string) error {
+	var err error
+	//先根据tableName查出所有相关的模型、服务及控制器，然后生成
+	appList := AppModel().GetAppList(tableName)
+
+	if len(appList) > 0 {
+		for _, appName := range appList {
+			if err = makeSer.Controller(tableName, appName); err != nil {
+				break
+			}
+			if err = makeSer.Model(tableName, appName); err != nil {
+				break
+			}
+			if err = makeSer.Service(tableName, appName); err != nil {
+				break
+			}
+		}
+	}
+	return nil
+}
+
+// MakeAppModel 根据应用ID及模型ID生成对应代码文件
+func (makeSer *makeService) MakeAppModel(appId, modelId uint) error {
+	var appName string
+	Db.Table(NS.TableName("app_config")).Select("app_name").
+		Where("id = ?", appId).
+		Where("status = 10").Find(&appName)
+
+	if appName == "vuecmf" {
+		return nil
+	}
+
+	if appName == "" {
+		return errors.New("没有找到应用名称")
+	}
+
+	var tableName string
+	Db.Table(NS.TableName("model_config")).Select("table_name").
+		Where("id = ?", modelId).
+		Where("status = 10").Find(&tableName)
+	if tableName == "" {
+		return errors.New("没有找到模型对应的表名")
+	}
+
+	if err := makeSer.Controller(tableName, appName); err != nil {
+		return err
+	}
+	if err := makeSer.Model(tableName, appName); err != nil {
+		return err
+	}
+	if err := makeSer.Service(tableName, appName); err != nil {
+		return err
+	}
+	return nil
+}
+
+// RemoveAppModel 根据应用ID及模型ID删除对应代码文件
+func (makeSer *makeService) RemoveAppModel(appId, modelId uint) error {
+	var appName string
+	Db.Table(NS.TableName("app_config")).Select("app_name").
+		Where("id = ?", appId).
+		Where("status = 10").Find(&appName)
+
+	if appName == "vuecmf" {
+		return nil
+	}
+
+	if appName == "" {
+		return errors.New("没有找到应用名称")
+	}
+
+	var tableName string
+	Db.Table(NS.TableName("model_config")).Select("table_name").
+		Where("id = ?", modelId).
+		Where("status = 10").Find(&tableName)
+	if tableName == "" {
+		return errors.New("没有找到模型对应的表名")
+	}
+
+	if err := makeSer.RemoveController(tableName, appName); err != nil {
+		return err
+	}
+	if err := makeSer.RemoveModel(tableName, appName); err != nil {
+		return err
+	}
+	if err := makeSer.RemoveService(tableName, appName); err != nil {
+		return err
+	}
+	return nil
+}
+
+// BuildModelData 生成模型相关数据
+func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
+	var baseTable interface{}
+	var insertDataJson string
+	if mc.IsTree == 10 {
+		type BaseTable struct {
+			Id      uint   `json:"id" form:"id"  gorm:"column:id;primaryKey;autoIncrement;size:32;not null;comment:自增ID"`
+			Title   string `json:"title" form:"title" binding:"required" required_tips:"标题必填" gorm:"column:title;size:64;not null;default:'';comment:标题"`
+			Pid     uint   `json:"pid" form:"pid"  gorm:"column:pid;size:32;not null;default:0;comment:父级ID"`
+			IdPath  string `json:"id_path" form:"id_path"  gorm:"column:id_path;size:255;not null;default:'';comment:ID层级路径"`
+			SortNum uint   `json:"sort_num" form:"sort_num"  gorm:"column:sort_num;size:32;not null;default:0;comment:菜单的排列顺序(小在前)"`
+			Status  uint16 `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
+		}
+
+		baseTable = &BaseTable{}
+
+		//写入数据
+		insertDataJson = `[
+    {
+        "field_name": "id",
+        "label": "ID",
+        "model_id": "{$model_id}",
+        "type": "int",
+        "length": 11,
+        "decimal_length": 0,
+        "is_null": 20,
+        "note": "自增ID",
+        "default_value": 0,
+        "is_auto_increment": 10,
+        "is_label": 20,
+        "is_signed": 20,
+        "is_show": 10,
+        "is_fixed": 20,
+        "column_width": 100,
+        "is_filter": 20,
+        "sort_num": 0,
+        "status": 10
+    },
+    {
+        "field_name": "title",
+        "label": "标题",
+        "model_id": "{$model_id}",
+        "type": "varchar",
+        "length": 64,
+        "decimal_length": 0,
+        "is_null": 20,
+        "note": "标题",
+        "default_value": "",
+        "is_auto_increment": 20,
+        "is_label": 10,
+        "is_signed": 20,
+        "is_show": 10,
+        "is_fixed": 20,
+        "column_width": 0,
+        "is_filter": 10,
+        "sort_num": 60,
+        "status": 10
+    },
+    {
+        "field_name": "pid",
+        "label": "父级",
+        "model_id": "{$model_id}",
+        "type": "int",
+        "length": 11,
+        "decimal_length": 0,
+        "is_null": 20,
+        "note": "父级ID",
+        "default_value": 0,
+        "is_auto_increment": 20,
+        "is_label": 20,
+        "is_signed": 20,
+        "is_show": 10,
+        "is_fixed": 20,
+        "column_width": 150,
+        "is_filter": 10,
+        "sort_num": 9996,
+        "status": 10
+    },
+    {
+        "field_name": "id_path",
+        "label": "层级路径",
+        "model_id": "{$model_id}",
+        "type": "varchar",
+        "length": 255,
+        "decimal_length": 0,
+        "is_null": 20,
+        "note": "ID层级路径",
+        "default_value": "",
+        "is_auto_increment": 20,
+        "is_label": 20,
+        "is_signed": 20,
+        "is_show": 10,
+        "is_fixed": 20,
+        "column_width": 150,
+        "is_filter": 10,
+        "sort_num": 9997,
+        "status": 10
+    },
+    {
+        "field_name": "sort_num",
+        "label": "排序",
+        "model_id": "{$model_id}",
+        "type": "int",
+        "length": 11,
+        "decimal_length": 0,
+        "is_null": 20,
+        "note": "排列顺序(小在前)",
+        "default_value": 0,
+        "is_auto_increment": 20,
+        "is_label": 20,
+        "is_signed": 20,
+        "is_show": 10,
+        "is_fixed": 20,
+        "column_width": 100,
+        "is_filter": 10,
+        "sort_num": 9998,
+        "status": 10
+    },
+    {
+        "field_name": "status",
+        "label": "状态",
+        "model_id": "{$model_id}",
+        "type": "int",
+        "length": 4,
+        "decimal_length": 0,
+        "is_null": 20,
+        "note": "状态：10=开启，20=禁用",
+        "default_value": 10,
+        "is_auto_increment": 20,
+        "is_label": 20,
+        "is_signed": 20,
+        "is_show": 10,
+        "is_fixed": 20,
+        "column_width": 100,
+        "is_filter": 10,
+        "sort_num": 9999,
+        "status": 10
+    }
+]`
+
+	} else {
+		type BaseTable struct {
+			Id     uint   `json:"id" form:"id"  gorm:"column:id;primaryKey;autoIncrement;size:32;not null;comment:自增ID"`
+			Status uint16 `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
+		}
+		baseTable = &BaseTable{}
+
+		insertDataJson = `[
+    {
+        "field_name": "id",
+        "label": "ID",
+        "model_id": "{$model_id}",
+        "type": "int",
+        "length": 11,
+        "decimal_length": 0,
+        "is_null": 20,
+        "note": "自增ID",
+        "default_value": 0,
+        "is_auto_increment": 10,
+        "is_label": 20,
+        "is_signed": 20,
+        "is_show": 10,
+        "is_fixed": 20,
+        "column_width": 100,
+        "is_filter": 20,
+        "sort_num": 0,
+        "status": 10
+    },
+    {
+        "field_name": "status",
+        "label": "状态",
+        "model_id": "{$model_id}",
+        "type": "int",
+        "length": 4,
+        "decimal_length": 0,
+        "is_null": 20,
+        "note": "状态：10=开启，20=禁用",
+        "default_value": 10,
+        "is_auto_increment": 20,
+        "is_label": 20,
+        "is_signed": 20,
+        "is_show": 10,
+        "is_fixed": 20,
+        "column_width": 100,
+        "is_filter": 10,
+        "sort_num": 9999,
+        "status": 10
+    }
+]`
+
+	}
+
+	//创建表
+	if err := Db.Set("gorm:table_options", "ENGINE=InnoDB COLLATE=utf8mb4_unicode_ci COMMENT='"+mc.Remark+"'").AutoMigrate(&baseTable); err != nil {
+		return errors.New("创建基础表" + NS.TableName(mc.TableName) + "失败:" + err.Error())
+	}
+	//将表重命名为需要创建的表名称
+	if err := Db.Migrator().RenameTable(NS.TableName("base_table"), NS.TableName(mc.TableName)); err != nil {
+		return errors.New("创建表" + NS.TableName(mc.TableName) + "失败:" + err.Error())
+	}
+
+	//写入数据
+	insertDataJson = strings.Replace(insertDataJson, "\"{$model_id}\"", strconv.Itoa(int(mc.Id)), -1)
+	var insertData []model.ModelField
+	if err := json.Unmarshal([]byte(insertDataJson), &insertData); err != nil {
+		return err
+	}
+	Db.Create(insertData)
+
+	//添加字段选项
+	insertDataJson = `[
+    {
+        "model_id": "{$model_id}",
+        "model_field_id": "{$model_field_id}",
+        "option_value": 10,
+        "option_label": "开启"
+    },
+    {
+        "model_id": "{$model_id}",
+        "model_field_id": "{$model_field_id}",
+        "option_value": 20,
+        "option_label": "禁用"
+    }
+]`
+	var modelFieldId string
+	Db.Table(NS.TableName("model_field")).Select("id").
+		Where("model_id = ?", mc.Id).
+		Where("field_name = 'status'").
+		Where("status = 10").Find(&modelFieldId)
+
+	insertDataJson = strings.Replace(insertDataJson, "\"{$model_id}\"", strconv.Itoa(int(mc.Id)), -1)
+	insertDataJson = strings.Replace(insertDataJson, "\"{$model_field_id}\"", modelFieldId, -1)
+	var fieldOptionData []model.FieldOption
+	if err := json.Unmarshal([]byte(insertDataJson), &fieldOptionData); err != nil {
+		return err
+	}
+	Db.Create(fieldOptionData)
+	return nil
+}
+
+// RemoveModelData 删除模型相关的所有数据
+func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
+	//根据动作表找到对应权限项，清除rules表相关信息
+	var actionList []string
+	Db.Table(NS.TableName("model_action")).Select("api_path").
+		Where("model_id = ?", mc.Id).
+		Where("status = 10").Find(&actionList)
+
+	if len(actionList) > 0 {
+		for _, path := range actionList {
+			arr := strings.Split(strings.Trim(path, "/"), "/")
+			if len(arr) < 2 {
+				continue
+			}
+			appName := arr[0]
+			ctrl := arr[1]
+			action := "index"
+			if arr[2] != "" {
+				action = arr[2]
+			}
+			Db.Where("v1 = ?", appName).
+				Where("v2 = ?", ctrl).
+				Where("v3 = ?", action).
+				Delete(&model.Rules{})
+		}
+	}
+
+	//清除字段信息
+	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelField{})
+
+	//清除索引信息
+	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelIndex{})
+
+	//清除字段选项
+	Db.Where("model_id = ?", mc.Id).Delete(&model.FieldOption{})
+
+	//清除关联表信息
+	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelRelation{})
+
+	//清除动作信息
+	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelAction{})
+
+	//清除表单信息
+	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelForm{})
+
+	//清除表单校验规则信息
+	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelFormRules{})
+
+	//清除表单联动信息
+	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelFormLinkage{})
+
+	//清除菜单信息
+	Db.Where("model_id = ?", mc.Id).Delete(&model.Menu{})
+
+	//清除应用中挂载的模型
+	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelField{})
+
+	//删除模型对应表及相关数据
+	return Db.Migrator().DropTable(NS.TableName(mc.TableName))
+}
+
+// UpdateModel 根据模型ID更新模型文件
+func (makeSer *makeService) UpdateModel(modelId uint) error {
+	var err error
+	appList := AppModel().GetAppListByModelId(modelId)
+	tableName := ModelConfig().GetModelTableName(int(modelId))
+	if len(appList) > 0 {
+		for _, appName := range appList {
+			if err = makeSer.Model(tableName, appName); err != nil {
+				break
+			}
+		}
+	}
+	return err
+}
+
+// AddField 添加字段并更新模型文件
+func (makeSer *makeService) AddField(mf *model.ModelField) error {
+	var err error
+	if err = Db.Migrator().AddColumn(&model.ModelField{}, mf.FieldName); err != nil {
+		return err
+	}
+	//更新所有相关的模型文件
+	return makeSer.UpdateModel(mf.ModelId)
+}
+
+// RenameField 添加字段并更新模型文件
+func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName string) error {
+	var err error
+	if err = Db.Migrator().RenameColumn(&model.ModelField{}, oldFieldName, mf.FieldName); err != nil {
+		return err
+	}
+	//更新所有相关的模型文件
+	return makeSer.UpdateModel(mf.ModelId)
+}
+
+// DelField 删除字段并更新模型文件
+func (makeSer *makeService) DelField(mf *model.ModelField) error {
+	var err error
+	if err = Db.Migrator().DropColumn(&model.ModelField{}, mf.FieldName); err != nil {
+		return err
+	}
+	//更新所有相关的模型文件
+	return makeSer.UpdateModel(mf.ModelId)
+}
+
+// AddIndex 添加索引 并更新模型文件
+func (makeSer *makeService) AddIndex(mi *model.ModelIndex) error {
+	var err error
+	if mi.ModelFieldId != "" {
+		tableName := ModelConfig().GetModelTableName(int(mi.ModelId))
+		indexType := mi.IndexType
+		if indexType == "NORMAL" {
+			indexType = ""
+		}
+		var fieldNameList []string
+		Db.Table(NS.TableName("model_field")).Select("field_name").
+			Where("id in ?", strings.Split(mi.ModelFieldId, ",")).
+			Find(&fieldNameList)
+		indexName := "idx_" + strings.Join(fieldNameList, "_")
+		indexCol := "`" + strings.Join(fieldNameList, "`, `") + "`"
+
+		sql := "ALTER TABLE `" + tableName + "` ADD " + indexType + " INDEX `" + indexName + "`(" + indexCol + ") USING BTREE"
+		Db.Exec(sql)
+
+		//更新所有相关的模型文件
+		err = makeSer.UpdateModel(mi.ModelId)
+	}
+	return err
+}
+
+// DelIndex 删除索引 并更新模型文件
+func (makeSer *makeService) DelIndex(modelFieldId string, modelId uint) error {
+	var err error
+	if modelFieldId != "" {
+		tableName := ModelConfig().GetModelTableName(int(modelId))
+		var fieldNameList []string
+		Db.Table(NS.TableName("model_field")).Select("field_name").
+			Where("id in ?", strings.Split(modelFieldId, ",")).
+			Find(&fieldNameList)
+		indexName := "idx_" + strings.Join(fieldNameList, "_")
+		sql := "ALTER TABLE `" + tableName + "` DROP INDEX " + indexName
+		Db.Exec(sql)
+
+		//更新所有相关的模型文件
+		err = makeSer.UpdateModel(modelId)
+	}
 	return err
 }
 

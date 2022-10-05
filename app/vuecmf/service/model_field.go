@@ -8,6 +8,12 @@
 // +----------------------------------------------------------------------
 package service
 
+import (
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"strconv"
+	"strings"
+)
+
 // modelFieldService modelField服务结构
 type modelFieldService struct {
 	*BaseService
@@ -21,6 +27,59 @@ func ModelField() *modelFieldService {
 		modelField = &modelFieldService{}
 	}
 	return modelField
+}
+
+// Create 创建单条或多条数据, 成功返回影响行数
+func (ser *modelFieldService) Create(data *model.ModelField) (int64, error) {
+	res := Db.Create(data)
+	if err := Make().AddField(data); err != nil {
+		return 0, err
+	}
+	return res.RowsAffected, res.Error
+}
+
+// Update 更新数据, 成功返回影响行数
+func (ser *modelFieldService) Update(data *model.ModelField) (int64, error) {
+	var oldFieldName string
+	Db.Table(NS.TableName("model_field")).Select("field_name").
+		Where("id = ?", data.Id).Find(&oldFieldName)
+
+	res := Db.Updates(data)
+
+	//若原字段名与新字段名不一致，则更新表字段名
+	if oldFieldName != "" && oldFieldName != data.FieldName {
+		if err := Make().RenameField(data, oldFieldName); err != nil {
+			return 0, err
+		}
+	}
+
+	return res.RowsAffected, res.Error
+}
+
+// Delete 根据ID删除数据
+func (ser *modelFieldService) Delete(id uint, model *model.ModelField) (int64, error) {
+	res := Db.Delete(model, id)
+	model.Id = id
+	if err := Make().DelField(model); err != nil {
+		return 0, err
+	}
+	return res.RowsAffected, res.Error
+}
+
+// DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
+func (ser *modelFieldService) DeleteBatch(idList string, model *model.ModelField) (int64, error) {
+	idArr := strings.Split(idList, ",")
+	res := Db.Delete(model, idArr)
+
+	for _, id := range idArr {
+		mid, _ := strconv.Atoi(id)
+		model.Id = uint(mid)
+		if err := Make().DelField(model); err != nil {
+			return 0, err
+		}
+	}
+
+	return res.RowsAffected, res.Error
 }
 
 // fieldInfo 列表表字段信息

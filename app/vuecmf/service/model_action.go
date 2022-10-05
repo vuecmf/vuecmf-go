@@ -8,11 +8,88 @@
 // +----------------------------------------------------------------------
 package service
 
-import "errors"
+import (
+	"errors"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"strings"
+)
 
 // modelActionService modelAction服务结构
 type modelActionService struct {
 	*BaseService
+}
+
+// Update 更新数据, 成功返回影响行数
+func (ser *modelActionService) Update(data *model.ModelAction) (int64, error) {
+	//清除相关权限项
+	var oldApiPath string
+	Db.Table(NS.TableName("model_action")).Select("api_path").
+		Where("id = ?", data.Id).Find(&oldApiPath)
+	if oldApiPath != "" && oldApiPath != data.ApiPath {
+		arr := strings.Split(oldApiPath, "/")
+		if len(arr) == 2 {
+			if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], "index"); err != nil {
+				return 0, err
+			}
+		} else if len(arr) == 3 {
+			if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], arr[2]); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	res := Db.Updates(data)
+	return res.RowsAffected, res.Error
+}
+
+// Delete 根据ID删除数据
+func (ser *modelActionService) Delete(id uint, model *model.ModelAction) (int64, error) {
+	//清除相关权限项
+	var apiPath string
+	Db.Table(NS.TableName("model_action")).Select("api_path").
+		Where("id = ?", id).Find(&apiPath)
+	if apiPath != "" {
+		arr := strings.Split(apiPath, "/")
+		if len(arr) == 2 {
+			if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], "index"); err != nil {
+				return 0, err
+			}
+		} else if len(arr) == 3 {
+			if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], arr[2]); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	res := Db.Delete(model, id)
+	return res.RowsAffected, res.Error
+}
+
+// DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
+func (ser *modelActionService) DeleteBatch(idList string, model *model.ModelAction) (int64, error) {
+	idArr := strings.Split(idList, ",")
+
+	//清除相关权限项
+	for _, id := range idArr {
+		var apiPath string
+		Db.Table(NS.TableName("model_action")).Select("api_path").
+			Where("id = ?", id).Find(&apiPath)
+		if apiPath != "" {
+			arr := strings.Split(apiPath, "/")
+			if len(arr) == 2 {
+				if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], "index"); err != nil {
+					return 0, err
+				}
+			} else if len(arr) == 3 {
+				if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], arr[2]); err != nil {
+					return 0, err
+				}
+			}
+		}
+	}
+
+	res := Db.Delete(model, idArr)
+	return res.RowsAffected, res.Error
 }
 
 // GetAllApiMap 根据动作ID获取 api 路径映射

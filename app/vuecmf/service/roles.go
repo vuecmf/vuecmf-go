@@ -12,6 +12,7 @@ import (
 	"errors"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"strings"
 )
 
 // rolesService roles服务结构
@@ -28,6 +29,59 @@ func Roles() *rolesService {
 		roles = &rolesService{TableName: "roles"}
 	}
 	return roles
+}
+
+// Create 创建单条或多条数据, 成功返回影响行数
+func (ser *rolesService) Create(data *model.Roles) (int64, error) {
+	//getTreeIdPath  计算出 id_path 值
+
+	res := Db.Create(data)
+	return res.RowsAffected, res.Error
+}
+
+// Update 更新数据, 成功返回影响行数
+func (ser *rolesService) Update(data *model.Roles) (int64, error) {
+	//getTreeIdPath  计算出 id_path 值
+
+	var oldRoleName string
+	Db.Table(NS.TableName("roles")).Select("role_name").
+		Where("id = ?", data.Id).Find(&oldRoleName)
+	if oldRoleName != "" && oldRoleName != data.RoleName {
+		if _, err := Auth().Enforcer.DeleteRole(oldRoleName); err != nil {
+			return 0, err
+		}
+	}
+	res := Db.Updates(data)
+	return res.RowsAffected, res.Error
+}
+
+// Delete 根据ID删除数据
+func (ser *rolesService) Delete(id uint, model *model.Roles) (int64, error) {
+	var roleName string
+	Db.Table(NS.TableName("roles")).Select("role_name").
+		Where("id = ?", id).Find(&roleName)
+	if _, err := Auth().Enforcer.DeleteRole(roleName); err != nil {
+		return 0, err
+	}
+
+	res := Db.Delete(model, id)
+	return res.RowsAffected, res.Error
+}
+
+// DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
+func (ser *rolesService) DeleteBatch(idList string, model *model.Roles) (int64, error) {
+	idArr := strings.Split(idList, ",")
+	for _, id := range idArr {
+		var roleName string
+		Db.Table(NS.TableName("roles")).Select("role_name").
+			Where("id = ?", id).Find(&roleName)
+		if _, err := Auth().Enforcer.DeleteRole(roleName); err != nil {
+			return 0, err
+		}
+	}
+
+	res := Db.Delete(model, idArr)
+	return res.RowsAffected, res.Error
 }
 
 // List 获取列表数据

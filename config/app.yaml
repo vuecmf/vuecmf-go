@@ -1,12 +1,6 @@
 #项目名称
 module: "github.com/vuecmf/vuecmf-go" #项目名称，与go.mod中module保持一致
 
-#应用配置
-app:
-  vuecmf: #应用名称
-    login_enable: true #是否开启登录验证
-    auth_enable: true  #是否开启权限验证
-
 #上传配置
 upload:
   allow_file_size: 5        #允许上传的最大文件，单位M

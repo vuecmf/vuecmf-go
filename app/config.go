@@ -6,11 +6,6 @@ import (
 	"os"
 )
 
-type appInfo struct {
-	LoginEnable bool `yaml:"login_enable"`
-	AuthEnable  bool `yaml:"auth_enable"`
-}
-
 // uploadImage 图像文件上传配置
 type uploadImage struct {
 	ResizeEnable   bool `yaml:"resize_enable"`   //是否缩放图片
@@ -57,7 +52,6 @@ type Conf struct {
 	Module string             `yaml:"module"` //项目名称，与go.mod中module保持一致
 	Upload *upload            `yaml:"upload"`
 	Water  *Water             `yaml:"water"`
-	App    map[string]appInfo `yaml:"app"`
 }
 
 var appConf *Conf

@@ -12,6 +12,7 @@ import (
 	"errors"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"strconv"
 	"strings"
 )
 
@@ -31,18 +32,25 @@ func Roles() *rolesService {
 	return roles
 }
 
+// GetIdPath 获取父级ID的ID路径
+func (ser *rolesService) GetIdPath(pid uint) string {
+	var pidIdPath string
+	Db.Table(NS.TableName("roles")).Select("id_path").Where("id = ?", pid).Find(&pidIdPath)
+	if pid > 0 {
+		pidIdPath += "," + strconv.Itoa(int(pid))
+	}
+	return pidIdPath
+}
+
 // Create 创建单条或多条数据, 成功返回影响行数
 func (ser *rolesService) Create(data *model.Roles) (int64, error) {
-	//getTreeIdPath  计算出 id_path 值
-
+	data.IdPath = ser.GetIdPath(data.Pid)
 	res := Db.Create(data)
 	return res.RowsAffected, res.Error
 }
 
 // Update 更新数据, 成功返回影响行数
 func (ser *rolesService) Update(data *model.Roles) (int64, error) {
-	//getTreeIdPath  计算出 id_path 值
-
 	var oldRoleName string
 	Db.Table(NS.TableName("roles")).Select("role_name").
 		Where("id = ?", data.Id).Find(&oldRoleName)
@@ -51,6 +59,7 @@ func (ser *rolesService) Update(data *model.Roles) (int64, error) {
 			return 0, err
 		}
 	}
+	data.IdPath = ser.GetIdPath(data.Pid)
 	res := Db.Updates(data)
 	return res.RowsAffected, res.Error
 }

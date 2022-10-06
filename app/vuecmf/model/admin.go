@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"gorm.io/gorm"
+	"time"
+)
 
 // Admin 管理员 模型结构
 type Admin struct {
@@ -23,4 +27,19 @@ type Admin struct {
 // DataAdminForm 提交的表单数据
 type DataAdminForm struct {
     Data *Admin `json:"data" form:"data"`
+}
+
+//BeforeSave 数据更新前处理
+func (m *Admin) BeforeSave(tx *gorm.DB) error {
+	var err error
+	if m.Password != "" {
+		m.Password, err = helper.PasswordHash(m.Password)
+	}
+	return err
+}
+
+//AfterFind 查询完数据后
+func (m *Admin) AfterFind(tx *gorm.DB) error {
+	m.Password = ""
+	return nil
 }

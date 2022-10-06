@@ -341,7 +341,7 @@ func (im *img) staticFontWater(imgFile *os.File, newImage, status string, typefa
 //添加文字水印函数
 func (im *img) common(rgbImg *image.NRGBA, typeface []app.FontInfo) (*image.NRGBA, error) {
 	//拷贝一个字体文件到运行目录
-	fontBytes, err := os.ReadFile(app.AppConfig().Water.WaterFont)
+	fontBytes, err := os.ReadFile(app.Config().Water.WaterFont)
 	if err != nil {
 		return nil, errors.New("字体文件打开失败！" + err.Error())
 	}

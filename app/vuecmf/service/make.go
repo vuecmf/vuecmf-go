@@ -167,6 +167,8 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 		} else {
 			//字段默认值
 			switch {
+			case value.IsAutoIncrement != 10 && (value.Type == "varchar" || value.Type == "char" || value.Type == "text" || value.Type == "mediumtext" || value.Type == "longtext"):
+				defaultVal = "default:'" + value.DefaultValue + "';"
 			case value.IsAutoIncrement != 10 && value.DefaultValue != "":
 				defaultVal = "default:" + value.DefaultValue + ";"
 			case value.IsAutoIncrement != 10 && value.DefaultValue == "":

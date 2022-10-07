@@ -45,10 +45,6 @@ func (ctrl *Menu) Nav(c *gin.Context) {
 	dataUsernameForm := &model.DataUsernameForm{}
 	common(c, dataUsernameForm, func() (interface{}, error) {
 		isSuper := app.Request(c).GetCtxVal("is_super")
-		return service.Menu().Nav(
-			dataUsernameForm.Data.Username,
-			isSuper,
-			dataUsernameForm.Data.AppName,
-		)
+		return service.Menu().Nav(dataUsernameForm.Data.Username, isSuper)
 	})
 }

@@ -15,3 +15,19 @@ type AppModel struct {
 type DataAppModelForm struct {
     Data *AppModel `json:"data" form:"data"`
 }
+
+type modelListForm struct {
+	AppId uint `json:"app_id" form:"app_id"`
+}
+
+//DataModelListForm 获取模型列表的表单
+type DataModelListForm struct {
+	Data *modelListForm `json:"data" form:"data"`
+}
+
+//ModelList 模型列表
+type ModelList struct {
+	ModelId uint `json:"model_id"`
+	TableName string `json:"table_name"`
+	Label string `json:"label"`
+}

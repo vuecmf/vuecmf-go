@@ -34,7 +34,7 @@ func init() {
 func (ser *ModelAction) GetApiMap(c *gin.Context) {
 	dataApiMapForm := &model.DataApiMapForm{}
 	common(c, dataApiMapForm, func() (interface{}, error) {
-		apiPath := service.ModelAction().GetApiMap(dataApiMapForm.Data.TableName, dataApiMapForm.Data.ActionType)
+		apiPath := service.ModelAction().GetApiMap(dataApiMapForm.Data.TableName, dataApiMapForm.Data.ActionType, dataApiMapForm.Data.AppId)
 		return apiPath, nil
 	})
 }

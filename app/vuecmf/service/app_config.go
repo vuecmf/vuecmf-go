@@ -23,3 +23,12 @@ func (m *appConfigService) GetAppList() []string {
 		Where("status = 10").Find(&appList)
 	return appList
 }
+
+//GetAuthAppList 获取需要授权的应用列表
+func (m *appConfigService) GetAuthAppList() []string {
+	var appList []string
+	Db.Table(NS.TableName("app_config")).Select("app_name").
+		Where("auth_enable = 10").
+		Where("status = 10").Find(&appList)
+	return appList
+}

@@ -7,9 +7,10 @@ type Menu struct {
 	Icon    string `json:"icon" form:"icon"  gorm:"column:icon;size:32;not null;default:'';comment:菜单图标"`
 	Pid     uint   `json:"pid" form:"pid"  gorm:"column:pid;size:32;not null;default:0;comment:父级ID"`
 	ModelId uint   `json:"model_id" form:"model_id"  gorm:"column:model_id;size:32;not null;default:0;comment:模型ID"`
-	Type    uint16 `json:"type" form:"type"  gorm:"column:type;size:8;not null;default:20;comment:类型：10=内置，20=扩展"`
+	AppId   uint   `json:"app_id" form:"app_id"  gorm:"column:app_id;size:32;not null;default:0;comment:应用ID"`
+	Type    uint   `json:"type" form:"type"  gorm:"column:type;size:8;not null;default:20;comment:类型：10=内置，20=扩展"`
 	SortNum uint   `json:"sort_num" form:"sort_num"  gorm:"column:sort_num;size:32;not null;default:0;comment:菜单的排列顺序(小在前)"`
-	Status  uint16 `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
+	Status  uint   `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
 
 	Children *MenuTree `json:"children" gorm:"-"`
 }
@@ -66,11 +67,13 @@ type NavMenu struct {
 	Pid      uint     `json:"pid"`
 	Icon     string   `json:"icon"`
 	ModelId  uint     `json:"model_id"`
+	AppId    uint     `json:"app_id"`
 	Mid      string   `json:"mid"`
 	PathName []string `json:"path_name"`
 	IdPath   []string `json:"id_path"`
 
 	TableName         string `json:"table_name"`
+	AppName           string `json:"app_name"`
 	SearchFieldId     string `json:"search_field_id"`
 	IsTree            uint   `json:"is_tree"`
 	DefaultActionType string `json:"default_action_type"`

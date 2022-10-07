@@ -50,19 +50,26 @@ func (ser *menuService) List(params *helper.DataListParams) (interface{}, error)
 }
 
 // Nav 获取用户的后台导航菜单
-func (ser *menuService) Nav(username string, isSuper interface{}, appName string) (interface{}, error) {
-	if appName == "" {
-		appName = "vuecmf"
+func (ser *menuService) Nav(username string, isSuper interface{}) (interface{}, error) {
+	var err error
+	//先取不需要授权的应用下的所有动作ID
+	apiIdList := ModelAction().GetNotAuthActionIds()
+
+	//再取出需要授权的应用下有权限的动作ID
+	appList := AppConfig().GetAuthAppList()
+	for _, appName := range appList {
+		idList, err := Auth().GetPermissions(username, isSuper, appName)
+		if err != nil {
+			break
+		}
+
+		for _, val := range idList {
+			apiIdList = append(apiIdList, val...)
+		}
 	}
 
-	idList, err := Auth().GetPermissions(username, isSuper, appName)
 	if err != nil {
 		return nil, err
-	}
-
-	var apiIdList []string
-	for _, val := range idList {
-		apiIdList = append(apiIdList, val...)
 	}
 
 	var res = make(map[string]interface{})
@@ -80,9 +87,10 @@ func (ser *menuService) Nav(username string, isSuper interface{}, appName string
 
 func (ser *menuService) getNavMenu(dataList interface{}, modelIdList []string, apiIdList []string) {
 	Db.Table(NS.TableName(ser.TableName)+" vm").
-		Select("concat('m',vm.id) mid, vm.id, vm.pid, vm.title, vm.icon, vm.model_id, vmc.table_name, vmc.component_tpl, vmc.search_field_id, vmc.is_tree, vma.action_type default_action_type").
+		Select("concat('m',vm.id) mid, vm.id, vm.pid, vm.title, vm.icon, vm.model_id, vmc.table_name, vmc.component_tpl, vmc.search_field_id, vmc.is_tree, vma.action_type default_action_type, vm.app_id, AC.app_name").
 		Joins("left join "+NS.TableName("model_config")+" vmc on vmc.id = vm.model_id and vmc.status = 10").
 		Joins("left join "+NS.TableName("model_action")+" vma on vmc.default_action_id = vma.id and vma.status = 10 and vma.id in ?", apiIdList).
+		Joins("left join " + NS.TableName("app_config") + " AC on vm.app_id = AC.id").
 		Where("vm.status = 10").
 		Where("vm.model_id in ?", modelIdList).
 		Order("vm.sort_num").Find(dataList)

@@ -134,17 +134,28 @@ func (ser *modelActionService) GetModelIdListById(apiIdList []string) []string {
 }
 
 // GetApiMap 获取API映射的路径
-func (ser *modelActionService) GetApiMap(tableName string, actionType string) string {
+func (ser *modelActionService) GetApiMap(tableName string, actionType string, appId uint) string {
 	var apiPath string
 	Db.Table(NS.TableName("model_action")+" ma").Select("api_path").
 		Joins("inner join "+NS.TableName("model_config")+" mc on ma.model_id = mc.id").
 		Where("mc.table_name = ?", tableName).
 		Where("ma.action_type = ?", actionType).
+		Where("ma.app_id = ?", appId).
 		Where("ma.status = 10").
 		Where("mc.status = 10").
 		Find(&apiPath)
 
 	return apiPath
+}
+
+// GetNotAuthActionIds 获取无需授权应用下的所有动作ID
+func (ser *modelActionService) GetNotAuthActionIds() []string {
+	var res []string
+	Db.Table(NS.TableName("model_action") + " MA").Select("MA.id").
+		Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
+		Where("AC.auth_enable = 20").
+		Where("MA.status = 10").Find(&res)
+	return res
 }
 
 // GetActionList 获取所有模型的动作列表
@@ -206,9 +217,11 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 		Where("status = 10").Find(&modelListRes)
 	for _, mc := range modelListRes {
 		var maList []row
-		Db.Table(NS.TableName("model_action")).Select("id, label").
-			Where("model_id = ?", mc.Id).
-			Where("status = 10").Find(&maList)
+		Db.Table(NS.TableName("model_action") + " MA").Select("MA.id, MA.label").
+			Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
+			Where("AC.app_name = ?", appName).
+			Where("MA.model_id = ?", mc.Id).
+			Where("MA.status = 10").Find(&maList)
 		res[mc.Label] = map[uint]string{}
 		for _, ac := range maList {
 			res[mc.Label][ac.Id] = ac.Label

@@ -124,3 +124,15 @@ func (s *appModelService) GetAppListByModelId(modelId uint) []string {
 		Find(&appList)
 	return appList
 }
+
+// GetModelList 获取应用下的模型列表
+func (s *appModelService) GetModelList(appId uint) (interface{}, error) {
+	var res []*model.ModelList
+	Db.Table(NS.TableName("app_model")+" AM").Select("AM.model_id, M.table_name, M.label").
+		Joins("left join "+NS.TableName("model_config")+" M on AM.model_id = M.id").
+		Where("AM.app_id = ?", appId).
+		Where("AM.status = 10").
+		Where("M.status = 10").
+		Find(&res)
+	return res, nil
+}

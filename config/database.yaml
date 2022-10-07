@@ -1,5 +1,6 @@
 connect:
-  default:
+  #开发环境
+  dev:
     type: mysql       #数据库类型
     host: 127.0.0.1   #数据库地址
     port: 3306        #端口
@@ -11,10 +12,11 @@ connect:
     max_idle_conn_nums: 10  #设置空闲连接池中连接的最大数量
     max_open_conn_nums: 100 #设置打开数据库连接的最大数量
     conn_max_lifetime: 2  #设置了连接可复用的最大时间，单位：分钟
-    skip_default_transaction: false #是否禁用默认事务, 若禁用默认事务 只在需要时使用事务 性能会提升30%+
+    skip_default_transaction: true #是否禁用默认事务, 若禁用默认事务 只在需要时使用事务 性能会提升30%+
     debug: true   #是否开启调试模式，开启后，控制台会打印所执行的SQL语句
 
-  demo:
+  #测试环境
+  test:
     type: mysql
     host: 127.0.0.1
     port: 3306
@@ -29,7 +31,8 @@ connect:
     skip_default_transaction: true
     debug: true
 
-  vuecmf:
+  #生产环境
+  prod:
     type: mysql
     host: 127.0.0.1
     port: 3306
@@ -42,4 +45,4 @@ connect:
     max_open_conn_nums: 100
     conn_max_lifetime: 60
     skip_default_transaction: true
-    debug: true
+    debug: false

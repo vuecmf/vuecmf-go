@@ -139,7 +139,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 	var formList []*formRow
 	ruleMaps := getRuleMaps()
 
-	dbType := app.DbConf().Connect["default"].Type
+	dbType := app.DbConf().Connect[Conf.Env].Type
 
 	for _, value := range result {
 		fr := &formRow{}

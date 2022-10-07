@@ -49,9 +49,10 @@ type Water struct {
 
 // Conf 应用配置
 type Conf struct {
-	Module string             `yaml:"module"` //项目名称，与go.mod中module保持一致
-	Upload *upload            `yaml:"upload"`
-	Water  *Water             `yaml:"water"`
+	Module string  `yaml:"module"` //项目名称，与go.mod中module保持一致
+	Env    string  `yaml:"env"`    //当前运行环境， dev 开发环境，test 测试环境，prod 生产环境
+	Upload *upload `yaml:"upload"` //上传配置
+	Water  *Water  `yaml:"water"`  //水印配置
 }
 
 var appConf *Conf

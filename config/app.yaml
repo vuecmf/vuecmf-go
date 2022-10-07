@@ -1,6 +1,9 @@
 #项目名称
 module: "github.com/vuecmf/vuecmf-go" #项目名称，与go.mod中module保持一致
 
+#当前运行环境
+env: "dev"  #当前运行环境， dev 开发环境，test 测试环境，prod 生产环境
+
 #上传配置
 upload:
   allow_file_size: 5        #允许上传的最大文件，单位M

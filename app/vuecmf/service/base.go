@@ -17,19 +17,20 @@ import (
 	"strings"
 )
 
-var Db *gorm.DB
-var NS schema.Namer
+var Db *gorm.DB     //数据库连接实例
+var NS schema.Namer //数据库名称服务
+var Conf *app.Conf  //系统配置实例
+
 var CacheUser = "vuecmf_user"
-var Conf *app.Conf
 
 type BaseService struct {
 }
 
 func init() {
-	Db = app.Db("default")
+	Conf = app.Config()
+	Db = app.Db(strings.ToLower(Conf.Env))
 	if Db != nil {
 		NS = Db.NamingStrategy
-		Conf = app.Config()
 	}
 }
 

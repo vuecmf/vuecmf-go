@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"runtime"
@@ -24,17 +23,15 @@ import (
 // adminService admin服务结构
 type adminService struct {
 	*BaseService
-	TableName string
 	AppName   string
 }
 
 var admin *adminService
 
 // Admin 获取admin服务实例
-func Admin(tableName string, appName string) *adminService {
+func Admin( appName string) *adminService {
 	if admin == nil {
 		admin = &adminService{
-			TableName: NS.TableName(tableName),
 			AppName:   appName,
 		}
 	}
@@ -47,6 +44,33 @@ type LoginRes struct {
 	Server map[string]string `json:"server"`
 }
 
+//IsLogin 验证是否登录
+func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, error) {
+	if token == ""{
+		return nil, errors.New("您还没有登录，请先登录！")
+	}
+
+	var adm *model.Admin
+	Db.Table(NS.TableName("admin")).Select("username, password, is_super, status").
+		Where("token = ?", token).Find(&adm)
+	if adm == nil {
+		return nil, errors.New("您还没有登录或登录已失效，请重新登录！")
+	}
+	if adm.Status == 20 {
+		return nil, errors.New("登录账号已禁用！")
+	}
+
+	codeByte := md5.Sum([]byte(adm.Username + adm.Password + loginIp))
+	newToken := fmt.Sprintf("%x", codeByte)
+
+	if token != newToken {
+		return nil, errors.New("登录已失效，请重新登录！")
+	}
+
+	return adm, nil
+}
+
+
 // Login 用户登录
 func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) {
 	loginTimesCacheKey := "vuecmf:login_err_times:" + loginForm.LoginName
@@ -58,7 +82,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 
 	var adminInfo model.Admin
 
-	Db.Table(ser.TableName).
+	Db.Table(NS.TableName("admin")).
 		Where("username = ? or email = ? or mobile = ?", loginForm.LoginName, loginForm.LoginName, loginForm.LoginName).
 		Where("status = 10").
 		Find(&adminInfo)
@@ -72,7 +96,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 	codeByte := md5.Sum([]byte(adminInfo.Username + adminInfo.Password + loginForm.LastLoginIp))
 	token := fmt.Sprintf("%x", codeByte)
 
-	res := Db.Table(ser.TableName).Where("id = ?", adminInfo.Id).
+	res := Db.Table(NS.TableName("admin")).Where("id = ?", adminInfo.Id).
 		Updates(model.Admin{
 			LastLoginTime: loginForm.LastLoginTime,
 			LastLoginIp:   loginForm.LastLoginIp,
@@ -111,7 +135,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 	result.Server["os"] = runtime.GOOS
 	result.Server["software"] = "Gin"
 	result.Server["mysql"] = mysqlVersion
-	result.Server["upload_max_size"] = strconv.FormatInt(route.Engine.MaxMultipartMemory/1024/1024, 10) + "M"
+	result.Server["upload_max_size"] = strconv.Itoa(Conf.Upload.AllowFileSize) + "M"
 
 	return result, nil
 }
@@ -122,7 +146,7 @@ func (ser *adminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
 		return false, errors.New("token不能为空")
 	}
 
-	Db.Table(ser.TableName).Where("token = ?", logoutForm.Token).
+	Db.Table(NS.TableName("admin")).Where("token = ?", logoutForm.Token).
 		Where("status = 10").Update("token", "")
 
 	//清除系统缓存

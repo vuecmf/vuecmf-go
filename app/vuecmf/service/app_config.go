@@ -1,5 +1,7 @@
 package service
 
+import "github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+
 // appConfigService appConfig服务结构
 type appConfigService struct {
 	*BaseService
@@ -31,4 +33,12 @@ func (m *appConfigService) GetAuthAppList() []string {
 		Where("auth_enable = 10").
 		Where("status = 10").Find(&appList)
 	return appList
+}
+
+//GetFullAppList 获取所有可用的应用列表
+func (m *appConfigService) GetFullAppList() []*model.AppConfig {
+	var res []*model.AppConfig
+	Db.Table(NS.TableName("app_config")).Select("app_name, login_enable, auth_enable").
+		Where("status = 10").Find(&res)
+	return res
 }

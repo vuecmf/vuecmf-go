@@ -28,6 +28,7 @@ func init() {
 	admin.ListData = &[]model.Admin{}
 	admin.SaveForm = &model.DataAdminForm{}
 	admin.FilterFields = []string{"username", "email", "mobile", "token"}
+
 	admin.AppName = "vuecmf"
 
 	route.Register(admin, "POST", admin.AppName)
@@ -39,7 +40,7 @@ func (ctrl *Admin) Login(c *gin.Context) {
 	common(c, dataLoginForm, func() (interface{}, error) {
 		dataLoginForm.Data.LastLoginIp = c.ClientIP()
 		dataLoginForm.Data.LastLoginTime = time.Now()
-		return service.Admin(ctrl.TableName, ctrl.AppName).Login(dataLoginForm.Data)
+		return service.Admin( ctrl.AppName).Login(dataLoginForm.Data)
 	})
 }
 
@@ -47,7 +48,7 @@ func (ctrl *Admin) Login(c *gin.Context) {
 func (ctrl *Admin) Logout(c *gin.Context) {
 	dataLogoutForm := &model.DataLogoutForm{}
 	common(c, dataLogoutForm, func() (interface{}, error) {
-		return service.Admin(ctrl.TableName, ctrl.AppName).Logout(dataLogoutForm.Data)
+		return service.Admin(ctrl.AppName).Logout(dataLogoutForm.Data)
 	})
 }
 

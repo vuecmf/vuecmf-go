@@ -249,7 +249,9 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 		var actionList []action
 
 		Db.Table(NS.TableName("model_action") + " MA").Select("MA.id, MC.label").
-			Joins("left join " + NS.TableName("model_config") + " MC ON MA.model_id = MC.id").
+			Joins("left join " + NS.TableName("model_config") + " MC on MA.model_id = MC.id").
+			Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
+			Where("AC.app_name = ?", appName).
 			Where("MA.status = 10").
 			Where("MC.status = 10").
 			Find(&actionList)
@@ -276,7 +278,9 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 			if n%100 == 0 {
 				var actionList []action
 				Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
-					Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
+					Joins("left join " + NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
+					Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
+					Where("AC.app_name = ?", appName).
 					Where("MA.api_path in ?", pathList).
 					Where("MA.status = 10").
 					Where("MC.status = 10").
@@ -293,6 +297,8 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 			var actionList []action
 			Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
 				Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
+				Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
+				Where("AC.app_name = ?", appName).
 				Where("MA.api_path in ?", pathList).
 				Where("MA.status = 10").
 				Where("MC.status = 10").

@@ -2,6 +2,7 @@ package route
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/middleware"
 	"net/http"
@@ -46,7 +47,7 @@ var Engine *gin.Engine
 func InitRoute(eng *gin.Engine) {
 	Engine = eng
 	//表单上传文件最大5M
-	Engine.MaxMultipartMemory = 5 << 20
+	Engine.MaxMultipartMemory = int64(app.Config().Upload.AllowFileSize) << 20
 
 	//上传目录 静态文件服务
 	Engine.StaticFS("/uploads", http.Dir("uploads"))

@@ -17,7 +17,7 @@ type Menu struct {
 
 // DataMenuForm 提交的表单数据
 type DataMenuForm struct {
-	Data *Menu `json:"data" form:"data"`
+	Data *Menu `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 var menuModel *Menu

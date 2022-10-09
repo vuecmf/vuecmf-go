@@ -72,7 +72,7 @@ type {{.model_name}} struct {
 
 // Data{{.model_name}}Form 提交的表单数据
 type Data{{.model_name}}Form struct {
-    Data *{{.model_name}} |json:"data" form:"data"|
+    Data *{{.model_name}} |json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"|
 }`
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	if modelConf.IsTree == true {
@@ -88,7 +88,7 @@ type {{.model_name}} struct {
 
 // Data{{.model_name}}Form 提交的表单数据
 type Data{{.model_name}}Form struct {
-    Data *{{.model_name}} |json:"data" form:"data"|
+    Data *{{.model_name}} |json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"|
 }
 
 

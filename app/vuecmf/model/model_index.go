@@ -20,5 +20,5 @@ type ModelIndexForm struct {
 
 // DataModelIndexForm 提交的表单数据
 type DataModelIndexForm struct {
-	Data *ModelIndexForm `json:"data" form:"data"`
+	Data *ModelIndexForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }

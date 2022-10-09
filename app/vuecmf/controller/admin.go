@@ -40,7 +40,7 @@ func (ctrl *Admin) Login(c *gin.Context) {
 	common(c, dataLoginForm, func() (interface{}, error) {
 		dataLoginForm.Data.LastLoginIp = c.ClientIP()
 		dataLoginForm.Data.LastLoginTime = time.Now()
-		return service.Admin( ctrl.AppName).Login(dataLoginForm.Data)
+		return service.Admin(ctrl.AppName).Login(dataLoginForm.Data)
 	})
 }
 

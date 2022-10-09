@@ -8,5 +8,5 @@ type Upload struct {
 
 // DataUploadForm 提交的表单数据
 type DataUploadForm struct {
-	Data *Upload `json:"data" form:"data"`
+	Data *Upload `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }

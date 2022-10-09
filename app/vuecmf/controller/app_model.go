@@ -8,18 +8,18 @@ import (
 )
 
 type AppModel struct {
-    Base
+	Base
 }
 
 func init() {
 	appModel := &AppModel{}
-    appModel.TableName = "app_model"
-    appModel.Model = &model.AppModel{}
-    appModel.ListData = &[]model.AppModel{}
-    appModel.SaveForm = &model.DataAppModelForm{}
-    appModel.FilterFields = []string{""}
+	appModel.TableName = "app_model"
+	appModel.Model = &model.AppModel{}
+	appModel.ListData = &[]model.AppModel{}
+	appModel.SaveForm = &model.DataAppModelForm{}
+	appModel.FilterFields = []string{""}
 
-    route.Register(appModel, "POST", "vuecmf")
+	route.Register(appModel, "POST", "vuecmf")
 }
 
 // GetModelList 获取应用下所有模型

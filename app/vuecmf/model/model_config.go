@@ -30,5 +30,5 @@ type ModelConfigForm struct {
 
 // DataModelConfigForm 提交的表单数据
 type DataModelConfigForm struct {
-	Data *ModelConfigForm `json:"data" form:"data"`
+	Data *ModelConfigForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }

@@ -7,7 +7,7 @@ import (
 
 // DataBatchForm 批量导入数据 提交的表单数据
 type DataBatchForm struct {
-	Data string `json:"data" form:"data"`
+	Data string `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 type IdForm struct {
@@ -16,7 +16,7 @@ type IdForm struct {
 
 // DataIdForm 根据ID获取详情
 type DataIdForm struct {
-	Data *IdForm `json:"data" form:"data"`
+	Data *IdForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 type IdListForm struct {
@@ -25,7 +25,7 @@ type IdListForm struct {
 
 //DataIdListForm 根据ID批量删除
 type DataIdListForm struct {
-	Data *IdListForm `json:"data" form:"data"`
+	Data *IdListForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 type DropdownForm struct {
@@ -36,7 +36,7 @@ type DropdownForm struct {
 
 // DataDropdownForm 获取Dropdown数据所传form
 type DataDropdownForm struct {
-	Data *DropdownForm `json:"data" form:"data"`
+	Data *DropdownForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 // GetError 获取form中错误提示信息

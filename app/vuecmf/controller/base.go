@@ -48,7 +48,14 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 	err := app.Request(c).Input("post", formParams)
 
 	if err != nil {
-		app.Response(c).SendFailure("请求失败："+model.GetError(err, formParams), nil)
+		var reason string
+		if err.Error() == "EOF" {
+			reason = "参数为空"
+		} else {
+			reason = model.GetError(err, formParams)
+		}
+
+		app.Response(c).SendFailure("请求失败："+reason, nil)
 		return
 	}
 

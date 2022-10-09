@@ -8,7 +8,7 @@ type addRoleForm struct {
 
 // DataAddRoleForm 添加角色表单
 type DataAddRoleForm struct {
-	Data *addRoleForm `json:"data" form:"data"`
+	Data *addRoleForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 type delRoleForm struct {
@@ -19,7 +19,7 @@ type delRoleForm struct {
 
 // DataDelRoleForm 删除角色表单
 type DataDelRoleForm struct {
-	Data *delRoleForm `json:"data" form:"data"`
+	Data *delRoleForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 type permissionForm struct {
@@ -29,7 +29,7 @@ type permissionForm struct {
 
 // DataPermissionForm 添加/删除角色的权限表单
 type DataPermissionForm struct {
-	Data *permissionForm `json:"data" form:"data"`
+	Data *permissionForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 type roleForm struct {
@@ -39,7 +39,7 @@ type roleForm struct {
 
 // DataRoleForm 角色权限表单
 type DataRoleForm struct {
-	Data *roleForm `json:"data" form:"data"`
+	Data *roleForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 type usernameForm struct {
@@ -49,7 +49,7 @@ type usernameForm struct {
 
 // DataUsernameForm 用户权限表单
 type DataUsernameForm struct {
-	Data *usernameForm `json:"data" form:"data"`
+	Data *usernameForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 type userPermissionForm struct {
@@ -59,5 +59,5 @@ type userPermissionForm struct {
 
 // DataUserPermissionForm 添加用户的权限表单
 type DataUserPermissionForm struct {
-	Data *userPermissionForm `json:"data" form:"data"`
+	Data *userPermissionForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }

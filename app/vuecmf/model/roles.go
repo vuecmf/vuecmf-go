@@ -15,7 +15,7 @@ type Roles struct {
 
 // DataRolesForm 提交的表单数据
 type DataRolesForm struct {
-	Data *Roles `json:"data" form:"data"`
+	Data *Roles `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
 var rolesModel *Roles
@@ -66,5 +66,5 @@ type roleUsersForm struct {
 
 // DataRoleUsersForm 角色的用户管理表单
 type DataRoleUsersForm struct {
-	Data *roleUsersForm `json:"data" form:"data"`
+	Data *roleUsersForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }

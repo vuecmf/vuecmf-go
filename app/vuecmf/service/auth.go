@@ -12,7 +12,6 @@ import (
 	"errors"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"gorm.io/gorm"
 	"log"
@@ -27,8 +26,7 @@ type auth struct {
 // Auth 获取授权组件实例
 func Auth() *auth {
 	var enf *casbin.Enforcer
-	db := app.Db("default")
-	a, err := gormadapter.NewAdapterByDBWithCustomTable(db, &model.Rules{}, NS.TableName("rules"))
+	a, err := gormadapter.NewAdapterByDBWithCustomTable(Db, &model.Rules{}, NS.TableName("rules"))
 	if err != nil {
 		log.Fatalln("初始化权限异常：" + err.Error())
 		return nil
@@ -248,9 +246,9 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 		//超级管理员拥有所有权限
 		var actionList []action
 
-		Db.Table(NS.TableName("model_action") + " MA").Select("MA.id, MC.label").
-			Joins("left join " + NS.TableName("model_config") + " MC on MA.model_id = MC.id").
-			Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
+		Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
+			Joins("left join "+NS.TableName("model_config")+" MC on MA.model_id = MC.id").
+			Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
 			Where("AC.app_name = ?", appName).
 			Where("MA.status = 10").
 			Where("MC.status = 10").
@@ -278,8 +276,8 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 			if n%100 == 0 {
 				var actionList []action
 				Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
-					Joins("left join " + NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
-					Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
+					Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
+					Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
 					Where("AC.app_name = ?", appName).
 					Where("MA.api_path in ?", pathList).
 					Where("MA.status = 10").
@@ -297,7 +295,7 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 			var actionList []action
 			Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
 				Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
-				Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
+				Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
 				Where("AC.app_name = ?", appName).
 				Where("MA.api_path in ?", pathList).
 				Where("MA.status = 10").

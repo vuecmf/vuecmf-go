@@ -39,7 +39,7 @@ func (ctrl *Admin) Login(c *gin.Context) {
 	dataLoginForm := &model.DataLoginForm{}
 	common(c, dataLoginForm, func() (interface{}, error) {
 		dataLoginForm.Data.LastLoginIp = c.ClientIP()
-		dataLoginForm.Data.LastLoginTime = time.Now()
+		dataLoginForm.Data.LastLoginTime = model.JSONTime{Time: time.Now()}
 		return service.Admin(ctrl.AppName).Login(dataLoginForm.Data)
 	})
 }

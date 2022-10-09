@@ -252,16 +252,14 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 	//模型字段信息处理
 	for _, row := range formList {
 		fieldType := "string"
-		timeFormat := ""
 
 		switch row.Type {
-		case "timestamp", "datetime", "date":
+		case "timestamp", "datetime":
 			hasTime = true
-			fieldType = "time.Time"
-			timeFormat = "time_format:\"2006-01-02 15:04:05\" "
-			if row.Type == "date" {
-				timeFormat = "time_format:\"2006-01-02\" "
-			}
+			fieldType = "model.JSONTime"
+		case "date":
+			hasTime = true
+			fieldType = "model.JSONDate"
 		case "int", "bigint":
 			fieldType = "int"
 			if row.IsSigned == "20" {
@@ -284,7 +282,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 		}
 
 		modelContent += helper.UnderToCamel(row.FieldName) + " " + fieldType + " `json:\"" + row.FieldName +
-			"\" form:\"" + row.FieldName + "\" " + timeFormat
+			"\" form:\"" + row.FieldName + "\" "
 		if len(row.Rules) > 0 {
 			modelContent += "binding:\"" + strings.Join(row.Rules, ",") + "\" " + strings.Join(row.ErrTips, " ")
 		}
@@ -306,7 +304,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 	txt = strings.Replace(txt, "{{.model_value}}", modelValue, -1)
 
 	if hasTime == true {
-		txt = strings.Replace(txt, "{{.import}}", "import \"time\"", -1)
+		txt = strings.Replace(txt, "{{.import}}", "import \"github.com/vuecmf/vuecmf-go/app/vuecmf/model\"", -1)
 	} else {
 		txt = strings.Replace(txt, "{{.import}}", "", -1)
 	}

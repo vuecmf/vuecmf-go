@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/vuecmf/vuecmf-go/app"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"runtime"
@@ -23,16 +24,16 @@ import (
 // adminService admin服务结构
 type adminService struct {
 	*BaseService
-	AppName   string
+	AppName string
 }
 
 var admin *adminService
 
 // Admin 获取admin服务实例
-func Admin( appName string) *adminService {
+func Admin(appName string) *adminService {
 	if admin == nil {
 		admin = &adminService{
-			AppName:   appName,
+			AppName: appName,
 		}
 	}
 	return admin
@@ -46,7 +47,7 @@ type LoginRes struct {
 
 //IsLogin 验证是否登录
 func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, error) {
-	if token == ""{
+	if token == "" {
 		return nil, errors.New("您还没有登录，请先登录！")
 	}
 
@@ -70,7 +71,6 @@ func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, er
 	return adm, nil
 }
 
-
 // Login 用户登录
 func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) {
 	loginTimesCacheKey := "vuecmf:login_err_times:" + loginForm.LoginName
@@ -93,15 +93,15 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 		return nil, errors.New("错误的登录名称或密码！请检查是否输入有误。")
 	}
 
-	codeByte := md5.Sum([]byte(adminInfo.Username + adminInfo.Password + loginForm.LastLoginIp))
+	codeByte := md5.Sum([]byte(adminInfo.Username + adminInfo.Password + loginForm.LastLoginIp + loginForm.LastLoginTime.Format(model.DateFormat)))
 	token := fmt.Sprintf("%x", codeByte)
 
-	res := Db.Table(NS.TableName("admin")).Where("id = ?", adminInfo.Id).
-		Updates(model.Admin{
-			LastLoginTime: loginForm.LastLoginTime,
-			LastLoginIp:   loginForm.LastLoginIp,
-			Token:         token,
-		})
+	res := Db.Updates(&model.Admin{
+		Id:            adminInfo.Id,
+		LastLoginTime: loginForm.LastLoginTime,
+		LastLoginIp:   loginForm.LastLoginIp,
+		Token:         token,
+	})
 
 	if res.Error != nil {
 		return nil, errors.New("登录出现异常！请稍后重试。" + res.Error.Error())
@@ -131,9 +131,9 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 	result.User["last_login_time"] = loginForm.LastLoginTime.String()
 	result.User["last_login_ip"] = loginForm.LastLoginIp
 	result.Server = map[string]string{}
-	result.Server["version"] = "2.0.0"
+	result.Server["version"] = vuecmf.Version
 	result.Server["os"] = runtime.GOOS
-	result.Server["software"] = "Gin"
+	result.Server["software"] = "VueCMF"
 	result.Server["mysql"] = mysqlVersion
 	result.Server["upload_max_size"] = strconv.Itoa(Conf.Upload.AllowFileSize) + "M"
 

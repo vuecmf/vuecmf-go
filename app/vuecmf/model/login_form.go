@@ -1,12 +1,10 @@
 package model
 
-import "time"
-
 // LoginForm 登录表单
 type LoginForm struct {
-	LoginName     string    `json:"login_name" form:"login_name" binding:"required" required_tips:"登录名不能为空"`
-	Password      string    `json:"password" form:"password" binding:"required" required_tips:"密码不能为空"`
-	LastLoginTime time.Time `time_format:"2006-01-02 15:04:05"`
+	LoginName     string `json:"login_name" form:"login_name" binding:"required" required_tips:"登录名不能为空"`
+	Password      string `json:"password" form:"password" binding:"required" required_tips:"密码不能为空"`
+	LastLoginTime JSONTime
 	LastLoginIp   string
 }
 

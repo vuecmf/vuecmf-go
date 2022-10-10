@@ -10,9 +10,11 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"net/http"
 	"strings"
 )
 
@@ -27,14 +29,41 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 			middlewares[ai.AppName] = map[string]func(ctx *gin.Context){}
 		}
 
+		fmt.Println("DDD==", ai.CrossDomainEnable)
+
 		//访问权限验证
 		middlewares[ai.AppName]["auth"] = func(ctx *gin.Context) {
+			fmt.Println("eeee==", ai.CrossDomainEnable)
+
 			defer func() {
 				if err := recover(); err != nil {
 					app.Response(ctx).SendFailure("请求失败", err)
 					ctx.Abort()
 				}
 			}()
+
+			ctx.Header("Access-Control-Allow-Origin", "*")
+			ctx.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token, x-token")
+			ctx.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
+			ctx.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+			ctx.Header("Access-Control-Allow-Credentials", "true")
+			if ctx.Request.Method == "OPTIONS" {
+				ctx.AbortWithStatus(http.StatusNoContent)
+			}
+
+
+
+			//跨域请求设置
+			if ai.CrossDomainEnable == 10 {
+				ctx.Header("Access-Control-Allow-Origin", "*")
+				ctx.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token, x-token")
+				ctx.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
+				ctx.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+				ctx.Header("Access-Control-Allow-Credentials", "true")
+				if ctx.Request.Method == "OPTIONS" {
+					ctx.AbortWithStatus(http.StatusNoContent)
+				}
+			}
 
 			path := strings.ToLower(ctx.Request.URL.String())
 			pathArr := strings.Split(path, "/")

@@ -38,7 +38,7 @@ func (m *appConfigService) GetAuthAppList() []string {
 //GetFullAppList 获取所有可用的应用列表
 func (m *appConfigService) GetFullAppList() []*model.AppConfig {
 	var res []*model.AppConfig
-	Db.Table(NS.TableName("app_config")).Select("app_name, login_enable, auth_enable").
+	Db.Table(NS.TableName("app_config")).Select("app_name, login_enable, auth_enable, cross_domain_enable").
 		Where("status = 10").Find(&res)
 	return res
 }

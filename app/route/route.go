@@ -1,6 +1,7 @@
 package route
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
@@ -41,33 +42,30 @@ func Register(ctrl interface{}, method, appName string) {
 	}
 }
 
-var Engine *gin.Engine
-
 // InitRoute 初始化路由列表
 func InitRoute(eng *gin.Engine) {
-	Engine = eng
 	//表单上传文件最大5M
-	Engine.MaxMultipartMemory = int64(app.Config().Upload.AllowFileSize) << 20
+	eng.MaxMultipartMemory = int64(app.Config().Upload.AllowFileSize) << 20
 
 	//上传目录 静态文件服务
-	Engine.StaticFS("/uploads", http.Dir("uploads"))
+	eng.StaticFS("/uploads", http.Dir("uploads"))
 
 	//静态文件目录（css、js、gif、jpg等）
-	Engine.StaticFS("/static", http.Dir("static"))
+	eng.StaticFS("/static", http.Dir("static"))
 
 	//加载模板目录
-	Engine.LoadHTMLGlob("views/**/**/*")
+	eng.LoadHTMLGlob("views/**/**/*")
 
 	//获取所有中间件
 	mw := middleware.GetMiddleWares()
 
 	for groupName, ctrl := range routes {
-		engine := Engine.Group("/" + groupName + "/")
+		eng.Group("/" + groupName + "/")
 
 		//加入中间件
 		if mw[groupName] != nil {
 			for _, handle := range mw[groupName] {
-				engine.Use(handle)
+				eng.Use(handle)
 			}
 		}
 
@@ -90,16 +88,16 @@ func InitRoute(eng *gin.Engine) {
 				}
 
 				if arr[1] == "GET" {
-					engine.GET(url, getHandle(method))
+					eng.GET(url, getHandle(method))
 					if indexUrl != "" {
-						engine.GET(indexUrl, getHandle(method))
-						engine.GET(indexUrl2, getHandle(method))
+						eng.GET(indexUrl, getHandle(method))
+						eng.GET(indexUrl2, getHandle(method))
 					}
 				} else if arr[1] == "POST" {
-					engine.POST(url, getHandle(method))
+					eng.POST(url, getHandle(method))
 					if indexUrl != "" {
-						engine.POST(indexUrl, getHandle(method))
-						engine.POST(indexUrl2, getHandle(method))
+						eng.POST(indexUrl, getHandle(method))
+						eng.POST(indexUrl2, getHandle(method))
 					}
 				}
 			}
@@ -113,5 +111,21 @@ func getHandle(method reflect.Value) gin.HandlerFunc {
 		args := make([]reflect.Value, 1)
 		args[0] = reflect.ValueOf(ctx)
 		method.Call(args)
+	}
+}
+
+func Cors() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		fmt.Println("aaaa=======")
+		method := context.Request.Method
+		context.Header("Access-Control-Allow-Origin", "*")
+		context.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token")
+		context.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		context.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+		context.Header("Access-Control-Allow-Credentials", "true")
+		if method == "OPTIONS" {
+			context.AbortWithStatus(http.StatusNoContent)
+		}
+		context.Next()
 	}
 }

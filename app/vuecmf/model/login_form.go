@@ -2,8 +2,8 @@ package model
 
 // LoginForm 登录表单
 type LoginForm struct {
-	LoginName     string `json:"login_name" form:"login_name" binding:"required" required_tips:"登录名不能为空"`
-	Password      string `json:"password" form:"password" binding:"required" required_tips:"密码不能为空"`
+	LoginName     string `json:"login_name" form:"login_name" binding:"required,min=4,max=32" required_tips:"登录名不能为空" min_tips:"登录名长度为4到32个字符" max_tips:"登录名长度为4到32个字符"`
+	Password      string `json:"password" form:"password" binding:"required,min=4,max=32" required_tips:"密码不能为空" min_tips:"密码长度为4到32个字符" max_tips:"密码长度为4到32个字符"`
 	LastLoginTime JSONTime
 	LastLoginIp   string
 }

@@ -30,7 +30,7 @@ type DataAdminForm struct {
 //BeforeSave 数据更新前处理
 func (m *Admin) BeforeSave(tx *gorm.DB) error {
 	var err error
-	if m.Password != "" {
+	if m.Password != "" && len(m.Password) >=4 && len(m.Password) <= 32 {
 		m.Password, err = helper.PasswordHash(m.Password)
 	}
 	return err

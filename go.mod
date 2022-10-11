@@ -19,6 +19,7 @@ require (
 require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/denisenkom/go-mssqldb v0.12.0 // indirect
+	github.com/gin-contrib/cors v1.4.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/glebarez/go-sqlite v1.16.0 // indirect
 	github.com/glebarez/sqlite v1.4.3 // indirect

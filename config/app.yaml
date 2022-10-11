@@ -4,6 +4,15 @@ module: "github.com/vuecmf/vuecmf-go" #项目名称，与go.mod中module保持�
 #当前运行环境
 env: "dev"  #当前运行环境， dev 开发环境，test 测试环境，prod 生产环境
 
+#服务运行的端口
+server_port: "8080"
+
+#是否允许跨域请求
+cross_domain:
+  enable: true  #是否开启跨域请求
+  allowed_origin: "*"  #允许请求的来源，* 表示允许所有来源； 例如 http://www.vuecmf.com
+
+
 #上传配置
 upload:
   allow_file_size: 5        #允许上传的最大文件，单位M

@@ -135,7 +135,10 @@ func (ser *modelActionService) GetModelIdListById(apiIdList []string) []string {
 
 // GetApiMap 获取API映射的路径
 func (ser *modelActionService) GetApiMap(tableName string, actionType string, appId uint) string {
-	var apiPath string
+	if appId == 0 {
+		appId = 1
+	}
+ 	var apiPath string
 	Db.Table(NS.TableName("model_action")+" ma").Select("api_path").
 		Joins("inner join "+NS.TableName("model_config")+" mc on ma.model_id = mc.id").
 		Where("mc.table_name = ?", tableName).

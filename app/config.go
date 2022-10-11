@@ -47,12 +47,20 @@ type Water struct {
 	Conf      FontInfo `yaml:"conf"`       //水印配置
 }
 
+//跨域配置
+type crossDomain struct {
+	Enable        bool   `yaml:"enable"`         //是否开启跨域请求
+	AllowedOrigin string `yaml:"allowed_origin"` //允许请求的来源， 例如 http://www.vuecmf.com
+}
+
 // Conf 应用配置
 type Conf struct {
-	Module string  `yaml:"module"` //项目名称，与go.mod中module保持一致
-	Env    string  `yaml:"env"`    //当前运行环境， dev 开发环境，test 测试环境，prod 生产环境
-	Upload *upload `yaml:"upload"` //上传配置
-	Water  *Water  `yaml:"water"`  //水印配置
+	Module      string       `yaml:"module"`       //项目名称，与go.mod中module保持一致
+	Env         string       `yaml:"env"`          //当前运行环境， dev 开发环境，test 测试环境，prod 生产环境
+	ServerPort  string       `yaml:"server_port"`  //服务运行的端口
+	CrossDomain *crossDomain `yaml:"cross_domain"` //跨域请求配置
+	Upload      *upload      `yaml:"upload"`       //上传配置
+	Water       *Water       `yaml:"water"`        //水印配置
 }
 
 var appConf *Conf

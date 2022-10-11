@@ -1,6 +1,7 @@
 package route
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 )
 
 //路由映射列表
@@ -43,8 +45,10 @@ func Register(ctrl interface{}, method, appName string) {
 
 // InitRoute 初始化路由列表
 func InitRoute(eng *gin.Engine) {
+	cfg := app.Config()
+
 	//表单上传文件最大5M
-	eng.MaxMultipartMemory = int64(app.Config().Upload.AllowFileSize) << 20
+	eng.MaxMultipartMemory = int64(cfg.Upload.AllowFileSize) << 20
 
 	//上传目录 静态文件服务
 	eng.StaticFS("/uploads", http.Dir("uploads"))
@@ -55,16 +59,33 @@ func InitRoute(eng *gin.Engine) {
 	//加载模板目录
 	eng.LoadHTMLGlob("views/**/**/*")
 
+	//跨域设置
+	if cfg.CrossDomain.Enable {
+		eng.Use(cors.New(cors.Config{
+			AllowOrigins:     []string{"*"},
+			AllowMethods:     []string{"PUT", "PATCH","POST", "GET","OPTIONS"},
+			AllowHeaders:     []string{"Origin","Content-Type","AccessToken","X-CSRF-Token", "Authorization", "token"},
+			ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
+			AllowCredentials: true,
+			MaxAge: 12 * time.Hour,
+		}))
+	}
+
 	//获取所有中间件
 	mw := middleware.GetMiddleWares()
+	//注册中间件及路由
+	regRouteAndMiddleware(eng, mw)
+}
 
+//regRouteAndMiddleware 注册中间件及路由
+func regRouteAndMiddleware(eng *gin.Engine, mw map[string]map[string]func(ctx *gin.Context)) {
 	for groupName, ctrl := range routes {
-		eng.Group("/" + groupName + "/")
+		rg := eng.Group("/" + groupName + "/")
 
 		//加入中间件
 		if mw[groupName] != nil {
 			for _, handle := range mw[groupName] {
-				eng.Use(handle)
+				rg.Use(handle)
 			}
 		}
 
@@ -87,16 +108,16 @@ func InitRoute(eng *gin.Engine) {
 				}
 
 				if arr[1] == "GET" {
-					eng.GET(url, getHandle(method))
+					rg.GET(url, getHandle(method))
 					if indexUrl != "" {
-						eng.GET(indexUrl, getHandle(method))
-						eng.GET(indexUrl2, getHandle(method))
+						rg.GET(indexUrl, getHandle(method))
+						rg.GET(indexUrl2, getHandle(method))
 					}
 				} else if arr[1] == "POST" {
-					eng.POST(url, getHandle(method))
+					rg.POST(url, getHandle(method))
 					if indexUrl != "" {
-						eng.POST(indexUrl, getHandle(method))
-						eng.POST(indexUrl2, getHandle(method))
+						rg.POST(indexUrl, getHandle(method))
+						rg.POST(indexUrl2, getHandle(method))
 					}
 				}
 			}
@@ -112,3 +133,19 @@ func getHandle(method reflect.Value) gin.HandlerFunc {
 		method.Call(args)
 	}
 }
+
+//cors 跨域请求设置
+/*func cors(allowDomain string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		fmt.Println("domain===", allowDomain)
+		ctx.Header("Access-Control-Allow-Origin", allowDomain)
+		ctx.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token")
+		ctx.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		ctx.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+		ctx.Header("Access-Control-Allow-Credentials", "true")
+		if ctx.Request.Method == "OPTIONS" {
+			ctx.AbortWithStatus(http.StatusNoContent)
+		}
+		ctx.Next()
+	}
+}*/

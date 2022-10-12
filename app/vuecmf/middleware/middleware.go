@@ -40,7 +40,7 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 
 			//过滤设置了排除验证的URL
 			flag := false
-			exclusionUrlArr := strings.Split(strings.ToLower(strings.Replace(ai.ExclusionUrl," ","", -1)), ",")
+			exclusionUrlArr := strings.Split(strings.ToLower(strings.Replace(ai.ExclusionUrl, " ", "", -1)), ",")
 			for _, exUrl := range exclusionUrlArr {
 				if exUrl == path {
 					flag = true
@@ -77,16 +77,22 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 			}
 
 			//登录验证
-			if routeAction != "login" && ai.LoginEnable == 10 {
+			if ai.LoginEnable == 10 {
 				token := ctx.Request.Header.Get("token")
 				adm, err := service.Admin(ai.AppName).IsLogin(token, ctx.ClientIP())
 
 				//权限验证
-				if err == nil && ai.AuthEnable == 10 {
+				if err == nil {
 					ctx.Set("is_super", adm.IsSuper)
-					res, err := service.Auth().Enforcer.Enforce(adm.Username, routeApp, routeController, routeAction)
-					if err == nil && res == false {
-						err = errors.New("您没有访问权限！")
+					if adm.IsSuper == 10 {
+						return
+					}
+
+					if ai.AuthEnable == 10 {
+						res, err := service.Auth().Enforcer.Enforce(adm.Username, routeApp, routeController, routeAction)
+						if err == nil && res == false {
+							err = errors.New("您没有访问权限！")
+						}
 					}
 				}
 

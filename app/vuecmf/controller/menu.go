@@ -10,7 +10,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
@@ -44,7 +43,7 @@ func (ctrl *Menu) Index(c *gin.Context) {
 func (ctrl *Menu) Nav(c *gin.Context) {
 	dataUsernameForm := &model.DataUsernameForm{}
 	common(c, dataUsernameForm, func() (interface{}, error) {
-		isSuper := app.Request(c).GetCtxVal("is_super")
+		isSuper, _ := c.Get("is_super")
 		return service.Menu().Nav(dataUsernameForm.Data.Username, isSuper)
 	})
 }

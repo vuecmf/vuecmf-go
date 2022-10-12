@@ -61,7 +61,7 @@ func InitRoute(eng *gin.Engine) {
 
 	//跨域设置
 	if cfg.CrossDomain.Enable {
-		allowOrigins := strings.Split(strings.Replace(cfg.CrossDomain.AllowedOrigin," ","", -1), ",")
+		allowOrigins := strings.Split(strings.Replace(cfg.CrossDomain.AllowedOrigin, " ", "", -1), ",")
 		var newAllowOrigins []string
 		for _, v := range allowOrigins {
 			newAllowOrigins = append(newAllowOrigins, strings.Trim(v, "/"))
@@ -69,10 +69,10 @@ func InitRoute(eng *gin.Engine) {
 		eng.Use(cors.New(cors.Config{
 			AllowOrigins:     newAllowOrigins,
 			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-			AllowHeaders:     []string{"Origin","Content-Length", "Content-Type","AccessToken","X-CSRF-Token", "Authorization", "token"},
+			AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "AccessToken", "X-CSRF-Token", "Authorization", "token"},
 			ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
 			AllowCredentials: true,
-			MaxAge: 12 * time.Hour,
+			MaxAge:           12 * time.Hour,
 		}))
 	}
 

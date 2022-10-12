@@ -55,25 +55,6 @@ func (r *request) Header(fieldName string) string {
 	return r.GetHeader(fieldName)
 }
 
-// GetCtxVal 根据key获取中间件中传入的数据
-func (r *request) GetCtxVal(key string) interface{} {
-	val, exist := r.Context.Get(key)
-	if exist == false {
-		return nil
-	}
-
-	switch val.(type) {
-	case int:
-		return val.(int)
-	case uint:
-		return val.(uint)
-	case string:
-		return val.(string)
-	}
-	return nil
-}
-
-
 // Request 获取请求实例
 func Request(ctx *gin.Context) *request {
 	return &request{

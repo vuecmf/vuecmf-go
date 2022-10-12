@@ -31,12 +31,26 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 		middlewares[ai.AppName]["auth"] = func(ctx *gin.Context) {
 			defer func() {
 				if err := recover(); err != nil {
-					app.Response(ctx).SendFailure("请求失败", err)
+					app.Response(ctx).SendFailure("请求失败", err, 1003)
 					ctx.Abort()
 				}
 			}()
 
 			path := strings.ToLower(ctx.Request.URL.String())
+
+			//过滤设置了排除验证的URL
+			flag := false
+			exclusionUrlArr := strings.Split(strings.ToLower(strings.Replace(ai.ExclusionUrl," ","", -1)), ",")
+			for _, exUrl := range exclusionUrlArr {
+				if exUrl == path {
+					flag = true
+					break
+				}
+			}
+			if flag {
+				return
+			}
+
 			pathArr := strings.Split(path, "/")
 			routeApp := "index"
 			routeController := "index"
@@ -77,7 +91,7 @@ func GetMiddleWares() map[string]map[string]func(ctx *gin.Context) {
 				}
 
 				if err != nil {
-					app.Response(ctx).SendFailure(err.Error(), err)
+					app.Response(ctx).SendFailure(err.Error(), err, 1003)
 					ctx.Abort()
 					return
 				}

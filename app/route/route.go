@@ -61,24 +61,31 @@ func InitRoute(eng *gin.Engine) {
 
 	//跨域设置
 	if cfg.CrossDomain.Enable {
+		allowOrigins := strings.Split(strings.Replace(cfg.CrossDomain.AllowedOrigin," ","", -1), ",")
+		var newAllowOrigins []string
+		for _, v := range allowOrigins {
+			newAllowOrigins = append(newAllowOrigins, strings.Trim(v, "/"))
+		}
 		eng.Use(cors.New(cors.Config{
-			AllowOrigins:     []string{"*"},
-			AllowMethods:     []string{"PUT", "PATCH","POST", "GET","OPTIONS"},
-			AllowHeaders:     []string{"Origin","Content-Type","AccessToken","X-CSRF-Token", "Authorization", "token"},
+			AllowOrigins:     newAllowOrigins,
+			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+			AllowHeaders:     []string{"Origin","Content-Length", "Content-Type","AccessToken","X-CSRF-Token", "Authorization", "token"},
 			ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
 			AllowCredentials: true,
 			MaxAge: 12 * time.Hour,
 		}))
 	}
 
-	//获取所有中间件
-	mw := middleware.GetMiddleWares()
 	//注册中间件及路由
-	regRouteAndMiddleware(eng, mw)
+	regRouteAndMiddleware(eng)
+
 }
 
 //regRouteAndMiddleware 注册中间件及路由
-func regRouteAndMiddleware(eng *gin.Engine, mw map[string]map[string]func(ctx *gin.Context)) {
+func regRouteAndMiddleware(eng *gin.Engine) {
+	//获取所有中间件
+	mw := middleware.GetMiddleWares()
+
 	for groupName, ctrl := range routes {
 		rg := eng.Group("/" + groupName + "/")
 
@@ -133,19 +140,3 @@ func getHandle(method reflect.Value) gin.HandlerFunc {
 		method.Call(args)
 	}
 }
-
-//cors 跨域请求设置
-/*func cors(allowDomain string) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		fmt.Println("domain===", allowDomain)
-		ctx.Header("Access-Control-Allow-Origin", allowDomain)
-		ctx.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token")
-		ctx.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-		ctx.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
-		ctx.Header("Access-Control-Allow-Credentials", "true")
-		if ctx.Request.Method == "OPTIONS" {
-			ctx.AbortWithStatus(http.StatusNoContent)
-		}
-		ctx.Next()
-	}
-}*/

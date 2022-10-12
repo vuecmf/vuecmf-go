@@ -52,7 +52,7 @@ func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, er
 	}
 
 	var adm *model.Admin
-	Db.Table(NS.TableName("admin")).Select("username, password, is_super, status").
+	Db.Table(NS.TableName("admin")).Select("username, password, is_super, last_login_time, status").
 		Where("token = ?", token).Find(&adm)
 	if adm == nil {
 		return nil, errors.New("您还没有登录或登录已失效，请重新登录！")
@@ -61,7 +61,7 @@ func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, er
 		return nil, errors.New("登录账号已禁用！")
 	}
 
-	codeByte := md5.Sum([]byte(adm.Username + adm.Password + loginIp))
+	codeByte := md5.Sum([]byte(adm.Username + adm.Password + loginIp + adm.LastLoginTime.Format(model.DateFormat)))
 	newToken := fmt.Sprintf("%x", codeByte)
 
 	if token != newToken {
@@ -133,7 +133,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 	result.Server = map[string]string{}
 	result.Server["version"] = vuecmf.Version
 	result.Server["os"] = runtime.GOOS
-	result.Server["software"] = "VueCMF"
+	result.Server["software"] = "Gin"
 	result.Server["mysql"] = mysqlVersion
 	result.Server["upload_max_size"] = strconv.Itoa(Conf.Upload.AllowFileSize) + "M"
 

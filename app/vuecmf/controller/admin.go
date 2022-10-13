@@ -10,6 +10,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
@@ -98,7 +99,7 @@ func (ctrl *Admin) DelPermission(c *gin.Context) {
 func (ctrl *Admin) GetPermission(c *gin.Context) {
 	dataRoleForm := &model.DataRoleForm{}
 	common(c, dataRoleForm, func() (interface{}, error) {
-		isSuper, _ := c.Get("is_super")
+		isSuper := app.Request(c).GetCtxVal("is_super")
 		return service.Auth().GetPermissions(dataRoleForm.Data.RoleName, isSuper, dataRoleForm.Data.AppName)
 	})
 }
@@ -134,7 +135,7 @@ func (ctrl *Admin) SetUserPermission(c *gin.Context) {
 func (ctrl *Admin) GetUserPermission(c *gin.Context) {
 	dataUsernameForm := &model.DataUsernameForm{}
 	common(c, dataUsernameForm, func() (interface{}, error) {
-		isSuper, _ := c.Get("is_super")
+		isSuper := app.Request(c).GetCtxVal("is_super")
 		return service.Auth().GetPermissions(
 			dataUsernameForm.Data.Username,
 			isSuper,

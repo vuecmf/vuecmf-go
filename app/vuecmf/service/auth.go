@@ -10,7 +10,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
@@ -242,13 +241,6 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 		Id    string
 		Label string
 	}
-
-	switch isSuper.(type) {
-	case int, int16, uint16:
-		isSuper = isSuper.(int)
-	}
-
-	fmt.Println("ssssssssssssssss==", isSuper, isSuper == 10)
 
 	if isSuper == 10 {
 		//超级管理员拥有所有权限

@@ -19,6 +19,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // adminService admin服务结构
@@ -61,7 +62,7 @@ func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, er
 		return nil, errors.New("登录账号已禁用！")
 	}
 
-	codeByte := md5.Sum([]byte(adm.Username + adm.Password + loginIp + adm.LastLoginTime.Format(model.DateFormat)))
+	codeByte := md5.Sum([]byte(adm.Username + adm.Password + loginIp + time.Now().Format(model.DateFormat)))
 	newToken := fmt.Sprintf("%x", codeByte)
 
 	if token != newToken {

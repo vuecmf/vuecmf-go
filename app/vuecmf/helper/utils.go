@@ -121,13 +121,14 @@ func InterfaceToInt(val interface{}) int {
 	switch val.(type) {
 	case uint:
 		res = int(val.(uint))
-		break
 	case int8:
 		res = int(val.(int8))
-		break
 	case uint8:
 		res = int(val.(uint8))
-		break
+	case int16:
+		res = int(val.(int16))
+	case uint16:
+		res = int(val.(uint16))
 	case int32:
 		res = int(val.(int32))
 	case uint32:

@@ -372,6 +372,34 @@ func {{.service_method}}() *{{.service_name}}Service {
 	return {{.service_name}}
 }
 
+// GetIdPath 获取父级ID的ID路径
+func (ser *{{.service_name}}Service) GetIdPath(pid uint) string {
+	var pidIdPath string
+	Db.Table(NS.TableName("{{.service_name}}")).Select("id_path").Where("id = ?", pid).Find(&pidIdPath)
+	if pid > 0 {
+		if pidIdPath == "" {
+			pidIdPath = strconv.Itoa(int(pid))
+		} else {
+			pidIdPath += "," + strconv.Itoa(int(pid))
+		}
+	}
+	return pidIdPath
+}
+
+// Create 创建单条或多条数据, 成功返回影响行数
+func (ser *{{.service_name}}Service) Create(data *model.{{.service_method}}) (int64, error) {
+	data.IdPath = ser.GetIdPath(data.Pid)
+	res := Db.Create(data)
+	return res.RowsAffected, res.Error
+}
+
+// Update 更新数据, 成功返回影响行数
+func (ser *{{.service_name}}Service) Update(data *model.{{.service_method}}) (int64, error) {
+	data.IdPath = ser.GetIdPath(data.Pid)
+	res := Db.Updates(data)
+	return res.RowsAffected, res.Error
+}
+
 // List 获取列表数据
 // 		参数：params 查询参数
 func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interface{} , error) {

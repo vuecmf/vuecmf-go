@@ -37,7 +37,11 @@ func (ser *rolesService) GetIdPath(pid uint) string {
 	var pidIdPath string
 	Db.Table(NS.TableName("roles")).Select("id_path").Where("id = ?", pid).Find(&pidIdPath)
 	if pid > 0 {
-		pidIdPath += "," + strconv.Itoa(int(pid))
+		if pidIdPath == "" {
+			pidIdPath = strconv.Itoa(int(pid))
+		} else {
+			pidIdPath += "," + strconv.Itoa(int(pid))
+		}
 	}
 	return pidIdPath
 }

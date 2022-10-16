@@ -1,6 +1,9 @@
 package model
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 // Menu 菜单 模型结构
 type Menu struct {
@@ -39,24 +42,26 @@ type MenuTree []*Menu
 // ToTree 将列表数据转换树形结构
 func (m *Menu) ToTree(data []*Menu) MenuTree {
 	treeData := make(map[uint]*Menu)
+	idList := make([]uint, 0, len(data))
 	for _, val := range data {
 		treeData[val.Id] = val
+		idList = append(idList, val.Id)
 	}
 
 	var treeList MenuTree
 
-	for _, item := range treeData {
-		if item.Pid == 0 {
-			treeList = append(treeList, item)
+	for _, id := range idList {
+		if treeData[id].Pid == 0 {
+			treeList = append(treeList, treeData[id])
 			continue
 		}
-		if pItem, ok := treeData[item.Pid]; ok {
+		if pItem, ok := treeData[treeData[id].Pid]; ok {
 			if pItem.Children == nil {
-				children := MenuTree{item}
+				children := MenuTree{treeData[id]}
 				pItem.Children = &children
 				continue
 			}
-			*pItem.Children = append(*pItem.Children, item)
+			*pItem.Children = append(*pItem.Children, treeData[id])
 		}
 	}
 
@@ -73,8 +78,8 @@ type NavMenu struct {
 	ModelId     uint     `json:"model_id"`
 	AppId       uint     `json:"app_id"`
 	Mid         string   `json:"mid"`
-	PathName    []string `json:"path_name"`
-	IdPath      []string `json:"id_path"`
+	PathName    []string `json:"path_name" gorm:"-"`
+	IdPath      []string `json:"id_path" gorm:"-"`
 	PathNameStr string   `json:"path_name_str"`
 	IdPathStr   string   `json:"id_path_str"`
 
@@ -93,26 +98,36 @@ type NavMenuTree []*NavMenu
 // ToNavTree 将导航菜单列表数据转换树形菜单结构
 func (m *Menu) ToNavTree(data []*NavMenu) NavMenuTree {
 	treeData := make(map[uint]*NavMenu)
+	idList := make([]uint, 0, len(data))
 	for _, val := range data {
-		val.IdPath = strings.Split(val.IdPathStr,",")
-		val.PathName = strings.Split(val.PathNameStr, ",")
+		if val.IdPathStr == "" {
+			val.IdPath = []string{"m" + strconv.Itoa(int(val.Id))}
+			val.PathName = []string{val.Title}
+		} else {
+			val.IdPath = strings.Split(val.IdPathStr, ",")
+			val.IdPath = append(val.IdPath, "m"+strconv.Itoa(int(val.Id)))
+			val.PathName = strings.Split(val.PathNameStr, ",")
+			val.PathName = append(val.PathName, val.Title)
+		}
+
 		treeData[val.Id] = val
+		idList = append(idList, val.Id)
 	}
 
 	var treeList NavMenuTree
 
-	for _, item := range treeData {
-		if item.Pid == 0 {
-			treeList = append(treeList, item)
+	for _, id := range idList {
+		if treeData[id].Pid == 0 {
+			treeList = append(treeList, treeData[id])
 			continue
 		}
-		if pItem, ok := treeData[item.Pid]; ok {
+		if pItem, ok := treeData[treeData[id].Pid]; ok {
 			if pItem.Children == nil {
-				children := NavMenuTree{item}
+				children := NavMenuTree{treeData[id]}
 				pItem.Children = &children
 				continue
 			}
-			*pItem.Children = append(*pItem.Children, item)
+			*pItem.Children = append(*pItem.Children, treeData[id])
 		}
 	}
 

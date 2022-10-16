@@ -53,8 +53,10 @@ func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, er
 	}
 
 	var adm *model.Admin
-	Db.Table(NS.TableName("admin")).Select("username, password, is_super, last_login_time, status").
-		Where("token = ?", token).Find(&adm)
+	if err := Db.Table(NS.TableName("admin")).Select("username, password, is_super, last_login_time, status").
+		Where("token = ?", token).Find(&adm).Error; err != nil {
+		return nil, errors.New("验证是否登录IsLogin异常：" + err.Error())
+	}
 	if adm == nil {
 		return nil, errors.New("您还没有登录或登录已失效，请重新登录！")
 	}

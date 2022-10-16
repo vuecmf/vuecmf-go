@@ -35,8 +35,8 @@ func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 
 	Db.Table(NS.TableName("model_form_rules")+" VMFR").
 		Select("VMF2.field_name, rule_type, rule_value, error_tips").
-		Joins("LEFT JOIN model_form VMF ON VMFR.model_form_id = VMF.id").
-		Joins("INNER JOIN model_field VMF2 ON VMF.model_field_id = VMF2.id").
+		Joins("LEFT JOIN "+NS.TableName("model_form")+" VMF ON VMFR.model_form_id = VMF.id").
+		Joins("INNER JOIN "+NS.TableName("model_field")+" VMF2 ON VMF.model_field_id = VMF2.id").
 		Where("rule_type IN ?", []string{"require", "length", "date", "email", "integer", "number", "regex", "float", "array", "url"}).
 		Where("VMFR.model_id = ?", modelId).
 		Where("VMFR.status = 10").
@@ -47,6 +47,13 @@ func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 	result := make(map[string]map[int]map[string]string)
 
 	for key, val := range data {
+		if result[val.FieldName] == nil {
+			result[val.FieldName] = map[int]map[string]string{}
+		}
+		if result[val.FieldName][key] == nil {
+			result[val.FieldName][key] = map[string]string{}
+		}
+
 		switch val.RuleType {
 		case "require":
 			result[val.FieldName][key]["required"] = "true"

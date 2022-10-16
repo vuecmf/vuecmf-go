@@ -107,24 +107,26 @@ type {{.model_name}}Tree []*{{.model_name}}
 // ToTree 将列表数据转换树形结构
 func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 	treeData := make(map[uint]*{{.model_name}})
+	idList := make([]uint, 0, len(data))
 	for _, val := range data {
 		treeData[val.Id] = val
+		idList = append(idList, val.Id)
 	}
 
 	var treeList {{.model_name}}Tree
 
-	for _, item := range treeData {
-		if item.Pid == 0 {
-			treeList = append(treeList, item)
+	for _, id := range idList {
+		if treeData[id].Pid == 0 {
+			treeList = append(treeList, treeData[id])
 			continue
 		}
-		if pItem, ok := treeData[item.Pid]; ok {
+		if pItem, ok := treeData[treeData[id].Pid]; ok {
 			if pItem.Children == nil {
-				children := {{.model_name}}Tree{item}
+				children := {{.model_name}}Tree{treeData[id]}
 				pItem.Children = &children
 				continue
 			}
-			*pItem.Children = append(*pItem.Children, item)
+			*pItem.Children = append(*pItem.Children, treeData[id])
 		}
 	}
 

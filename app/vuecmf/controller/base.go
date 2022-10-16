@@ -10,6 +10,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
@@ -31,6 +32,7 @@ type Base struct {
 func common(c *gin.Context, formParams interface{}, fun func() (interface{}, error)) {
 	defer func() {
 		if err := recover(); err != nil {
+			fmt.Println("请求异常：", err)
 			app.Response(c).SendFailure("请求异常", err)
 		}
 	}()

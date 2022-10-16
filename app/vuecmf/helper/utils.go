@@ -154,6 +154,11 @@ type TreeRes struct {
 	Label string //标题
 }
 
+type ModelFieldOption struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
+}
+
 // FormatTree 格式化下拉树型列表
 //	参数：
 // 		tree map				存储返回的结果
@@ -165,7 +170,7 @@ type TreeRes struct {
 // 		orderField string       排序字段名
 // 		level int               层级数
 //	返回值：map
-func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string, pid int, label string, pidField string, orderField string, level int) {
+func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, pk string, pid int, label string, pidField string, orderField string, level int) []*ModelFieldOption {
 	//参数为空的，设置默认值
 	if label == "" {
 		label = "title"
@@ -193,7 +198,14 @@ func FormatTree(tree map[string]string, db *gorm.DB, tableName string, pk string
 		} else {
 			prefix += "└─ "
 		}
-		tree[strconv.Itoa(val.Id)] = prefix + val.Label
-		FormatTree(tree, db, tableName, pk, val.Id, label, pidField, orderField, level+1)
+		//tree[strconv.Itoa(val.Id)] = prefix + val.Label
+		tree = append(tree, &ModelFieldOption{
+			Value: strconv.Itoa(val.Id),
+			Label: prefix + val.Label,
+		})
+
+		tree = FormatTree(tree, db, tableName, pk, val.Id, label, pidField, orderField, level+1)
 	}
+
+	return tree
 }

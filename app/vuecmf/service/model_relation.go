@@ -9,6 +9,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"strconv"
 	"strings"
@@ -99,10 +100,10 @@ type relationOptions struct {
 }
 
 // getRelationOptions 关联模型的数据列表
-func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}) interface{} {
+func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}) map[string]interface{} {
 	var fieldInfo []relationFieldInfo
-	result := map[int]map[string]string{}
-	options := map[string]string{}
+	var result = make(map[string]interface{})
+	var options []*helper.ModelFieldOption
 
 	//先取出有关联表的字段及关联信息
 	Db.Table(NS.TableName("model_relation")+" VMR").
@@ -181,14 +182,18 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 			}
 
 			for _, item := range reOptions {
-				options[item.FieldName] = item.Label
+				//options[item.FieldName] = item.Label
+				options = append(options, &helper.ModelFieldOption{
+					Value: item.FieldName,
+					Label: item.Label,
+				})
 			}
 
 		}
 
 		//关联模型的数据列表，供表单中下拉框中使用
-		result[val.FieldId] = options
-
+		result[strconv.Itoa(val.FieldId)] = options
+		fmt.Println("result===", result)
 	}
 
 	return result

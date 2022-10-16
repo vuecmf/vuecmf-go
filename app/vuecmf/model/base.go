@@ -47,7 +47,12 @@ func GetError(errs error, f interface{}) string {
 	fData := reflect.ValueOf(f).Elem().FieldByName("Data")
 	fDataType := reflect.TypeOf(fData.Interface())
 
-	for _, fieldError := range errs.(validator.ValidationErrors) {
+	errList, ok := errs.(validator.ValidationErrors)
+	if !ok {
+		return errs.Error()
+	}
+
+	for _, fieldError := range errList {
 		fieldName := fieldError.Field()      //获取验证的字段名
 		tagKey := fieldError.Tag() + "_tips" //错误提示的tag key
 

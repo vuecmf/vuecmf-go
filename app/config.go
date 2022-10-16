@@ -57,6 +57,7 @@ type crossDomain struct {
 type Conf struct {
 	Module      string       `yaml:"module"`       //项目名称，与go.mod中module保持一致
 	Env         string       `yaml:"env"`          //当前运行环境， dev 开发环境，test 测试环境，prod 生产环境
+	Debug       bool         `yaml:"debug"`        //是否开启调试模式
 	ServerPort  string       `yaml:"server_port"`  //服务运行的端口
 	CrossDomain *crossDomain `yaml:"cross_domain"` //跨域请求配置
 	Upload      *upload      `yaml:"upload"`       //上传配置

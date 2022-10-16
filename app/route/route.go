@@ -47,6 +47,10 @@ func Register(ctrl interface{}, method, appName string) {
 func InitRoute(eng *gin.Engine) {
 	cfg := app.Config()
 
+	if cfg.Debug == false {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	//表单上传文件最大5M
 	eng.MaxMultipartMemory = int64(cfg.Upload.AllowFileSize) << 20
 

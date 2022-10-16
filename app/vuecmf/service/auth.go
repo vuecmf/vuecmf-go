@@ -23,24 +23,28 @@ type auth struct {
 	Enforcer *casbin.Enforcer
 }
 
+var authInstance *auth
+
 // Auth 获取授权组件实例
 func Auth() *auth {
-	var enf *casbin.Enforcer
-	a, err := gormadapter.NewAdapterByDBWithCustomTable(Db, &model.Rules{}, NS.TableName("rules"))
-	if err != nil {
-		log.Fatalln("初始化权限异常：" + err.Error())
-		return nil
-	}
+	if authInstance == nil {
+		var enf *casbin.Enforcer
+		a, err := gormadapter.NewAdapterByDBWithCustomTable(Db, &model.Rules{}, NS.TableName("rules"))
+		if err != nil {
+			log.Fatalln("初始化权限异常：" + err.Error())
+			return nil
+		}
 
-	enf, err = casbin.NewEnforcer("config/tauthz-rbac-model.conf", a)
-	if err != nil {
-		log.Fatalln("读取权限配置文件异常：" + err.Error())
-		return nil
+		enf, err = casbin.NewEnforcer("config/tauthz-rbac-model.conf", a)
+		if err != nil {
+			log.Fatalln("读取权限配置文件异常：" + err.Error())
+			return nil
+		}
+		authInstance = &auth{
+			Enforcer: enf,
+		}
 	}
-
-	return &auth{
-		Enforcer: enf,
-	}
+	return authInstance
 }
 
 // AddRolesForUser 给指定用户添加角色

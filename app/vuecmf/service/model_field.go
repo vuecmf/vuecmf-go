@@ -86,6 +86,7 @@ func (ser *modelFieldService) DeleteBatch(idList string, model *model.ModelField
 type fieldInfo struct {
 	FieldId  int    `json:"field_id"`
 	Prop     string `json:"prop"`
+	Type     string `json:"type"`
 	Label    string `json:"label"`
 	Width    int    `json:"width"`
 	Length   int    `json:"length"`
@@ -104,6 +105,7 @@ func (ser *modelFieldService) GetFieldInfo(modelId int) []fieldInfo {
 	Db.Table(NS.TableName("model_field")).Select(
 		"id field_id,"+
 			"field_name prop,"+
+			"type,"+
 			"label,"+
 			"column_width width,"+
 			"length,"+

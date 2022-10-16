@@ -45,7 +45,7 @@ func (ser *menuService) GetIdPath(pid uint) string {
 }
 
 type menuInfo struct {
-	Title 	 string
+	Title    string
 	PathName string
 }
 
@@ -79,7 +79,6 @@ func (ser *menuService) Update(data *model.Menu) (int64, error) {
 	res := Db.Updates(data)
 	return res.RowsAffected, res.Error
 }
-
 
 // List 获取列表数据
 // 		参数：params 查询参数
@@ -129,21 +128,26 @@ func (ser *menuService) Nav(username string, isSuper interface{}) (interface{}, 
 
 	modelIdList := ModelAction().GetModelIdListById(apiIdList)
 
-	var NavMenuList []*model.NavMenu
-	ser.getNavMenu(&NavMenuList, modelIdList, apiIdList)
+	NavMenuList, err := ser.getNavMenu(modelIdList, apiIdList)
+	if err != nil {
+		return nil, err
+	}
+
 	menuList := model.MenuModel().ToNavTree(NavMenuList)
 	res["nav_menu"] = menuList
 
 	return res, nil
 }
 
-func (ser *menuService) getNavMenu(dataList interface{}, modelIdList []string, apiIdList []string) {
-	Db.Table(NS.TableName(ser.TableName)+" vm").
+func (ser *menuService) getNavMenu(modelIdList []string, apiIdList []string) ([]*model.NavMenu, error) {
+	var dataList []*model.NavMenu
+	err := Db.Table(NS.TableName(ser.TableName)+" vm").
 		Select("concat('m',vm.id) mid, vm.id, vm.pid, vm.id_path id_path_str, vm.path_name path_name_str, vm.title, vm.icon, vm.model_id, vmc.table_name, vmc.component_tpl, vmc.search_field_id, vmc.is_tree, vma.action_type default_action_type, vm.app_id, AC.app_name").
 		Joins("left join "+NS.TableName("model_config")+" vmc on vmc.id = vm.model_id and vmc.status = 10").
 		Joins("left join "+NS.TableName("model_action")+" vma on vmc.default_action_id = vma.id and vma.status = 10 and vma.id in ?", apiIdList).
-		Joins("left join " + NS.TableName("app_config") + " AC on vm.app_id = AC.id").
+		Joins("left join "+NS.TableName("app_config")+" AC on vm.app_id = AC.id").
 		Where("vm.status = 10").
 		Where("vm.model_id in ?", modelIdList).
-		Order("vm.sort_num").Find(dataList)
+		Order("vm.sort_num").Find(&dataList).Error
+	return dataList, err
 }

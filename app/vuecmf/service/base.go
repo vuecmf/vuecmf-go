@@ -36,12 +36,12 @@ func init() {
 
 // fullModelFields 模型的所有字段相关信息（字段、表单、字段选项、字段关联、表单验证规则）
 type fullModelFields struct {
-	FieldInfo    []fieldInfo               `json:"field_info"`
-	FormInfo     []formInfo                `json:"form_info"`
-	FieldOption  map[int]map[string]string `json:"field_option"`
-	RelationInfo *modelRelationInfo        `json:"relation_info"`
-	FormRules    interface{}               `json:"form_rules"`
-	ModelId      int                       `json:"model_id"`
+	FieldInfo    []fieldInfo                           `json:"field_info"`
+	FormInfo     []formInfo                            `json:"form_info"`
+	FieldOption  map[string][]*helper.ModelFieldOption `json:"field_option"`
+	RelationInfo *modelRelationInfo                    `json:"relation_info"`
+	FormRules    interface{}                           `json:"form_rules"`
+	ModelId      int                                   `json:"model_id"`
 }
 
 // CommonList 公共列表 服务方法

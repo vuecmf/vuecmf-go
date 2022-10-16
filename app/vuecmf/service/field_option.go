@@ -10,7 +10,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"strconv"
 )
@@ -38,11 +37,6 @@ type resFieldOption struct {
 	OptionLabel string
 }
 
-/*type option struct {
-	OptionValue string
-	OptionLabel string
-}*/
-
 // GetFieldOptions 根据模型ID获取模型的字段选项列表
 func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, isTree bool, labelFieldName string) (map[string][]*helper.ModelFieldOption, error) {
 	var list = make(map[string][]*helper.ModelFieldOption)
@@ -55,12 +49,6 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 		Find(&result)
 
 	for _, val := range result {
-		/*if list[strconv.Itoa(val.FieldId)] == nil {
-			list[strconv.Itoa(val.FieldId)] = &helper.ModelFieldOption{
-				Value: val.OptionValue,
-				Label: val.OptionLabel,
-			}
-		}*/
 		list[strconv.Itoa(val.FieldId)] = append(list[strconv.Itoa(val.FieldId)], &helper.ModelFieldOption{
 			Value: val.OptionValue,
 			Label: val.OptionLabel,
@@ -84,13 +72,10 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 			Where("field_name = 'pid'").
 			Where("model_id = ?", modelId).
 			Limit(1).Find(&pidFieldId)
-
-		//tree := map[string]string{}
+		
 		var tree []*helper.ModelFieldOption
 		tree = helper.FormatTree(tree, Db, NS.TableName(tableName), "id", 0, labelFieldName, "pid", orderField, 1)
 		list[strconv.Itoa(pidFieldId)] = tree
-
-		fmt.Println("tree===", tree)
 
 	}
 

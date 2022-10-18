@@ -26,7 +26,7 @@ func ModelFormRules() *modelFormRulesService {
 }
 
 type ruleListFormST struct {
-	FieldName, RuleType, RuleValue, ErrorTips string
+	FieldName, RuleType, RuleValue, ErrorTips, FieldType string
 }
 
 // GetRuleListForForm 根据模型ID获取对应的表单验证规则
@@ -34,7 +34,7 @@ func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 	var data []ruleListFormST
 
 	Db.Table(NS.TableName("model_form_rules")+" VMFR").
-		Select("VMF2.field_name, rule_type, rule_value, error_tips").
+		Select("VMF2.field_name, VMF2.type field_type, rule_type, rule_value, error_tips").
 		Joins("LEFT JOIN "+NS.TableName("model_form")+" VMF ON VMFR.model_form_id = VMF.id").
 		Joins("INNER JOIN "+NS.TableName("model_field")+" VMF2 ON VMF.model_field_id = VMF2.id").
 		Where("rule_type IN ?", []string{"require", "length", "date", "email", "integer", "number", "regex", "float", "array", "url"}).
@@ -44,36 +44,51 @@ func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 		Where("VMF2.status = 10").
 		Find(&data)
 
-	result := make(map[string]map[int]map[string]string)
 
-	for key, val := range data {
-		if result[val.FieldName] == nil {
-			result[val.FieldName] = map[int]map[string]string{}
+	result := make(map[string][]map[string]interface{})
+
+	for _, val := range data {
+		var fieldType string
+
+		switch val.FieldType {
+		case "bigint","int","smallint","tinyint":
+			fieldType = "integer"
+		case "decimal","double","float":
+			fieldType = "number"
+		case "date","datetime","timestamp":
+			fieldType = "date"
+		default:
+			fieldType = "string"
 		}
-		if result[val.FieldName][key] == nil {
-			result[val.FieldName][key] = map[string]string{}
-		}
+
+		rule := make(map[string]interface{})
+
+		//验证数据类型
+		rule["type"] = fieldType
 
 		switch val.RuleType {
 		case "require":
-			result[val.FieldName][key]["required"] = "true"
-			result[val.FieldName][key]["message"] = val.ErrorTips
-			result[val.FieldName][key]["trigger"] = "blur"
+			rule["required"] = true
+			rule["message"] = val.ErrorTips
+			rule["trigger"] = "blur"
 		case "length":
 			arr := strings.Split(val.RuleValue, ",")
-			result[val.FieldName][key]["min"] = arr[0]
-			result[val.FieldName][key]["max"] = arr[1]
-			result[val.FieldName][key]["message"] = val.ErrorTips
-			result[val.FieldName][key]["trigger"] = "blur"
+			rule["min"] = arr[0]
+			rule["max"] = arr[1]
+			rule["message"] = val.ErrorTips
+			rule["trigger"] = "blur"
 		case "date", "email", "integer", "number", "regex", "float", "array", "url":
 			if val.RuleType == "regex" {
 				val.RuleType = "regexp"
 			}
-			result[val.FieldName][key]["type"] = val.RuleType
-			result[val.FieldName][key]["required"] = "true"
-			result[val.FieldName][key]["message"] = val.ErrorTips
-			result[val.FieldName][key]["trigger"] = "blur, change"
+			rule["type"] = val.RuleType
+			rule["required"] = "true"
+			rule["message"] = val.ErrorTips
+			rule["trigger"] = "blur, change"
 		}
+
+		result[val.FieldName] = append(result[val.FieldName], rule)
+
 	}
 
 	return result

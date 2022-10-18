@@ -9,7 +9,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"strconv"
 	"strings"
@@ -101,9 +100,8 @@ type relationOptions struct {
 
 // getRelationOptions 关联模型的数据列表
 func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}) map[string]interface{} {
-	var fieldInfo []relationFieldInfo
+	var reFieldInfo []relationFieldInfo
 	var result = make(map[string]interface{})
-	var options []*helper.ModelFieldOption
 
 	//先取出有关联表的字段及关联信息
 	Db.Table(NS.TableName("model_relation")+" VMR").
@@ -114,11 +112,13 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 		Where("VMR.model_id = ?", modelId).
 		Where("VMR.status = 10").
 		Where("VMF.status = 10").
-		Find(&fieldInfo)
+		Find(&reFieldInfo)
 
 	modelTableName := ModelConfig().GetModelTableName(modelId)
 
-	for _, val := range fieldInfo {
+	for _, val := range reFieldInfo {
+		var options []*helper.ModelFieldOption
+
 		isTree := ModelConfig().IsTree(val.RelationModelId)
 		if isTree {
 			//若关联的模型是目录树的、则下拉选项需要格式化树型结构
@@ -182,7 +182,6 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 			}
 
 			for _, item := range reOptions {
-				//options[item.FieldName] = item.Label
 				options = append(options, &helper.ModelFieldOption{
 					Value: item.FieldName,
 					Label: item.Label,
@@ -193,7 +192,6 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 
 		//关联模型的数据列表，供表单中下拉框中使用
 		result[strconv.Itoa(val.FieldId)] = options
-		fmt.Println("result===", result)
 	}
 
 	return result

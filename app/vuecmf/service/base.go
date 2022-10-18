@@ -55,24 +55,24 @@ func (b *BaseService) CommonList(modelData interface{}, tableName string, filter
 
 // getFieldList 根据表名获取对应所有字段信息
 func (b *BaseService) getFieldList(tableName string, filter map[string]interface{}) (*fullModelFields, error) {
-	modelConf := ModelConfig().GetModelConfig(tableName)
-	modelId := modelConf.ModelId
-	fieldInfo := ModelField().GetFieldInfo(modelId) //模型的字段信息
-	formInfo := ModelForm().GetFormInfo(modelId)    //模型的表单信息
-	relationInfo := ModelRelation().GetRelationInfo(modelId, filter)
-	formRulesInfo := ModelFormRules().GetRuleListForForm(modelId)
-	fieldOption, err := FieldOption().GetFieldOptions(modelId, tableName, modelConf.IsTree, modelConf.LabelFieldName) //模型的关联信息
+	modelCfg := ModelConfig().GetModelConfig(tableName)
+	modelId := modelCfg.ModelId
+	fieldInfoList := ModelField().GetFieldInfo(modelId) //模型的字段信息
+	formInfoList := ModelForm().GetFormInfo(modelId)    //模型的表单信息
+	relationInfoList := ModelRelation().GetRelationInfo(modelId, filter)
+	formRulesInfoList := ModelFormRules().GetRuleListForForm(modelId)
+	fieldOptionList, err := FieldOption().GetFieldOptions(modelId, tableName, modelCfg.IsTree, modelCfg.LabelFieldName) //模型的关联信息
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &fullModelFields{
-		FieldInfo:    fieldInfo,
-		FormInfo:     formInfo,
-		FieldOption:  fieldOption,
-		RelationInfo: relationInfo,
-		FormRules:    formRulesInfo,
+		FieldInfo:    fieldInfoList,
+		FormInfo:     formInfoList,
+		FieldOption:  fieldOptionList,
+		RelationInfo: relationInfoList,
+		FormRules:    formRulesInfoList,
 		ModelId:      modelId,
 	}, nil
 }
@@ -85,10 +85,10 @@ func (b *BaseService) getFieldList(tableName string, filter map[string]interface
 func (b *BaseService) getList(dataList interface{}, tableName string, params *helper.DataListParams) {
 	query := Db.Table(NS.TableName(tableName)).Select("*").Where("status = 10")
 
-	modelConf := ModelConfig().GetModelConfig(tableName)
+	modelCfg := ModelConfig().GetModelConfig(tableName)
 
 	if params.Data.Keywords != "" {
-		query = query.Where(modelConf.LabelFieldName+" like ?", "%"+params.Data.Keywords+"%")
+		query = query.Where(modelCfg.LabelFieldName+" like ?", "%"+params.Data.Keywords+"%")
 	}
 
 	orderField := "sort_num"

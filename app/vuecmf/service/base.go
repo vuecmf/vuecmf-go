@@ -135,8 +135,8 @@ func (b *BaseService) DeleteBatch(idList string, model interface{}) (int64, erro
 }
 
 type DropdownList struct {
-	Id    uint   `json:"id"`
-	Label string `json:"label"`
+	Value    uint   `json:"value"`
+	Label 	string `json:"label"`
 }
 
 // Dropdown 获取模型的下拉列表
@@ -175,7 +175,7 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 
 	var result []DropdownList
 
-	Db.Table(NS.TableName(modelName)).Select(labelField+" label, id").
+	Db.Table(NS.TableName(modelName)).Select(labelField+" label, value").
 		Where("model_id = ?", form.ModelId).
 		Where("status = 10").
 		Find(&result)

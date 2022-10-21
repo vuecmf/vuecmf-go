@@ -138,7 +138,7 @@ func (ser *modelActionService) GetApiMap(tableName string, actionType string, ap
 	if appId == 0 {
 		appId = 1
 	}
- 	var apiPath string
+	var apiPath string
 	Db.Table(NS.TableName("model_action")+" ma").Select("api_path").
 		Joins("inner join "+NS.TableName("model_config")+" mc on ma.model_id = mc.id").
 		Where("mc.table_name = ?", tableName).
@@ -163,11 +163,17 @@ func (ser *modelActionService) GetNotAuthActionIds() []string {
 
 // GetActionList 获取所有模型的动作列表
 func (ser *modelActionService) GetActionList(roleName string, appName string) (interface{}, error) {
-	var res = make(map[string]map[uint]string)
+	var res = make(map[string]map[string]string)
 	type row struct {
-		Id    uint
-		Label string
+		Id         string
+		Label      string
+		ModelLabel string
 	}
+
+	if appName == "" {
+		appName = "vuecmf"
+	}
+
 	if roleName != "" {
 		//若传入角色名称，则只取当前角色的父级角色拥有的权限
 		var pid uint
@@ -191,10 +197,6 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 			return nil, errors.New("没有获取到父级角色名称")
 		}
 
-		if appName == "" {
-			appName = "vuecmf"
-		}
-
 		perList, err := Auth().GetPermissions(pidRoleName, nil, appName)
 		if err != nil {
 			return nil, err
@@ -205,7 +207,9 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 			Db.Table(NS.TableName("model_action")).Select("id, label").
 				Where("id in ?", actionIdList).
 				Where("status = 10").Find(&actionRes)
-			res[modelName] = map[uint]string{}
+			if res[modelName] == nil {
+				res[modelName] = make(map[string]string)
+			}
 			for _, ac := range actionRes {
 				res[modelName][ac.Id] = ac.Label
 			}
@@ -215,20 +219,18 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 	}
 
 	//否则，获取所有权限列表
-	var modelListRes []row
-	Db.Table(NS.TableName("model_config")).Select("id, label").
-		Where("status = 10").Find(&modelListRes)
-	for _, mc := range modelListRes {
-		var maList []row
-		Db.Table(NS.TableName("model_action") + " MA").Select("MA.id, MA.label").
-			Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
-			Where("AC.app_name = ?", appName).
-			Where("MA.model_id = ?", mc.Id).
-			Where("MA.status = 10").Find(&maList)
-		res[mc.Label] = map[uint]string{}
-		for _, ac := range maList {
-			res[mc.Label][ac.Id] = ac.Label
+	var actionRes []row
+	Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label model_label,  MA.label").
+		Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
+		Joins("left join "+NS.TableName("model_config")+" MC on MC.id = MA.model_id").
+		Where("AC.app_name = ?", appName).
+		Where("MA.status = 10").Find(&actionRes)
+
+	for _, ac := range actionRes {
+		if res[ac.ModelLabel] == nil {
+			res[ac.ModelLabel] = make(map[string]string)
 		}
+		res[ac.ModelLabel][ac.Id] = ac.Label
 	}
 
 	return res, nil

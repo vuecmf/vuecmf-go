@@ -350,17 +350,16 @@ func (au *auth) GetRoles(username string, appName string) ([]string, error) {
 }
 
 type roleList struct {
-	Key      uint
-	Label    string
-	Disabled bool
+	Key      uint   `json:"key"`
+	Label    string `json:"label"`
+	Disabled bool   `json:"disabled"`
 }
 
 // GetAllRoles 获取所有角色列表
 func (au *auth) GetAllRoles() interface{} {
-	var result roleList
+	var result []roleList
 	Db.Table(NS.TableName("roles")).Select("id `key`, role_name label, false disabled").
 		Where("status = 10").
 		Find(&result)
-
 	return result
 }

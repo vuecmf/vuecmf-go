@@ -10,4 +10,6 @@ type Rules struct {
 	V3    string `json:"v3" form:"v3" gorm:"column:v3;size:64;uniqueIndex:unique_index;not null;default:'';comment:对应定义的act(动作名称)"`
 	V4    string `json:"v4" form:"v4" gorm:"column:v4;size:64;uniqueIndex:unique_index;not null;default:'';comment:预留，暂用不到"`
 	V5    string `json:"v5" form:"v5" gorm:"column:v5;size:64;uniqueIndex:unique_index;not null;default:'';comment:预留，暂用不到"`
+	V6    string `json:"v6" form:"v6" gorm:"column:v6;size:64;uniqueIndex:unique_index;not null;default:'';comment:预留，暂用不到"`
+	V7    string `json:"v7" form:"v7" gorm:"column:v7;size:64;uniqueIndex:unique_index;not null;default:'';comment:预留，暂用不到"`
 }

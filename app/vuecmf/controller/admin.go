@@ -135,10 +135,11 @@ func (ctrl *Admin) SetUserPermission(c *gin.Context) {
 func (ctrl *Admin) GetUserPermission(c *gin.Context) {
 	dataUsernameForm := &model.DataUsernameForm{}
 	common(c, dataUsernameForm, func() (interface{}, error) {
-		isSuper := app.Request(c).GetCtxVal("is_super")
+		//isSuper := app.Request(c).GetCtxVal("is_super")
 		return service.Auth().GetPermissions(
 			dataUsernameForm.Data.Username,
-			isSuper,
+			//isSuper,
+			20,
 			dataUsernameForm.Data.AppName,
 		)
 	})

@@ -9,8 +9,10 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type FieldOption struct {
@@ -22,8 +24,19 @@ func init() {
 	fieldOption.TableName = "field_option"
 	fieldOption.Model = &model.FieldOption{}
 	fieldOption.ListData = &[]model.FieldOption{}
-	fieldOption.SaveForm = &model.DataFieldOptionForm{}
 	fieldOption.FilterFields = []string{"option_value", "option_label"}
 
 	route.Register(fieldOption, "POST", "vuecmf")
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *FieldOption) Save(c *gin.Context) {
+	saveForm := &model.DataFieldOptionForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Base().Create(saveForm.Data)
+		} else {
+			return service.Base().Update(saveForm.Data)
+		}
+	})
 }

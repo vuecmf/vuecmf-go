@@ -478,11 +478,24 @@ func init() {
     {{.controller_var_name}}.TableName = "{{.table_name}}"
     {{.controller_var_name}}.Model = &model.{{.controller_name}}{}
     {{.controller_var_name}}.ListData = &[]model.{{.controller_name}}{}
-    {{.controller_var_name}}.SaveForm = &model.Data{{.controller_name}}Form{}
     {{.controller_var_name}}.FilterFields = []string{{{.filter_fields}}}
 
     route.Register({{.controller_var_name}}, "POST", "{{.app_name}}")
 }
+
+// Save 新增/更新 单条数据
+func (ctrl *{{.controller_name}}) Save(c *gin.Context) {
+	saveForm := &model.Data{{.controller_name}}Form{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Base().Create(saveForm.Data)
+		} else {
+			return service.Base().Update(saveForm.Data)
+		}
+	})
+}
+
+
 `
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	if modelConf.IsTree == true {
@@ -506,7 +519,6 @@ func init() {
     {{.controller_var_name}}.TableName = "{{.controller_var_name}}"
     {{.controller_var_name}}.Model = &model.{{.controller_name}}{}
     {{.controller_var_name}}.ListData = &[]model.{{.controller_name}}{}
-    {{.controller_var_name}}.SaveForm = &model.Data{{.controller_name}}Form{}
     {{.controller_var_name}}.FilterFields = []string{{{.filter_fields}}}
 
     route.Register({{.controller_var_name}}, "POST", "{{.app_name}}")
@@ -517,6 +529,18 @@ func (ctrl *{{.controller_name}}) Index(c *gin.Context) {
     listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
         return service.{{.controller_name}}().List(listParams)
+	})
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *{{.controller_name}}) Save(c *gin.Context) {
+	saveForm := &model.Data{{.controller_name}}Form{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.{{.controller_name}}().Create(saveForm.Data)
+		} else {
+			return service.{{.controller_name}}().Update(saveForm.Data)
+		}
 	})
 }
 
@@ -578,6 +602,7 @@ func (makeSer *makeService) UpdateRunFile() error {
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/app"
 ${import_package}
 	"github.com/vuecmf/vuecmf-go/app/route"
 	_ "github.com/vuecmf/vuecmf-go/app/vuecmf/controller"
@@ -590,7 +615,7 @@ func main() {
 	//初始化路由
 	route.InitRoute(engine)
 
-	err := engine.Run(":8080")
+	err := engine.Run(":" + app.Config().ServerPort)
 	if err != nil {
 		log.Fatal("服务启动失败！", err)
 	}

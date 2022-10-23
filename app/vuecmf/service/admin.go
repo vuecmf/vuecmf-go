@@ -157,3 +157,12 @@ func (ser *adminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
 
 	return true, nil
 }
+
+//GetUserNames 根据用户ID获取用户名
+func (ser *adminService) GetUserNames(userIdList []int) []string {
+	var res []string
+	Db.Table(NS.TableName("admin")).Select("username").
+		Where("id in", userIdList).
+		Find(&res)
+	return res
+}

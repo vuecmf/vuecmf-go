@@ -26,10 +26,21 @@ func init() {
 	upload.TableName = "upload"
 	upload.Model = &model.Upload{}
 	upload.ListData = &[]model.Upload{}
-	upload.SaveForm = &model.DataUploadForm{}
 	upload.FilterFields = []string{""}
 
 	route.Register(upload, "POST", "vuecmf")
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *Upload) Save(c *gin.Context) {
+	saveForm := &model.DataUploadForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Base().Create(saveForm.Data)
+		} else {
+			return service.Base().Update(saveForm.Data)
+		}
+	})
 }
 
 // Index 文件上传

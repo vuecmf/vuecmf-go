@@ -118,30 +118,29 @@ func (ser *rolesService) List(params *helper.DataListParams) (interface{}, error
 }
 
 // AddUsers 给角色分配用户
-func (ser *rolesService) AddUsers(roleName string, userIdList []string, appName string) (interface{}, error) {
+func (ser *rolesService) AddUsers(roleName string, userIdList []int, appName string) (interface{}, error) {
 	if appName == "" {
 		appName = "vuecmf"
 	}
 
 	if len(userIdList) == 0 {
 		//若传入的为空，则先查出该角色下原有用户列表，然后全部删除
-		userList, err := Auth().GetUsers(roleName, appName)
+		oldUserIdList, err := ser.GetUsers(roleName, appName)
 		if err != nil {
-			return nil, errors.New("该角色(" + roleName + ")没有分配任务用户")
+			return nil, errors.New("该角色(" + roleName + ")没有分配用户")
 		}
-		return Auth().DelUsersForRole(roleName, userList, appName)
+		return Auth().DelUsersForRole(roleName, oldUserIdList, appName)
 	}
 
 	var userList []string
 	Db.Table(NS.TableName("admin")).Select("username").
-		Where("id in ?", userIdList).
-		Where("status = 10").Find(&userList)
+		Where("id in ?", userIdList).Find(&userList)
 
 	return Auth().AddUsersForRole(roleName, userList, appName)
 }
 
 // GetUsers 获取角色下所有用户的ID
-func (ser *rolesService) GetUsers(roleName string, appName string) (interface{}, error) {
+func (ser *rolesService) GetUsers(roleName string, appName string) ([]int, error) {
 	if appName == "" {
 		appName = "vuecmf"
 	}
@@ -151,7 +150,7 @@ func (ser *rolesService) GetUsers(roleName string, appName string) (interface{},
 		return nil, errors.New("该角色(" + roleName + ")没有分配任务用户")
 	}
 
-	var userIdList []string
+	var userIdList []int
 	Db.Table(NS.TableName("admin")).Select("id").
 		Where("username in ?", userList).
 		Where("status = 10").Find(&userIdList)
@@ -174,4 +173,21 @@ func (ser *rolesService) GetAllUsers() (interface{}, error) {
 		Where("is_super != 10").Find(&res)
 
 	return res, nil
+}
+
+//GetRoleNameList 根据角色ID获取角色名称
+func (ser *rolesService) GetRoleNameList(roleIdList []int) []string {
+	var res []string
+	Db.Table(NS.TableName("roles")).Select("role_name").Where("id in ?", roleIdList).Find(&res)
+	return res
+}
+
+//GetRoleIdList 根据角色名称获取角色ID
+func (ser *rolesService) GetRoleIdList(roleNameList []string) []int {
+	var res []int
+	Db.Table(NS.TableName("roles")).Select("id").
+		Where("role_name in ?", roleNameList).
+		Where("status = 10").
+		Find(&res)
+	return res
 }

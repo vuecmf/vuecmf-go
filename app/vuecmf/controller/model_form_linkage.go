@@ -9,8 +9,10 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type ModelFormLinkage struct {
@@ -22,8 +24,19 @@ func init() {
 	modelFormLinkage.TableName = "model_form_linkage"
 	modelFormLinkage.Model = &model.ModelFormLinkage{}
 	modelFormLinkage.ListData = &[]model.ModelFormLinkage{}
-	modelFormLinkage.SaveForm = &model.DataModelFormLinkageForm{}
 	modelFormLinkage.FilterFields = []string{""}
 
 	route.Register(modelFormLinkage, "POST", "vuecmf")
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *ModelFormLinkage) Save(c *gin.Context) {
+	saveForm := &model.DataModelFormLinkageForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Base().Create(saveForm.Data)
+		} else {
+			return service.Base().Update(saveForm.Data)
+		}
+	})
 }

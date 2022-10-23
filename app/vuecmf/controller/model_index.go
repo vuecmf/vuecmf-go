@@ -25,7 +25,6 @@ func init() {
 	modelIndex.TableName = "model_index"
 	modelIndex.Model = &model.ModelIndex{}
 	modelIndex.ListData = &[]model.ModelIndex{}
-	modelIndex.SaveForm = &model.DataModelIndexForm{}
 	modelIndex.FilterFields = []string{"index_type"}
 
 	route.Register(modelIndex, "POST", "vuecmf")

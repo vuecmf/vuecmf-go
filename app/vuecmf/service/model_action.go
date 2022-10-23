@@ -182,40 +182,38 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 			Where("role_name = ?", roleName).
 			Where("status = 10").Find(&pid)
 
-		if pid == 0 {
-			return nil, errors.New("当前角色没有父级角色")
-		}
+		if pid > 0 {
+			//父级角色
+			var pidRoleName string
+			Db.Table(NS.TableName("roles")).
+				Select("role_name").
+				Where("id = ?", pid).
+				Where("status = 10").Find(&pidRoleName)
 
-		//父级角色
-		var pidRoleName string
-		Db.Table(NS.TableName("roles")).
-			Select("role_name").
-			Where("id = ?", pid).
-			Where("status = 10").Find(&pidRoleName)
-
-		if pidRoleName == "" {
-			return nil, errors.New("没有获取到父级角色名称")
-		}
-
-		perList, err := Auth().GetPermissions(pidRoleName, nil, appName)
-		if err != nil {
-			return nil, err
-		}
-
-		for modelName, actionIdList := range perList {
-			var actionRes []row
-			Db.Table(NS.TableName("model_action")).Select("id, label").
-				Where("id in ?", actionIdList).
-				Where("status = 10").Find(&actionRes)
-			if res[modelName] == nil {
-				res[modelName] = make(map[string]string)
+			if pidRoleName == "" {
+				return nil, errors.New("没有获取到父级角色名称")
 			}
-			for _, ac := range actionRes {
-				res[modelName][ac.Id] = ac.Label
-			}
-		}
 
-		return res, nil
+			perList, err := Auth().GetPermissions(pidRoleName, nil, appName)
+			if err != nil {
+				return nil, err
+			}
+
+			for modelName, actionIdList := range perList {
+				var actionRes []row
+				Db.Table(NS.TableName("model_action")).Select("id, label").
+					Where("id in ?", actionIdList).
+					Where("status = 10").Find(&actionRes)
+				if res[modelName] == nil {
+					res[modelName] = make(map[string]string)
+				}
+				for _, ac := range actionRes {
+					res[modelName][ac.Id] = ac.Label
+				}
+			}
+
+			return res, nil
+		}
 	}
 
 	//否则，获取所有权限列表

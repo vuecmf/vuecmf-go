@@ -48,14 +48,23 @@ func Auth() *auth {
 }
 
 // AddRolesForUser 给指定用户添加角色
-func (au *auth) AddRolesForUser(username string, roles []string, appName string) (bool, error) {
+func (au *auth) AddRolesForUser(username string, roleIdList []int, appName string) (bool, error) {
 	if appName == "" {
 		appName = "vuecmf"
 	}
 
 	err := Db.Transaction(func(tx *gorm.DB) error {
-		_, err2 := au.Enforcer.AddRolesForUser(username, roles, appName)
-		return err2
+		rolesList := Roles().GetRoleNameList(roleIdList)
+		var err error
+		for _, roleName := range rolesList {
+			_, err2 := au.Enforcer.AddRoleForUser(username, roleName, appName)
+			if err2 != nil {
+				err = err2
+				break
+			}
+		}
+
+		return err
 	})
 
 	if err != nil {
@@ -130,10 +139,16 @@ func (au *auth) AddUsersForRole(role string, username []string, appName string) 
 }
 
 // DelUsersForRole 批量删除指定角色下的用户
-func (au *auth) DelUsersForRole(role string, username []string, appName string) (bool, error) {
+func (au *auth) DelUsersForRole(role string, userIdList []int, appName string) (bool, error) {
 	if appName == "" {
 		appName = "vuecmf"
 	}
+
+	if len(userIdList) == 0 {
+		return false, errors.New("该角色(" + role + ")没有分配用户")
+	}
+
+	username := Admin(appName).GetUserNames(userIdList)
 
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		for _, user := range username {
@@ -339,14 +354,19 @@ func (au *auth) GetUsers(role string, appName string) ([]string, error) {
 }
 
 // GetRoles 获取指定用户名下所有角色
-func (au *auth) GetRoles(username string, appName string) ([]string, error) {
+func (au *auth) GetRoles(username string, appName string) ([]int, error) {
 	if username == "" {
 		return nil, errors.New("用户名不能为空")
 	}
 	if appName == "" {
 		appName = "vuecmf"
 	}
-	return au.Enforcer.GetRolesForUser(username, appName)
+
+	roleNameList, err := au.Enforcer.GetRolesForUser(username, appName)
+	if err != nil {
+		return nil, err
+	}
+	return Roles().GetRoleIdList(roleNameList), nil
 }
 
 type roleList struct {

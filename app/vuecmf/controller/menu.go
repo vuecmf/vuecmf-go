@@ -26,7 +26,6 @@ func init() {
 	menu.TableName = "menu"
 	menu.Model = &model.Menu{}
 	menu.ListData = &[]model.Menu{}
-	menu.SaveForm = &model.DataMenuForm{}
 	menu.FilterFields = []string{"title", "icon"}
 
 	route.Register(menu, "POST", "vuecmf")
@@ -37,6 +36,18 @@ func (ctrl *Menu) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
 		return service.Menu().List(listParams)
+	})
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *Menu) Save(c *gin.Context) {
+	saveForm := &model.DataMenuForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Menu().Create(saveForm.Data)
+		} else {
+			return service.Menu().Update(saveForm.Data)
+		}
 	})
 }
 

@@ -33,24 +33,26 @@ type RolesTree []*Roles
 // ToTree 将列表数据转换树形结构
 func (m *Roles) ToTree(data []*Roles) RolesTree {
 	treeData := make(map[uint]*Roles)
+	idList := make([]uint, 0, len(data))
 	for _, val := range data {
 		treeData[val.Id] = val
+		idList = append(idList, val.Id)
 	}
 
 	var treeList RolesTree
 
-	for _, item := range treeData {
-		if item.Pid == 0 {
-			treeList = append(treeList, item)
+	for _, id := range idList {
+		if treeData[id].Pid == 0 {
+			treeList = append(treeList, treeData[id])
 			continue
 		}
-		if pItem, ok := treeData[item.Pid]; ok {
+		if pItem, ok := treeData[treeData[id].Pid]; ok {
 			if pItem.Children == nil {
-				children := RolesTree{item}
+				children := RolesTree{treeData[id]}
 				pItem.Children = &children
 				continue
 			}
-			*pItem.Children = append(*pItem.Children, item)
+			*pItem.Children = append(*pItem.Children, treeData[id])
 		}
 	}
 
@@ -59,9 +61,9 @@ func (m *Roles) ToTree(data []*Roles) RolesTree {
 }
 
 type roleUsersForm struct {
-	RoleName   string   `json:"role_name" form:"role_name" binding:"required" required_tips:"角色名(role_name)不能为空"`
-	UseridList []string `json:"userid_list" form:"userid_list"`
-	AppName    string   `json:"app_name" form:"app_name"`
+	RoleName   string `json:"role_name" form:"role_name" binding:"required" required_tips:"角色名(role_name)不能为空"`
+	UseridList []int  `json:"userid_list" form:"userid_list"`
+	AppName    string `json:"app_name" form:"app_name"`
 }
 
 // DataRoleUsersForm 角色的用户管理表单

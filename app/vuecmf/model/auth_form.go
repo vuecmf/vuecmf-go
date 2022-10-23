@@ -1,9 +1,9 @@
 package model
 
 type addRoleForm struct {
-	Username   string   `json:"username" form:"username" binding:"required" required_tips:"用户名不能为空"`
-	RoleIdList []string `json:"role_id_list" form:"role_id_list"`
-	AppName    string   `json:"app_name" form:"app_name"`
+	Username   string `json:"username" form:"username" binding:"required" required_tips:"用户名不能为空"`
+	RoleIdList []int  `json:"role_id_list" form:"role_id_list"`
+	AppName    string `json:"app_name" form:"app_name"`
 }
 
 // DataAddRoleForm 添加角色表单

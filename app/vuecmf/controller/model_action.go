@@ -24,14 +24,25 @@ func init() {
 	modelAction.TableName = "model_action"
 	modelAction.Model = &model.ModelAction{}
 	modelAction.ListData = &[]model.ModelAction{}
-	modelAction.SaveForm = &model.DataModelActionForm{}
 	modelAction.FilterFields = []string{"label", "api_path", "action_type"}
 
 	route.Register(modelAction, "POST", "vuecmf")
 }
 
+// Save 新增/更新 单条数据
+func (ctrl *ModelAction) Save(c *gin.Context) {
+	saveForm := &model.DataModelActionForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Base().Create(saveForm.Data)
+		} else {
+			return service.Base().Update(saveForm.Data)
+		}
+	})
+}
+
 // GetApiMap 获取API映射的路径
-func (ser *ModelAction) GetApiMap(c *gin.Context) {
+func (ctrl *ModelAction) GetApiMap(c *gin.Context) {
 	dataApiMapForm := &model.DataApiMapForm{}
 	common(c, dataApiMapForm, func() (interface{}, error) {
 		apiPath := service.ModelAction().GetApiMap(dataApiMapForm.Data.TableName, dataApiMapForm.Data.ActionType, dataApiMapForm.Data.AppId)
@@ -40,7 +51,7 @@ func (ser *ModelAction) GetApiMap(c *gin.Context) {
 }
 
 // GetActionList 获取所有模型的动作列表
-func (ser *ModelAction) GetActionList(c *gin.Context) {
+func (ctrl *ModelAction) GetActionList(c *gin.Context) {
 	dataActionListForm := &model.DataActionListForm{}
 	common(c, dataActionListForm, func() (interface{}, error) {
 		return service.ModelAction().GetActionList(dataActionListForm.Data.RoleName, dataActionListForm.Data.AppName)

@@ -9,8 +9,10 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type ModelRelation struct {
@@ -22,8 +24,19 @@ func init() {
 	modelRelation.TableName = "model_relation"
 	modelRelation.Model = &model.ModelRelation{}
 	modelRelation.ListData = &[]model.ModelRelation{}
-	modelRelation.SaveForm = &model.DataModelRelationForm{}
 	modelRelation.FilterFields = []string{"relation_show_field_id"}
 
 	route.Register(modelRelation, "POST", "vuecmf")
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *ModelRelation) Save(c *gin.Context) {
+	saveForm := &model.DataModelRelationForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Base().Create(saveForm.Data)
+		} else {
+			return service.Base().Update(saveForm.Data)
+		}
+	})
 }

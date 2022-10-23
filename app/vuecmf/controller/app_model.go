@@ -1,3 +1,11 @@
+// Package controller
+//+----------------------------------------------------------------------
+// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
 package controller
 
 import (
@@ -16,10 +24,21 @@ func init() {
 	appModel.TableName = "app_model"
 	appModel.Model = &model.AppModel{}
 	appModel.ListData = &[]model.AppModel{}
-	appModel.SaveForm = &model.DataAppModelForm{}
 	appModel.FilterFields = []string{""}
 
 	route.Register(appModel, "POST", "vuecmf")
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *AppModel) Save(c *gin.Context) {
+	saveForm := &model.DataAppModelForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Base().Create(saveForm.Data)
+		} else {
+			return service.Base().Update(saveForm.Data)
+		}
+	})
 }
 
 // GetModelList 获取应用下所有模型

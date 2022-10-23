@@ -26,12 +26,23 @@ func init() {
 	admin.TableName = "admin"
 	admin.Model = &model.Admin{}
 	admin.ListData = &[]model.Admin{}
-	admin.SaveForm = &model.DataAdminForm{}
 	admin.FilterFields = []string{"username", "email", "mobile", "token"}
 
 	admin.AppName = "vuecmf"
 
 	route.Register(admin, "POST", admin.AppName)
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *Admin) Save(c *gin.Context) {
+	saveForm := &model.DataAdminForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Base().Create(saveForm.Data)
+		} else {
+			return service.Base().Update(saveForm.Data)
+		}
+	})
 }
 
 // Login 用户登录

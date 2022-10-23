@@ -9,8 +9,10 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
 type ModelFormRules struct {
@@ -22,8 +24,19 @@ func init() {
 	modelFormRules.TableName = "model_form_rules"
 	modelFormRules.Model = &model.ModelFormRules{}
 	modelFormRules.ListData = &[]model.ModelFormRules{}
-	modelFormRules.SaveForm = &model.DataModelFormRulesForm{}
 	modelFormRules.FilterFields = []string{"rule_type", "rule_value", "error_tips"}
 
 	route.Register(modelFormRules, "POST", "vuecmf")
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *ModelFormRules) Save(c *gin.Context) {
+	saveForm := &model.DataModelFormRulesForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Base().Create(saveForm.Data)
+		} else {
+			return service.Base().Update(saveForm.Data)
+		}
+	})
 }

@@ -25,7 +25,6 @@ func init() {
 	roles.TableName = "roles"
 	roles.Model = &model.Roles{}
 	roles.ListData = &[]model.Roles{}
-	roles.SaveForm = &model.DataRolesForm{}
 	roles.FilterFields = []string{"role_name", "app_name", "id_path", "remark"}
 
 	route.Register(roles, "POST", "vuecmf")
@@ -36,6 +35,18 @@ func (ctrl *Roles) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
 	common(c, listParams, func() (interface{}, error) {
 		return service.Roles().List(listParams)
+	})
+}
+
+// Save 新增/更新 单条数据
+func (ctrl *Roles) Save(c *gin.Context) {
+	saveForm := &model.DataRolesForm{}
+	common(c, saveForm, func() (interface{}, error) {
+		if saveForm.Data.Id == uint(0) {
+			return service.Roles().Create(saveForm.Data)
+		} else {
+			return service.Roles().Update(saveForm.Data)
+		}
 	})
 }
 

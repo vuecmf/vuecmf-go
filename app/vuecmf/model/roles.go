@@ -42,7 +42,7 @@ func (m *Roles) ToTree(data []*Roles) RolesTree {
 	var treeList RolesTree
 
 	for _, id := range idList {
-		if treeData[id].Pid == 0 {
+		if treeData[id].Pid == 0 || treeData[treeData[id].Pid] == nil {
 			treeList = append(treeList, treeData[id])
 			continue
 		}

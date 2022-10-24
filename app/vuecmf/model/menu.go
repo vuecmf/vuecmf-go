@@ -51,7 +51,7 @@ func (m *Menu) ToTree(data []*Menu) MenuTree {
 	var treeList MenuTree
 
 	for _, id := range idList {
-		if treeData[id].Pid == 0 {
+		if treeData[id].Pid == 0 || treeData[treeData[id].Pid] == nil {
 			treeList = append(treeList, treeData[id])
 			continue
 		}

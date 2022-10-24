@@ -116,7 +116,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 	var treeList {{.model_name}}Tree
 
 	for _, id := range idList {
-		if treeData[id].Pid == 0 {
+		if treeData[id].Pid == 0 || treeData[treeData[id].Pid] == nil {
 			treeList = append(treeList, treeData[id])
 			continue
 		}

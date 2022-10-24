@@ -87,8 +87,33 @@ func (b *BaseService) getList(dataList interface{}, tableName string, params *he
 
 	modelCfg := ModelConfig().GetModelConfig(tableName)
 
-	if params.Data.Keywords != "" {
-		query = query.Where(modelCfg.LabelFieldName+" like ?", "%"+params.Data.Keywords+"%")
+	data := params.Data
+
+	if data.Keywords != "" {
+		query = query.Where(modelCfg.LabelFieldName+" like ?", "%"+data.Keywords+"%")
+	} else if len(data.Filter) > 0 {
+		//过滤掉空值
+		for k, v := range data.Filter {
+			switch val := v.(type) {
+			case string:
+				if val == "" {
+					delete(data.Filter, k)
+				}
+			case []string:
+				if len(val) == 0 {
+					delete(data.Filter, k)
+				}
+			case []interface{}:
+				if len(val) == 0 {
+					delete(data.Filter, k)
+				}
+			case []int:
+				if len(val) == 0 {
+					delete(data.Filter, k)
+				}
+			}
+		}
+		query = query.Where(data.Filter)
 	}
 
 	orderField := "sort_num"
@@ -135,8 +160,8 @@ func (b *BaseService) DeleteBatch(idList string, model interface{}) (int64, erro
 }
 
 type DropdownList struct {
-	Value    uint   `json:"value"`
-	Label 	string `json:"label"`
+	Value uint   `json:"value"`
+	Label string `json:"label"`
 }
 
 // Dropdown 获取模型的下拉列表

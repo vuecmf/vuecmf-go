@@ -139,3 +139,6 @@ func (s *appModelService) GetModelList(appId uint) (interface{}, error) {
 		Find(&res)
 	return res, nil
 }
+
+
+

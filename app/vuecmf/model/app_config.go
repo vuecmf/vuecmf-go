@@ -15,3 +15,13 @@ type AppConfig struct {
 type DataAppConfigForm struct {
 	Data *AppConfig `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
+
+//appNameForm 应用名表单
+type appNameForm struct {
+	AppName string  `json:"app_name" form:"app_name" binding:"required" required_tips:"应用名不能为空"`
+}
+
+//DataAppNameForm 提交应用名表单
+type DataAppNameForm struct {
+	Data *appNameForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
+}

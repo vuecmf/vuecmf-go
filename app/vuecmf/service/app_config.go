@@ -42,3 +42,28 @@ func (m *appConfigService) GetFullAppList() []*model.AppConfig {
 		Where("status = 10").Find(&res)
 	return res
 }
+
+type modelList struct {
+	Key      uint   `json:"key"`
+	Label    string `json:"label"`
+	Disabled bool   `json:"disabled"`
+}
+
+// GetAllModels 获取所有模型列表
+func (m *appConfigService) GetAllModels() interface{} {
+	var result []modelList
+	Db.Table(NS.TableName("model_config")).Select("id `key`, label, false disabled").
+		Where("status = 10").
+		Find(&result)
+	return result
+}
+
+//GetModels 根据应用名称获取模型ID
+func (m *appConfigService) GetModels(appName string) []int {
+	var res []int
+	Db.Table(NS.TableName("model_config")).Select("id").
+		Where("role_name in ?", roleNameList).
+		Where("status = 10").
+		Find(&res)
+	return res
+}

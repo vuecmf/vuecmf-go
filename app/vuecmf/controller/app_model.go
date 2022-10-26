@@ -48,3 +48,6 @@ func (ctrl *AppModel) GetModelList(c *gin.Context) {
 		return service.AppModel().GetModelList(modelListForm.Data.AppId)
 	})
 }
+
+
+

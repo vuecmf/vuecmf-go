@@ -40,3 +40,19 @@ func (ctrl *AppConfig) Save(c *gin.Context) {
 		}
 	})
 }
+
+// GetAllModels 获取所有模型
+func (ctrl *AppModel) GetAllModels(c *gin.Context) {
+	common(c, nil, func() (interface{}, error) {
+		res := service.AppConfig().GetAllModels()
+		return res, nil
+	})
+}
+
+// GetModels 获取应用的所有模型
+func (ctrl *AppModel) GetModels(c *gin.Context) {
+	dataAppNameForm := &model.DataAppNameForm{}
+	common(c, dataAppNameForm, func() (interface{}, error) {
+		return service.AppConfig().GetModels(dataAppNameForm.Data.AppName)
+	})
+}

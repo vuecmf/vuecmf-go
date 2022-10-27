@@ -42,7 +42,7 @@ func (ctrl *AppConfig) Save(c *gin.Context) {
 }
 
 // GetAllModels 获取所有模型
-func (ctrl *AppModel) GetAllModels(c *gin.Context) {
+func (ctrl *AppConfig) GetAllModels(c *gin.Context) {
 	common(c, nil, func() (interface{}, error) {
 		res := service.AppConfig().GetAllModels()
 		return res, nil
@@ -50,9 +50,22 @@ func (ctrl *AppModel) GetAllModels(c *gin.Context) {
 }
 
 // GetModels 获取应用的所有模型
-func (ctrl *AppModel) GetModels(c *gin.Context) {
-	dataAppNameForm := &model.DataAppNameForm{}
-	common(c, dataAppNameForm, func() (interface{}, error) {
-		return service.AppConfig().GetModels(dataAppNameForm.Data.AppName)
+func (ctrl *AppConfig) GetModels(c *gin.Context) {
+	dataAppIdForm := &model.DataAppIdForm{}
+	common(c, dataAppIdForm, func() (interface{}, error) {
+		return service.AppConfig().GetModels(dataAppIdForm.Data.AppId)
+	})
+}
+
+// AddModel 给应用添加模型
+func (ctrl *AppConfig) AddModel(c *gin.Context) {
+	dataAddModelForm := &model.DataAddModelForm{}
+	common(c, dataAddModelForm, func() (interface{}, error) {
+		if len(dataAddModelForm.Data.ModelIdList) == 0 {
+			//如果模型列表为空，即表示应用没有模型，则清空应用的所有模型
+			return service.AppConfig().DelAllModelsForApp(dataAddModelForm.Data.AppId)
+		} else {
+			return service.AppConfig().AddModelsForApp(dataAddModelForm.Data.AppId, dataAddModelForm.Data.ModelIdList)
+		}
 	})
 }

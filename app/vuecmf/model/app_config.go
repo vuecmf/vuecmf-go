@@ -16,12 +16,22 @@ type DataAppConfigForm struct {
 	Data *AppConfig `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
-//appNameForm 应用名表单
-type appNameForm struct {
-	AppName string  `json:"app_name" form:"app_name" binding:"required" required_tips:"应用名不能为空"`
+//appIdForm 应用名表单
+type appIdForm struct {
+	AppId uint  `json:"app_id" form:"app_id" binding:"required" required_tips:"应用ID不能为空"`
 }
 
-//DataAppNameForm 提交应用名表单
-type DataAppNameForm struct {
-	Data *appNameForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
+//DataAppIdForm 提交应用名表单
+type DataAppIdForm struct {
+	Data *appIdForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
+}
+
+type addModelForm struct {
+	AppId   uint `json:"app_id" form:"app_id" binding:"required" required_tips:"应用ID不能为空"`
+	ModelIdList []uint  `json:"model_id_list" form:"model_id_list"`
+}
+
+// DataAddModelForm 应用分配模型表单
+type DataAddModelForm struct {
+	Data *addModelForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }

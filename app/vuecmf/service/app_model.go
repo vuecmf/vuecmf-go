@@ -20,7 +20,7 @@ func AppModel() *appModelService {
 	return appModel
 }
 
-// Create 创建单条或多条数据, 成功返回影响行数
+// Create 创建单条
 func (s *appModelService) Create(data *model.AppModel) (int64, error) {
 	res := Db.Create(data)
 	if err := Make().MakeAppModel(data.AppId, data.ModelId); err != nil {

@@ -1145,6 +1145,95 @@ func (makeSer *makeService) DelIndex(modelFieldId string, modelId uint) error {
 	return err
 }
 
+//CreateApp 创建应用相关目录
+func(makeSer *makeService) CreateApp(appName string) error {
+	//先创建目录
+	appDir := "app/" + appName
+	if _, err := os.Stat(appDir); err != nil {
+		if err = os.MkdirAll(appDir, 0666); err != nil {
+			return errors.New("创建应用" + appName + "失败！" + err.Error())
+		}
+	}
+
+	//创建控制器目录
+	controllerDir := appDir + "/controller"
+	if _, err := os.Stat(controllerDir); err != nil {
+		if err = os.MkdirAll(controllerDir, 0666); err != nil {
+			return errors.New("创建控制器controller失败！" + err.Error())
+		}
+	}
+
+	//创建服务层目录
+	serviceDir := appDir + "/service"
+	if _, err := os.Stat(serviceDir); err != nil {
+		if err = os.MkdirAll(serviceDir, 0666); err != nil {
+			return errors.New("创建服务层目录service失败！" + err.Error())
+		}
+	}
+
+	//创建模型层目录
+	modelDir := appDir + "/model"
+	if _, err := os.Stat(modelDir); err != nil {
+		if err = os.MkdirAll(modelDir, 0666); err != nil {
+			return errors.New("创建模型层目录model失败！" + err.Error())
+		}
+	}
+
+	//创建视图层目录
+	viewDir := "views/" + appName
+	if _, err := os.Stat(viewDir); err != nil {
+		if err = os.MkdirAll(viewDir, 0666); err != nil {
+			return errors.New("创建视图层目录views失败！" + err.Error())
+		}
+	}
+	return nil
+}
+
+//RenameApp 重命名应用名称
+func(makeSer *makeService) RenameApp(appId uint, newAppName string) error {
+	var oldAppName string
+	Db.Table(NS.TableName("app_config")).Select("app_name").
+		Where("id = ?", appId).Find(&oldAppName)
+
+	if oldAppName == newAppName {
+		return nil
+	}
+
+	//重命名应用目录
+	oldAppDir := "app/" + oldAppName
+	newAppDir := "app/" + newAppName
+	//判断新目录是否已经存在
+	if _, err := os.Stat(newAppDir); err == nil {
+		return errors.New("应用目录" + newAppDir + "已存在!")
+	}
+	//重命名应用目录
+	if _, err := os.Stat(oldAppDir); err == nil {
+		if err = os.Rename(oldAppDir, newAppDir); err != nil {
+			return errors.New("应用" + oldAppDir + "更新失败！" + err.Error())
+		}
+	}
+
+	return nil
+}
+
+//RemoveApp 移除应用
+func(makeSer *makeService) RemoveApp(appId uint) error {
+	var appName string
+	Db.Table(NS.TableName("app_config")).Select("app_name").
+		Where("id = ?", appId).Find(&appName)
+
+	appDir := "app/" + appName
+
+	if _, err := os.Stat(appDir); err == nil {
+		if err = os.RemoveAll(appDir); err != nil {
+			return errors.New("应用" + appName + "移除失败！" + err.Error())
+		}
+	}else{
+		return errors.New("应用" + appName + "移除失败！" + err.Error())
+	}
+	return nil
+}
+
 var makeSer *makeService
 
 // Make 获取make服务实例

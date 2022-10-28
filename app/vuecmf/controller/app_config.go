@@ -9,6 +9,7 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
@@ -34,10 +35,34 @@ func (ctrl *AppConfig) Save(c *gin.Context) {
 	saveForm := &model.DataAppConfigForm{}
 	common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
+			//创建应用目录
+			if err := service.Make().CreateApp(saveForm.Data.AppName); err != nil {
+				return nil, err
+			}
 			return service.Base().Create(saveForm.Data)
 		} else {
+			//更新应用目录
+			if err := service.Make().RenameApp(saveForm.Data.Id, saveForm.Data.AppName); err != nil {
+				return nil, err
+			}
 			return service.Base().Update(saveForm.Data)
 		}
+	})
+}
+
+// Delete 根据ID删除单条数据
+func (ctrl *AppConfig) Delete(c *gin.Context) {
+	data := &model.DataIdForm{}
+	common(c, data, func() (interface{}, error) {
+		//先检查应用下是否存在模型，若存在则不允许删除
+		if num := service.AppConfig().GetAppModelCount(data.Data.Id); num > 0 {
+			return nil, errors.New("不允许删除有分配模型的应用！")
+		}
+		//移除应用相关目录
+		if err := service.Make().RemoveApp(data.Data.Id); err != nil {
+			return nil, err
+		}
+		return service.Base().Delete(data.Data.Id, ctrl.Model)
 	})
 }
 

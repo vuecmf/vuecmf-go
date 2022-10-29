@@ -34,7 +34,7 @@ func init() {
 // Index 列表页
 func (ctrl *Menu) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
-	common(c, listParams, func() (interface{}, error) {
+	Common(c, listParams, func() (interface{}, error) {
 		return service.Menu().List(listParams)
 	})
 }
@@ -42,7 +42,7 @@ func (ctrl *Menu) Index(c *gin.Context) {
 // Save 新增/更新 单条数据
 func (ctrl *Menu) Save(c *gin.Context) {
 	saveForm := &model.DataMenuForm{}
-	common(c, saveForm, func() (interface{}, error) {
+	Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
 			return service.Menu().Create(saveForm.Data)
 		} else {
@@ -54,7 +54,7 @@ func (ctrl *Menu) Save(c *gin.Context) {
 // Nav 获取用户的导航菜单列表
 func (ctrl *Menu) Nav(c *gin.Context) {
 	dataUsernameForm := &model.DataUsernameForm{}
-	common(c, dataUsernameForm, func() (interface{}, error) {
+	Common(c, dataUsernameForm, func() (interface{}, error) {
 		isSuper := app.Request(c).GetCtxVal("is_super")
 		return service.Menu().Nav(dataUsernameForm.Data.Username, isSuper)
 	})

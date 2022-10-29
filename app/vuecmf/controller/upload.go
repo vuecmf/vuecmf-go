@@ -34,7 +34,7 @@ func init() {
 // Save 新增/更新 单条数据
 func (ctrl *Upload) Save(c *gin.Context) {
 	saveForm := &model.DataUploadForm{}
-	common(c, saveForm, func() (interface{}, error) {
+	Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
 			return service.Base().Create(saveForm.Data)
 		} else {
@@ -45,7 +45,7 @@ func (ctrl *Upload) Save(c *gin.Context) {
 
 // Index 文件上传
 func (ctrl *Upload) Index(c *gin.Context) {
-	common(c, nil, func() (interface{}, error) {
+	Common(c, nil, func() (interface{}, error) {
 		fieldName := app.Request(c).Post("field_name")
 		if fieldName == "" {
 			return nil, errors.New("上传字段名(field_name)不能为空")

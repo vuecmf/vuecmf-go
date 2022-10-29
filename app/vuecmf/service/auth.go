@@ -48,16 +48,12 @@ func Auth() *auth {
 }
 
 // AddRolesForUser 给指定用户添加角色
-func (au *auth) AddRolesForUser(username string, roleIdList []int, appName string) (bool, error) {
-	if appName == "" {
-		appName = "vuecmf"
-	}
-
+func (au *auth) AddRolesForUser(username string, roleIdList []int) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		rolesList := Roles().GetRoleNameList(roleIdList)
 		var err error
 		for _, roleName := range rolesList {
-			_, err2 := au.Enforcer.AddRoleForUser(username, roleName, appName)
+			_, err2 := au.Enforcer.AddRoleForUser(username, roleName, "vuecmf")
 			if err2 != nil {
 				err = err2
 				break
@@ -74,14 +70,10 @@ func (au *auth) AddRolesForUser(username string, roleIdList []int, appName strin
 }
 
 // DelRolesForUser 批量删除指定用户下的角色
-func (au *auth) DelRolesForUser(username string, roles []string, appName string) (bool, error) {
-	if appName == "" {
-		appName = "vuecmf"
-	}
-
+func (au *auth) DelRolesForUser(username string, roles []string) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		for _, role := range roles {
-			_, err2 := au.Enforcer.DeleteRoleForUser(username, role, appName)
+			_, err2 := au.Enforcer.DeleteRoleForUser(username, role, "vuecmf")
 			if err2 != nil {
 				return err2
 			}
@@ -96,13 +88,9 @@ func (au *auth) DelRolesForUser(username string, roles []string, appName string)
 }
 
 // DelAllRolesForUser 删除用户的所有角色
-func (au *auth) DelAllRolesForUser(username string, appName string) (bool, error) {
-	if appName == "" {
-		appName = "vuecmf"
-	}
-
+func (au *auth) DelAllRolesForUser(username string) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
-		_, err2 := au.Enforcer.DeleteRolesForUser(username, appName)
+		_, err2 := au.Enforcer.DeleteRolesForUser(username, "vuecmf")
 		if err2 != nil {
 			return err2
 		}
@@ -116,15 +104,11 @@ func (au *auth) DelAllRolesForUser(username string, appName string) (bool, error
 }
 
 // AddUsersForRole 给角色分配用户
-func (au *auth) AddUsersForRole(role string, username []string, appName string) (bool, error) {
-	if appName == "" {
-		appName = "vuecmf"
-	}
-
+func (au *auth) AddUsersForRole(role string, username []string) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		roleArr := []string{role}
 		for _, user := range username {
-			_, err2 := au.Enforcer.AddRolesForUser(user, roleArr, appName)
+			_, err2 := au.Enforcer.AddRolesForUser(user, roleArr, "vuecmf")
 			if err2 != nil {
 				return err2
 			}
@@ -139,20 +123,16 @@ func (au *auth) AddUsersForRole(role string, username []string, appName string) 
 }
 
 // DelUsersForRole 批量删除指定角色下的用户
-func (au *auth) DelUsersForRole(role string, userIdList []int, appName string) (bool, error) {
-	if appName == "" {
-		appName = "vuecmf"
-	}
-
+func (au *auth) DelUsersForRole(role string, userIdList []int) (bool, error) {
 	if len(userIdList) == 0 {
 		return false, errors.New("该角色(" + role + ")没有分配用户")
 	}
 
-	username := Admin(appName).GetUserNames(userIdList)
+	username := Admin().GetUserNames(userIdList)
 
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		for _, user := range username {
-			_, err2 := au.Enforcer.DeleteRoleForUser(user, role, appName)
+			_, err2 := au.Enforcer.DeleteRoleForUser(user, role, "vuecmf")
 			if err2 != nil {
 				return err2
 			}
@@ -245,13 +225,9 @@ func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, err
 }
 
 // GetPermissions 获取(用户或角色)所有权限ID列表
-func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName string) (map[string][]string, error) {
+func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[string][]string, error) {
 	if userOrRole == "" {
 		return nil, errors.New("用户或角色不能为空")
-	}
-
-	if appName == "" {
-		appName = "vuecmf"
 	}
 
 	var res = make(map[string][]string)
@@ -261,38 +237,58 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 		Label string
 	}
 
-	if isSuper == 10 {
-		//超级管理员拥有所有权限
-		var actionList []action
+	appList := AppConfig().GetAuthAppList()
+	for _, appName := range appList {
+		if isSuper == 10 {
+			//超级管理员拥有所有权限
+			var actionList []action
 
-		Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
-			Joins("left join "+NS.TableName("model_config")+" MC on MA.model_id = MC.id").
-			Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
-			Where("AC.app_name = ?", appName).
-			Where("MA.status = 10").
-			Where("MC.status = 10").
-			Find(&actionList)
+			Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
+				Joins("left join "+NS.TableName("model_config")+" MC on MA.model_id = MC.id").
+				Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
+				Where("AC.app_name = ?", appName).
+				Where("MA.status = 10").
+				Where("MC.status = 10").
+				Find(&actionList)
 
-		for _, item := range actionList {
-			res[item.Label] = append(res[item.Label], item.Id)
-		}
-
-	} else {
-		data, err := au.Enforcer.GetImplicitPermissionsForUser(userOrRole, appName)
-		if err != nil {
-			return nil, err
-		}
-
-		var pathList []string //API请求地址列表
-		n := 0
-
-		for _, val := range data {
-			pathList = append(pathList, "/"+val[1]+"/"+val[2]+"/"+val[3])
-			if val[3] == "index" {
-				pathList = append(pathList, "/"+val[1]+"/"+val[2])
+			for _, item := range actionList {
+				res[item.Label] = append(res[item.Label], item.Id)
 			}
-			n++
-			if n%100 == 0 {
+
+		} else {
+			data, err := au.Enforcer.GetImplicitPermissionsForUser(userOrRole, appName)
+			if err != nil {
+				return nil, err
+			}
+
+			var pathList []string //API请求地址列表
+			n := 0
+
+			for _, val := range data {
+				pathList = append(pathList, "/"+val[1]+"/"+val[2]+"/"+val[3])
+				if val[3] == "index" {
+					pathList = append(pathList, "/"+val[1]+"/"+val[2])
+				}
+				n++
+				if n%100 == 0 {
+					var actionList []action
+					Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
+						Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
+						Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
+						Where("AC.app_name = ?", appName).
+						Where("MA.api_path in ?", pathList).
+						Where("MA.status = 10").
+						Where("MC.status = 10").
+						Find(&actionList)
+
+					for _, item := range actionList {
+						res[item.Label] = append(res[item.Label], item.Id)
+					}
+					pathList = nil
+				}
+			}
+
+			if pathList != nil {
 				var actionList []action
 				Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
 					Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
@@ -306,23 +302,6 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 				for _, item := range actionList {
 					res[item.Label] = append(res[item.Label], item.Id)
 				}
-				pathList = nil
-			}
-		}
-
-		if pathList != nil {
-			var actionList []action
-			Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
-				Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
-				Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
-				Where("AC.app_name = ?", appName).
-				Where("MA.api_path in ?", pathList).
-				Where("MA.status = 10").
-				Where("MC.status = 10").
-				Find(&actionList)
-
-			for _, item := range actionList {
-				res[item.Label] = append(res[item.Label], item.Id)
 			}
 		}
 	}
@@ -331,38 +310,28 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}, appName s
 }
 
 // GetPermissionsForModelLabel 获取指定模型的权限ID列表
-func (au *auth) GetPermissionsForModelLabel(userOrRole string, isSuper interface{}, modelLabel string, appName string) ([]string, error) {
-	if appName == "" {
-		appName = "vuecmf"
-	}
-	res, err := au.GetPermissions(userOrRole, isSuper, appName)
+/*func (au *auth) GetPermissionsForModelLabel(userOrRole string, isSuper interface{}, modelLabel string) ([]string, error) {
+	res, err := au.GetPermissions(userOrRole, isSuper)
 	if err != nil {
 		return nil, err
 	}
 	return res[modelLabel], nil
-}
+}*/
 
 // GetUsers 获取指定角色下所有用户
-func (au *auth) GetUsers(role string, appName string) ([]string, error) {
+func (au *auth) GetUsers(role string) ([]string, error) {
 	if role == "" {
 		return nil, errors.New("角色不能为空")
 	}
-	if appName == "" {
-		appName = "vuecmf"
-	}
-	return au.Enforcer.GetUsersForRole(role, appName)
+	return au.Enforcer.GetUsersForRole(role, "vuecmf")
 }
 
 // GetRoles 获取指定用户名下所有角色
-func (au *auth) GetRoles(username string, appName string) ([]int, error) {
+func (au *auth) GetRoles(username string) ([]int, error) {
 	if username == "" {
 		return nil, errors.New("用户名不能为空")
 	}
-	if appName == "" {
-		appName = "vuecmf"
-	}
-
-	roleNameList, err := au.Enforcer.GetRolesForUser(username, appName)
+	roleNameList, err := au.Enforcer.GetRolesForUser(username, "vuecmf")
 	if err != nil {
 		return nil, err
 	}

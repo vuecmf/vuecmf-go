@@ -85,13 +85,13 @@ func (ser *menuService) Update(data *model.Menu) (int64, error) {
 func (ser *menuService) List(params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
 		//拉取列表的字段信息
-		return ser.getFieldList(ser.TableName, params.Data.Filter)
+		return ser.GetFieldList(ser.TableName, params.Data.Filter)
 	} else {
 		//拉取列表的数据
 		var menuList []*model.Menu
 		var res = make(map[string]interface{})
 
-		ser.getList(&menuList, ser.TableName, params)
+		ser.GetList(&menuList, ser.TableName, params)
 
 		//转换成树形列表
 		tree := model.MenuModel().ToTree(menuList)
@@ -107,20 +107,12 @@ func (ser *menuService) Nav(username string, isSuper interface{}) (interface{}, 
 	apiIdList := ModelAction().GetNotAuthActionIds()
 
 	//再取出需要授权的应用下有权限的动作ID
-	appList := AppConfig().GetAuthAppList()
-	for _, appName := range appList {
-		idList, err := Auth().GetPermissions(username, isSuper, appName)
-		if err != nil {
-			break
-		}
-
-		for _, val := range idList {
-			apiIdList = append(apiIdList, val...)
-		}
-	}
-
+	idList, err := Auth().GetPermissions(username, isSuper)
 	if err != nil {
 		return nil, err
+	}
+	for _, val := range idList {
+		apiIdList = append(apiIdList, val...)
 	}
 
 	var res = make(map[string]interface{})

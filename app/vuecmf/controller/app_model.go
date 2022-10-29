@@ -32,7 +32,7 @@ func init() {
 // Save 新增/更新 单条数据
 func (ctrl *AppModel) Save(c *gin.Context) {
 	saveForm := &model.DataAppModelForm{}
-	common(c, saveForm, func() (interface{}, error) {
+	Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
 			return service.Base().Create(saveForm.Data)
 		} else {
@@ -44,10 +44,7 @@ func (ctrl *AppModel) Save(c *gin.Context) {
 // GetModelList 获取应用下所有模型
 func (ctrl *AppModel) GetModelList(c *gin.Context) {
 	modelListForm := &model.DataModelListForm{}
-	common(c, modelListForm, func() (interface{}, error) {
+	Common(c, modelListForm, func() (interface{}, error) {
 		return service.AppModel().GetModelList(modelListForm.Data.AppId)
 	})
 }
-
-
-

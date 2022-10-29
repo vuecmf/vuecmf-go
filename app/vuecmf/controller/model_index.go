@@ -33,7 +33,7 @@ func init() {
 // Save 新增/更新 单条数据
 func (ctrl *ModelIndex) Save(c *gin.Context) {
 	saveForm := &model.DataModelIndexForm{}
-	common(c, saveForm, func() (interface{}, error) {
+	Common(c, saveForm, func() (interface{}, error) {
 		saveData := &model.ModelIndex{}
 		saveData.Id = saveForm.Data.Id
 		saveData.ModelId = saveForm.Data.ModelId

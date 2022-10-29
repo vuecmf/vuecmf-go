@@ -26,8 +26,8 @@ type Base struct {
 	AppName      string      //当前应用标识
 }
 
-// common 控制器公共入口方法
-func common(c *gin.Context, formParams interface{}, fun func() (interface{}, error)) {
+//Common 控制器公共入口方法
+func Common(c *gin.Context, formParams interface{}, fun func() (interface{}, error)) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println("请求异常：", err)
@@ -72,7 +72,7 @@ func common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 // Index 列表页
 func (ctrl *Base) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
-	common(c, listParams, func() (interface{}, error) {
+	Common(c, listParams, func() (interface{}, error) {
 		return service.Base().CommonList(ctrl.ListData, ctrl.TableName, ctrl.FilterFields, listParams)
 	})
 }
@@ -80,7 +80,7 @@ func (ctrl *Base) Index(c *gin.Context) {
 // SaveAll 批量添加多条数据
 func (ctrl *Base) SaveAll(c *gin.Context) {
 	data := &model.DataBatchForm{}
-	common(c, data, func() (interface{}, error) {
+	Common(c, data, func() (interface{}, error) {
 		err := json.Unmarshal([]byte(data.Data), &ctrl.ListData)
 		if err != nil {
 			return nil, err
@@ -92,7 +92,7 @@ func (ctrl *Base) SaveAll(c *gin.Context) {
 // Detail 根据ID获取详情
 func (ctrl *Base) Detail(c *gin.Context) {
 	data := &model.DataIdForm{}
-	common(c, data, func() (interface{}, error) {
+	Common(c, data, func() (interface{}, error) {
 		err := service.Base().Detail(data.Data.Id, ctrl.Model)
 		return ctrl.Model, err
 	})
@@ -101,7 +101,7 @@ func (ctrl *Base) Detail(c *gin.Context) {
 // Delete 根据ID删除单条数据
 func (ctrl *Base) Delete(c *gin.Context) {
 	data := &model.DataIdForm{}
-	common(c, data, func() (interface{}, error) {
+	Common(c, data, func() (interface{}, error) {
 		return service.Base().Delete(data.Data.Id, ctrl.Model)
 	})
 }
@@ -109,7 +109,7 @@ func (ctrl *Base) Delete(c *gin.Context) {
 // DeleteBatch 根据ID列表批量删除多条数据
 func (ctrl *Base) DeleteBatch(c *gin.Context) {
 	data := &model.DataIdListForm{}
-	common(c, data, func() (interface{}, error) {
+	Common(c, data, func() (interface{}, error) {
 		return service.Base().DeleteBatch(data.Data.IdList, ctrl.Model)
 	})
 }
@@ -117,7 +117,7 @@ func (ctrl *Base) DeleteBatch(c *gin.Context) {
 // Dropdown 下拉列表数据
 func (ctrl *Base) Dropdown(c *gin.Context) {
 	data := &model.DataDropdownForm{}
-	common(c, data, func() (interface{}, error) {
+	Common(c, data, func() (interface{}, error) {
 		return service.Base().Dropdown(data.Data, ctrl.TableName)
 	})
 }

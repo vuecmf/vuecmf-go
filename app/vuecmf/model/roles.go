@@ -4,7 +4,6 @@ package model
 type Roles struct {
 	Id       uint   `json:"id" form:"id"  gorm:"column:id;primaryKey;autoIncrement;size:32;not null;comment:自增ID"`
 	RoleName string `json:"role_name" form:"role_name" binding:"required" required_tips:"角色名称必填" gorm:"column:role_name;size:64;uniqueIndex:unique_index;not null;default:'';comment:用户的角色名称"`
-	AppName  string `json:"app_name" form:"app_name"  gorm:"column:app_name;size:64;uniqueIndex:unique_index;not null;default:'';comment:角色所属应用名称"`
 	Pid      uint   `json:"pid" form:"pid"  gorm:"column:pid;size:32;not null;default:0;comment:父级ID"`
 	IdPath   string `json:"id_path" form:"id_path"  gorm:"column:id_path;size:255;not null;default:'';comment:角色ID层级路径"`
 	Remark   string `json:"remark" form:"remark"  gorm:"column:remark;size:255;not null;default:'';comment:角色的备注信息"`
@@ -63,7 +62,6 @@ func (m *Roles) ToTree(data []*Roles) RolesTree {
 type roleUsersForm struct {
 	RoleName   string `json:"role_name" form:"role_name" binding:"required" required_tips:"角色名(role_name)不能为空"`
 	UseridList []int  `json:"userid_list" form:"userid_list"`
-	AppName    string `json:"app_name" form:"app_name"`
 }
 
 // DataRoleUsersForm 角色的用户管理表单

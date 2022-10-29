@@ -33,7 +33,7 @@ func init() {
 // Index 列表页
 func (ctrl *Roles) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
-	common(c, listParams, func() (interface{}, error) {
+	Common(c, listParams, func() (interface{}, error) {
 		return service.Roles().List(listParams)
 	})
 }
@@ -41,7 +41,7 @@ func (ctrl *Roles) Index(c *gin.Context) {
 // Save 新增/更新 单条数据
 func (ctrl *Roles) Save(c *gin.Context) {
 	saveForm := &model.DataRolesForm{}
-	common(c, saveForm, func() (interface{}, error) {
+	Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
 			return service.Roles().Create(saveForm.Data)
 		} else {
@@ -53,23 +53,23 @@ func (ctrl *Roles) Save(c *gin.Context) {
 // AddUsers 给角色分配用户
 func (ctrl *Roles) AddUsers(c *gin.Context) {
 	roleUsersForm := &model.DataRoleUsersForm{}
-	common(c, roleUsersForm, func() (interface{}, error) {
-		return service.Roles().AddUsers(roleUsersForm.Data.RoleName, roleUsersForm.Data.UseridList, roleUsersForm.Data.AppName)
+	Common(c, roleUsersForm, func() (interface{}, error) {
+		return service.Roles().AddUsers(roleUsersForm.Data.RoleName, roleUsersForm.Data.UseridList)
 	})
 }
 
 // DelUsers 删除角色下的用户
 func (ctrl *Roles) DelUsers(c *gin.Context) {
 	roleUsersForm := &model.DataRoleUsersForm{}
-	common(c, roleUsersForm, func() (interface{}, error) {
-		return service.Auth().DelUsersForRole(roleUsersForm.Data.RoleName, roleUsersForm.Data.UseridList, roleUsersForm.Data.AppName)
+	Common(c, roleUsersForm, func() (interface{}, error) {
+		return service.Auth().DelUsersForRole(roleUsersForm.Data.RoleName, roleUsersForm.Data.UseridList)
 	})
 }
 
 // AddPermission 给角色分配权限项
 func (ctrl *Roles) AddPermission(c *gin.Context) {
 	permissionForm := &model.DataPermissionForm{}
-	common(c, permissionForm, func() (interface{}, error) {
+	Common(c, permissionForm, func() (interface{}, error) {
 		return service.Auth().AddPermission(permissionForm.Data.RoleName, permissionForm.Data.ActionId)
 	})
 }
@@ -77,7 +77,7 @@ func (ctrl *Roles) AddPermission(c *gin.Context) {
 // DelPermission 删除角色的权限项
 func (ctrl *Roles) DelPermission(c *gin.Context) {
 	permissionForm := &model.DataPermissionForm{}
-	common(c, permissionForm, func() (interface{}, error) {
+	Common(c, permissionForm, func() (interface{}, error) {
 		return service.Auth().DelPermission(permissionForm.Data.RoleName, permissionForm.Data.ActionId)
 	})
 }
@@ -85,22 +85,22 @@ func (ctrl *Roles) DelPermission(c *gin.Context) {
 // GetUsers 获取角色下所有用户的ID
 func (ctrl *Roles) GetUsers(c *gin.Context) {
 	roleForm := &model.DataRoleForm{}
-	common(c, roleForm, func() (interface{}, error) {
-		return service.Roles().GetUsers(roleForm.Data.RoleName, roleForm.Data.AppName)
+	Common(c, roleForm, func() (interface{}, error) {
+		return service.Roles().GetUsers(roleForm.Data.RoleName)
 	})
 }
 
 // GetPermission 获取角色的所有权限项
 func (ctrl *Roles) GetPermission(c *gin.Context) {
 	roleForm := &model.DataRoleForm{}
-	common(c, roleForm, func() (interface{}, error) {
-		return service.Auth().GetPermissions(roleForm.Data.RoleName, nil, roleForm.Data.AppName)
+	Common(c, roleForm, func() (interface{}, error) {
+		return service.Auth().GetPermissions(roleForm.Data.RoleName, nil)
 	})
 }
 
 // GetAllUsers 获取所有用户
 func (ctrl *Roles) GetAllUsers(c *gin.Context) {
-	common(c, nil, func() (interface{}, error) {
+	Common(c, nil, func() (interface{}, error) {
 		return service.Roles().GetAllUsers()
 	})
 }

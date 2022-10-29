@@ -162,16 +162,12 @@ func (ser *modelActionService) GetNotAuthActionIds() []string {
 }
 
 // GetActionList 获取所有模型的动作列表
-func (ser *modelActionService) GetActionList(roleName string, appName string) (interface{}, error) {
+func (ser *modelActionService) GetActionList(roleName string) (interface{}, error) {
 	var res = make(map[string]map[string]string)
 	type row struct {
 		Id         string
 		Label      string
 		ModelLabel string
-	}
-
-	if appName == "" {
-		appName = "vuecmf"
 	}
 
 	if roleName != "" {
@@ -194,7 +190,7 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 				return nil, errors.New("没有获取到父级角色名称")
 			}
 
-			perList, err := Auth().GetPermissions(pidRoleName, nil, appName)
+			perList, err := Auth().GetPermissions(pidRoleName, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -217,18 +213,21 @@ func (ser *modelActionService) GetActionList(roleName string, appName string) (i
 	}
 
 	//否则，获取所有权限列表
-	var actionRes []row
-	Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label model_label,  MA.label").
-		Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
-		Joins("left join "+NS.TableName("model_config")+" MC on MC.id = MA.model_id").
-		Where("AC.app_name = ?", appName).
-		Where("MA.status = 10").Find(&actionRes)
+	appList := AppConfig().GetAuthAppList()
+	for _, appName := range appList {
+		var actionRes []row
+		Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label model_label,  MA.label").
+			Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
+			Joins("left join "+NS.TableName("model_config")+" MC on MC.id = MA.model_id").
+			Where("AC.app_name = ?", appName).
+			Where("MA.status = 10").Find(&actionRes)
 
-	for _, ac := range actionRes {
-		if res[ac.ModelLabel] == nil {
-			res[ac.ModelLabel] = make(map[string]string)
+		for _, ac := range actionRes {
+			if res[ac.ModelLabel] == nil {
+				res[ac.ModelLabel] = make(map[string]string)
+			}
+			res[ac.ModelLabel][ac.Id] = ac.Label
 		}
-		res[ac.ModelLabel][ac.Id] = ac.Label
 	}
 
 	return res, nil

@@ -33,7 +33,7 @@ func init() {
 // Save 新增/更新 单条数据
 func (ctrl *AppConfig) Save(c *gin.Context) {
 	saveForm := &model.DataAppConfigForm{}
-	common(c, saveForm, func() (interface{}, error) {
+	Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
 			//创建应用目录
 			if err := service.Make().CreateApp(saveForm.Data.AppName); err != nil {
@@ -53,7 +53,7 @@ func (ctrl *AppConfig) Save(c *gin.Context) {
 // Delete 根据ID删除单条数据
 func (ctrl *AppConfig) Delete(c *gin.Context) {
 	data := &model.DataIdForm{}
-	common(c, data, func() (interface{}, error) {
+	Common(c, data, func() (interface{}, error) {
 		//先检查应用下是否存在模型，若存在则不允许删除
 		if num := service.AppConfig().GetAppModelCount(data.Data.Id); num > 0 {
 			return nil, errors.New("不允许删除有分配模型的应用！")
@@ -68,7 +68,7 @@ func (ctrl *AppConfig) Delete(c *gin.Context) {
 
 // GetAllModels 获取所有模型
 func (ctrl *AppConfig) GetAllModels(c *gin.Context) {
-	common(c, nil, func() (interface{}, error) {
+	Common(c, nil, func() (interface{}, error) {
 		res := service.AppConfig().GetAllModels()
 		return res, nil
 	})
@@ -77,7 +77,7 @@ func (ctrl *AppConfig) GetAllModels(c *gin.Context) {
 // GetModels 获取应用的所有模型
 func (ctrl *AppConfig) GetModels(c *gin.Context) {
 	dataAppIdForm := &model.DataAppIdForm{}
-	common(c, dataAppIdForm, func() (interface{}, error) {
+	Common(c, dataAppIdForm, func() (interface{}, error) {
 		return service.AppConfig().GetModels(dataAppIdForm.Data.AppId)
 	})
 }
@@ -85,7 +85,7 @@ func (ctrl *AppConfig) GetModels(c *gin.Context) {
 // AddModel 给应用添加模型
 func (ctrl *AppConfig) AddModel(c *gin.Context) {
 	dataAddModelForm := &model.DataAddModelForm{}
-	common(c, dataAddModelForm, func() (interface{}, error) {
+	Common(c, dataAddModelForm, func() (interface{}, error) {
 		if len(dataAddModelForm.Data.ModelIdList) == 0 {
 			//如果模型列表为空，即表示应用没有模型，则清空应用的所有模型
 			return service.AppConfig().DelAllModelsForApp(dataAddModelForm.Data.AppId)

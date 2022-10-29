@@ -3,7 +3,6 @@ package model
 type addRoleForm struct {
 	Username   string `json:"username" form:"username" binding:"required" required_tips:"用户名不能为空"`
 	RoleIdList []int  `json:"role_id_list" form:"role_id_list"`
-	AppName    string `json:"app_name" form:"app_name"`
 }
 
 // DataAddRoleForm 添加角色表单
@@ -14,7 +13,6 @@ type DataAddRoleForm struct {
 type delRoleForm struct {
 	Username string   `json:"username" form:"username" binding:"required" required_tips:"用户名不能为空"`
 	RoleName []string `json:"role_name" form:"role_name" binding:"required" required_tips:"角色不能为空"`
-	AppName  string   `json:"app_name" form:"app_name"`
 }
 
 // DataDelRoleForm 删除角色表单
@@ -34,7 +32,6 @@ type DataPermissionForm struct {
 
 type roleForm struct {
 	RoleName string `json:"role_name" form:"role_name" binding:"required" required_tips:"角色不能为空"`
-	AppName  string `json:"app_name" form:"app_name"`
 }
 
 // DataRoleForm 角色权限表单
@@ -44,7 +41,6 @@ type DataRoleForm struct {
 
 type usernameForm struct {
 	Username string `json:"username" form:"username" binding:"required" required_tips:"用户名不能为空"`
-	AppName  string `json:"app_name" form:"app_name"`
 }
 
 // DataUsernameForm 用户权限表单

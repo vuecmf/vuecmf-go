@@ -94,8 +94,8 @@ func regRouteAndMiddleware(eng *gin.Engine) {
 		rg := eng.Group("/" + groupName + "/")
 
 		//加入中间件
-		if mw[groupName] != nil {
-			for _, handle := range mw[groupName] {
+		if mw != nil {
+			for _, handle := range mw {
 				rg.Use(handle)
 			}
 		}

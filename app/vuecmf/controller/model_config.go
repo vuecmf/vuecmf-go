@@ -33,7 +33,7 @@ func init() {
 // Save 新增/更新 单条数据
 func (ctrl *ModelConfig) Save(c *gin.Context) {
 	saveForm := &model.DataModelConfigForm{}
-	common(c, saveForm, func() (interface{}, error) {
+	Common(c, saveForm, func() (interface{}, error) {
 		saveData := &model.ModelConfig{}
 		saveData.Id = saveForm.Data.Id
 		saveData.TableName = saveForm.Data.TableName

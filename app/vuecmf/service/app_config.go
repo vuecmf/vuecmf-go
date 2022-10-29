@@ -39,10 +39,16 @@ func (s *appConfigService) GetAuthAppList() []string {
 }
 
 //GetFullAppList 获取所有可用的应用列表
-func (s *appConfigService) GetFullAppList() []*model.AppConfig {
-	var res []*model.AppConfig
+func (s *appConfigService) GetFullAppList() map[string]*model.AppConfig {
+	var ac []*model.AppConfig
+	var res = make(map[string]*model.AppConfig)
 	Db.Table(NS.TableName("app_config")).Select("app_name, login_enable, auth_enable, exclusion_url").
-		Where("status = 10").Find(&res)
+		Where("status = 10").Find(&ac)
+
+	for _, v := range ac {
+		res[v.AppName] = v
+	}
+
 	return res
 }
 
@@ -75,9 +81,9 @@ func (s *appConfigService) GetModels(appId uint) ([]int, error) {
 func (s *appConfigService) DelAllModelsForApp(appId uint) (bool, error) {
 	//取出要删除的所有模型ID
 	var modelIdList []uint
-	Db.Table(NS.TableName("app_model")).Where("app_id = ?", appId).Find(&modelIdList)
+	Db.Table(NS.TableName("app_model")).Select("model_id").Where("app_id = ?", appId).Find(&modelIdList)
 	//清除代码文件
-	for  _, modelId := range modelIdList {
+	for _, modelId := range modelIdList {
 		if err := Make().RemoveAppModel(appId, modelId); err != nil {
 			return false, err
 		}
@@ -92,7 +98,7 @@ func (s *appConfigService) AddModelsForApp(appId uint, modelIdList []uint) (bool
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		//先取应用原有的模型列表
 		var oldModelIdList []uint
-		Db.Table(NS.TableName("app_model")).Where("app_id = ?", appId).Find(&oldModelIdList)
+		Db.Table(NS.TableName("app_model")).Select("model_id").Where("app_id = ?", appId).Find(&oldModelIdList)
 
 		//需要删除的模型
 		var delModelIdList []uint
@@ -122,33 +128,37 @@ func (s *appConfigService) AddModelsForApp(appId uint, modelIdList []uint) (bool
 			}
 			if flag == false {
 				addAppModelList = append(addAppModelList, model.AppModel{
-					AppId: appId,
+					AppId:   appId,
 					ModelId: modelId,
 				})
 			}
 		}
 
-		//删除原有模型在当前配置的不存在的模型
-		if err := tx.Where("app_id = ?", appId).Where("model_id in ?", delModelIdList).Delete(&model.AppModel{}).Error; err != nil {
-			return err
-		}
-
-		//清除代码文件
-		for  _, modelId := range delModelIdList {
-			if err := Make().RemoveAppModel(appId, modelId); err != nil {
+		if len(delModelIdList) > 0 {
+			//删除原有模型在当前配置的不存在的模型
+			if err := tx.Where("app_id = ?", appId).Where("model_id in ?", delModelIdList).Delete(&model.AppModel{}).Error; err != nil {
 				return err
+			}
+
+			//清除代码文件
+			for _, modelId := range delModelIdList {
+				if err := Make().RemoveAppModel(appId, modelId); err != nil {
+					return err
+				}
 			}
 		}
 
-		//添加当前在原有的模型中不存在的模型
-		if err:= tx.Create(addAppModelList).Error; err != nil {
-			return err
-		}
-
-		//生成新的代码文件
-		for _, item := range addAppModelList {
-			if err := Make().MakeAppModel(item.AppId, item.ModelId); err != nil {
+		if len(addAppModelList) > 0 {
+			//添加当前在原有的模型中不存在的模型
+			if err := tx.Create(addAppModelList).Error; err != nil {
 				return err
+			}
+
+			//生成新的代码文件
+			for _, item := range addAppModelList {
+				if err := Make().MakeAppModel(item.AppId, item.ModelId); err != nil {
+					return err
+				}
 			}
 		}
 
@@ -164,6 +174,3 @@ func (s *appConfigService) GetAppModelCount(appId uint) int64 {
 	Db.Table(NS.TableName("app_model")).Where("app_id = ?", appId).Count(&res)
 	return res
 }
-
-
-

@@ -32,7 +32,7 @@ func init() {
 // Save 新增/更新 单条数据
 func (ctrl *ModelAction) Save(c *gin.Context) {
 	saveForm := &model.DataModelActionForm{}
-	common(c, saveForm, func() (interface{}, error) {
+	Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
 			return service.Base().Create(saveForm.Data)
 		} else {
@@ -44,7 +44,7 @@ func (ctrl *ModelAction) Save(c *gin.Context) {
 // GetApiMap 获取API映射的路径
 func (ctrl *ModelAction) GetApiMap(c *gin.Context) {
 	dataApiMapForm := &model.DataApiMapForm{}
-	common(c, dataApiMapForm, func() (interface{}, error) {
+	Common(c, dataApiMapForm, func() (interface{}, error) {
 		apiPath := service.ModelAction().GetApiMap(dataApiMapForm.Data.TableName, dataApiMapForm.Data.ActionType, dataApiMapForm.Data.AppId)
 		return apiPath, nil
 	})
@@ -53,7 +53,7 @@ func (ctrl *ModelAction) GetApiMap(c *gin.Context) {
 // GetActionList 获取所有模型的动作列表
 func (ctrl *ModelAction) GetActionList(c *gin.Context) {
 	dataActionListForm := &model.DataActionListForm{}
-	common(c, dataActionListForm, func() (interface{}, error) {
-		return service.ModelAction().GetActionList(dataActionListForm.Data.RoleName, dataActionListForm.Data.AppName)
+	Common(c, dataActionListForm, func() (interface{}, error) {
+		return service.ModelAction().GetActionList(dataActionListForm.Data.RoleName)
 	})
 }

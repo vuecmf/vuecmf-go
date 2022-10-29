@@ -32,7 +32,7 @@ func init() {
 // Save 新增/更新 单条数据
 func (ctrl *ModelForm) Save(c *gin.Context) {
 	saveForm := &model.DataModelFormForm{}
-	common(c, saveForm, func() (interface{}, error) {
+	Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
 			return service.Base().Create(saveForm.Data)
 		} else {

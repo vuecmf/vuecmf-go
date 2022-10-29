@@ -47,14 +47,14 @@ type fullModelFields struct {
 // CommonList 公共列表 服务方法
 func (b *BaseService) CommonList(modelData interface{}, tableName string, filterFields []string, params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
-		return b.getFieldList(tableName, params.Data.Filter)
+		return b.GetFieldList(tableName, params.Data.Filter)
 	} else {
 		return helper.Page(tableName, filterFields, Db, NS).Filter(modelData, params)
 	}
 }
 
-// getFieldList 根据表名获取对应所有字段信息
-func (b *BaseService) getFieldList(tableName string, filter map[string]interface{}) (*fullModelFields, error) {
+// GetFieldList 根据表名获取对应所有字段信息
+func (b *BaseService) GetFieldList(tableName string, filter map[string]interface{}) (*fullModelFields, error) {
 	modelCfg := ModelConfig().GetModelConfig(tableName)
 	modelId := modelCfg.ModelId
 	fieldInfoList := ModelField().GetFieldInfo(modelId) //模型的字段信息
@@ -77,12 +77,12 @@ func (b *BaseService) getFieldList(tableName string, filter map[string]interface
 	}, nil
 }
 
-// getList 根据表名获取对应列表数据(无分页列表数据，如树型列表)
+// GetList 根据表名获取对应列表数据(无分页列表数据，如树型列表)
 //	参数：
 //		dataList  需要填充的列表数据
 //		tableName 表名
 //		params    过滤条件
-func (b *BaseService) getList(dataList interface{}, tableName string, params *helper.DataListParams) {
+func (b *BaseService) GetList(dataList interface{}, tableName string, params *helper.DataListParams) {
 	query := Db.Table(NS.TableName(tableName)).Select("*").Where("status = 10")
 
 	modelCfg := ModelConfig().GetModelConfig(tableName)

@@ -72,7 +72,7 @@ type {{.model_name}} struct {
 
 // Data{{.model_name}}Form 提交的表单数据
 type Data{{.model_name}}Form struct {
-    Data *{{.model_name}} |json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"|
+    Data *{{.model_name}} 'json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"'
 }`
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	if modelConf.IsTree == true {
@@ -83,12 +83,12 @@ type Data{{.model_name}}Form struct {
 // {{.model_name}} {{.comment}} 模型结构
 type {{.model_name}} struct {
 	{{.body}}
-	Children *{{.model_name}}Tree |json:"children" gorm:"-"|
+	Children *{{.model_name}}Tree 'json:"children" gorm:"-"'
 }
 
 // Data{{.model_name}}Form 提交的表单数据
 type Data{{.model_name}}Form struct {
-    Data *{{.model_name}} |json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"|
+    Data *{{.model_name}} 'json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"'
 }
 
 
@@ -136,7 +136,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 `
 	}
 
-	txt = strings.Replace(txt, "|", "`", -1)
+	txt = strings.Replace(txt, "'", "`", -1)
 
 	var formList []*formRow
 	ruleMaps := getRuleMaps()
@@ -356,6 +356,7 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/{{.app_name}}/model"
 	{{.import_base2}}
+	"strconv"
 )
 
 // {{.service_name}}Service {{.service_name}}服务结构
@@ -377,7 +378,7 @@ func {{.service_method}}() *{{.service_name}}Service {
 // GetIdPath 获取父级ID的ID路径
 func (ser *{{.service_name}}Service) GetIdPath(pid uint) string {
 	var pidIdPath string
-	Db.Table(NS.TableName("{{.service_name}}")).Select("id_path").Where("id = ?", pid).Find(&pidIdPath)
+	service.Db.Table(service.NS.TableName("{{.service_name}}")).Select("id_path").Where("id = ?", pid).Find(&pidIdPath)
 	if pid > 0 {
 		if pidIdPath == "" {
 			pidIdPath = strconv.Itoa(int(pid))
@@ -391,14 +392,14 @@ func (ser *{{.service_name}}Service) GetIdPath(pid uint) string {
 // Create 创建单条或多条数据, 成功返回影响行数
 func (ser *{{.service_name}}Service) Create(data *model.{{.service_method}}) (int64, error) {
 	data.IdPath = ser.GetIdPath(data.Pid)
-	res := Db.Create(data)
+	res := service.Db.Create(data)
 	return res.RowsAffected, res.Error
 }
 
 // Update 更新数据, 成功返回影响行数
 func (ser *{{.service_name}}Service) Update(data *model.{{.service_method}}) (int64, error) {
 	data.IdPath = ser.GetIdPath(data.Pid)
-	res := Db.Updates(data)
+	res := service.Db.Updates(data)
 	return res.RowsAffected, res.Error
 }
 
@@ -407,13 +408,13 @@ func (ser *{{.service_name}}Service) Update(data *model.{{.service_method}}) (in
 func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interface{} , error) {
 	if params.Data.Action == "getField" {
 		//拉取列表的字段信息
-		return ser.getFieldList(ser.TableName, params.Data.Filter)
+		return ser.GetFieldList(ser.TableName, params.Data.Filter)
 	}else{
 		//拉取列表的数据
 		var {{.service_name}}List []*model.{{.service_method}}
 		var res = make(map[string]interface{})
 
-		ser.getList(&{{.service_name}}List, ser.TableName, params)
+		ser.GetList(&{{.service_name}}List, ser.TableName, params)
 
 		//转换成树形列表
 		tree := model.{{.service_method}}Model().ToTree({{.service_name}}List)
@@ -464,8 +465,10 @@ func (makeSer *makeService) Controller(tableName string, appName string) error {
 	txt := `package controller
 
 import (
-	"github.com/vuecmf/vuecmf-go/app/route"
+	"github.com/gin-gonic/gin"
 	"{{.module_name}}/app/{{.app_name}}/model"
+	"{{.module_name}}/app/{{.app_name}}/service"
+	"github.com/vuecmf/vuecmf-go/app/route"
 	{{.import_base}}
 )
 
@@ -486,11 +489,11 @@ func init() {
 // Save 新增/更新 单条数据
 func (ctrl *{{.controller_name}}) Save(c *gin.Context) {
 	saveForm := &model.Data{{.controller_name}}Form{}
-	common(c, saveForm, func() (interface{}, error) {
+	controller.Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
-			return service.Base().Create(saveForm.Data)
+			return service.{{.controller_name}}().Create(saveForm.Data)
 		} else {
-			return service.Base().Update(saveForm.Data)
+			return service.{{.controller_name}}().Update(saveForm.Data)
 		}
 	})
 }
@@ -527,7 +530,7 @@ func init() {
 // Index 列表页
 func (ctrl *{{.controller_name}}) Index(c *gin.Context) {
     listParams := &helper.DataListParams{}
-	common(c, listParams, func() (interface{}, error) {
+	controller.Common(c, listParams, func() (interface{}, error) {
         return service.{{.controller_name}}().List(listParams)
 	})
 }
@@ -535,7 +538,7 @@ func (ctrl *{{.controller_name}}) Index(c *gin.Context) {
 // Save 新增/更新 单条数据
 func (ctrl *{{.controller_name}}) Save(c *gin.Context) {
 	saveForm := &model.Data{{.controller_name}}Form{}
-	common(c, saveForm, func() (interface{}, error) {
+	controller.Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
 			return service.{{.controller_name}}().Create(saveForm.Data)
 		} else {
@@ -705,7 +708,7 @@ func (makeSer *makeService) MakeAppModel(appId, modelId uint) error {
 		Where("id = ?", modelId).
 		Where("status = 10").Find(&tableName)
 	if tableName == "" {
-		return errors.New("没有找到模型对应的表名")
+		return errors.New("没有找到模型(" + strconv.Itoa(int(modelId)) + ")对应的表名")
 	}
 
 	if err := makeSer.Controller(tableName, appName); err != nil {
@@ -740,8 +743,14 @@ func (makeSer *makeService) RemoveAppModel(appId, modelId uint) error {
 		Where("id = ?", modelId).
 		Where("status = 10").Find(&tableName)
 	if tableName == "" {
-		return errors.New("没有找到模型对应的表名")
+		return errors.New("没有找到模型(" + strconv.Itoa(int(modelId)) + ")对应的表名")
 	}
+
+	//更新菜单中使用的模型
+	Db.Table(NS.TableName("menu")).
+		Where("app_id = ?", appId).
+		Where("model_id = ?", modelId).
+		Update("model_id", 0)
 
 	if err := makeSer.RemoveController(tableName, appName); err != nil {
 		return err
@@ -1146,7 +1155,7 @@ func (makeSer *makeService) DelIndex(modelFieldId string, modelId uint) error {
 }
 
 //CreateApp 创建应用相关目录
-func(makeSer *makeService) CreateApp(appName string) error {
+func (makeSer *makeService) CreateApp(appName string) error {
 	//先创建目录
 	appDir := "app/" + appName
 	if _, err := os.Stat(appDir); err != nil {
@@ -1190,7 +1199,7 @@ func(makeSer *makeService) CreateApp(appName string) error {
 }
 
 //RenameApp 重命名应用名称
-func(makeSer *makeService) RenameApp(appId uint, newAppName string) error {
+func (makeSer *makeService) RenameApp(appId uint, newAppName string) error {
 	var oldAppName string
 	Db.Table(NS.TableName("app_config")).Select("app_name").
 		Where("id = ?", appId).Find(&oldAppName)
@@ -1217,7 +1226,7 @@ func(makeSer *makeService) RenameApp(appId uint, newAppName string) error {
 }
 
 //RemoveApp 移除应用
-func(makeSer *makeService) RemoveApp(appId uint) error {
+func (makeSer *makeService) RemoveApp(appId uint) error {
 	var appName string
 	Db.Table(NS.TableName("app_config")).Select("app_name").
 		Where("id = ?", appId).Find(&appName)
@@ -1228,7 +1237,7 @@ func(makeSer *makeService) RemoveApp(appId uint) error {
 		if err = os.RemoveAll(appDir); err != nil {
 			return errors.New("应用" + appName + "移除失败！" + err.Error())
 		}
-	}else{
+	} else {
 		return errors.New("应用" + appName + "移除失败！" + err.Error())
 	}
 	return nil

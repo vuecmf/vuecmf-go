@@ -29,7 +29,6 @@ type DataApiMapForm struct {
 
 type actionListForm struct {
 	RoleName string `json:"role_name" form:"role_name"`
-	AppName  string `json:"app_name" form:"app_name"`
 }
 
 // DataActionListForm 获取所有模型的动作列表表单

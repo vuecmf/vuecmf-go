@@ -102,13 +102,13 @@ func (ser *rolesService) DeleteBatch(idList string, model *model.Roles) (int64, 
 func (ser *rolesService) List(params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
 		//拉取列表的字段信息
-		return ser.getFieldList(ser.TableName, params.Data.Filter)
+		return ser.GetFieldList(ser.TableName, params.Data.Filter)
 	} else {
 		//拉取列表的数据
 		var rolesList []*model.Roles
 		var res = make(map[string]interface{})
 
-		ser.getList(&rolesList, ser.TableName, params)
+		ser.GetList(&rolesList, ser.TableName, params)
 
 		//转换成树形列表
 		tree := model.RolesModel().ToTree(rolesList)
@@ -118,34 +118,26 @@ func (ser *rolesService) List(params *helper.DataListParams) (interface{}, error
 }
 
 // AddUsers 给角色分配用户
-func (ser *rolesService) AddUsers(roleName string, userIdList []int, appName string) (interface{}, error) {
-	if appName == "" {
-		appName = "vuecmf"
-	}
-
+func (ser *rolesService) AddUsers(roleName string, userIdList []int) (interface{}, error) {
 	if len(userIdList) == 0 {
 		//若传入的为空，则先查出该角色下原有用户列表，然后全部删除
-		oldUserIdList, err := ser.GetUsers(roleName, appName)
+		oldUserIdList, err := ser.GetUsers(roleName)
 		if err != nil {
 			return nil, errors.New("该角色(" + roleName + ")没有分配用户")
 		}
-		return Auth().DelUsersForRole(roleName, oldUserIdList, appName)
+		return Auth().DelUsersForRole(roleName, oldUserIdList)
 	}
 
 	var userList []string
 	Db.Table(NS.TableName("admin")).Select("username").
 		Where("id in ?", userIdList).Find(&userList)
 
-	return Auth().AddUsersForRole(roleName, userList, appName)
+	return Auth().AddUsersForRole(roleName, userList)
 }
 
 // GetUsers 获取角色下所有用户的ID
-func (ser *rolesService) GetUsers(roleName string, appName string) ([]int, error) {
-	if appName == "" {
-		appName = "vuecmf"
-	}
-
-	userList, err := Auth().GetUsers(roleName, appName)
+func (ser *rolesService) GetUsers(roleName string) ([]int, error) {
+	userList, err := Auth().GetUsers(roleName)
 	if err != nil {
 		return nil, errors.New("该角色(" + roleName + ")没有分配任务用户")
 	}

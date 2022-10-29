@@ -25,17 +25,14 @@ import (
 // adminService admin服务结构
 type adminService struct {
 	*BaseService
-	AppName string
 }
 
 var admin *adminService
 
 // Admin 获取admin服务实例
-func Admin(appName string) *adminService {
+func Admin() *adminService {
 	if admin == nil {
-		admin = &adminService{
-			AppName: appName,
-		}
+		admin = &adminService{}
 	}
 	return admin
 }
@@ -119,7 +116,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 		if auth != nil {
 			return nil, errors.New("获取角色失败。")
 		}
-		roleArr, err2 := auth.GetRolesForUser(adminInfo.Username, strings.ToLower(ser.AppName))
+		roleArr, err2 := auth.GetRolesForUser(adminInfo.Username, "vuecmf")
 		if err2 != nil {
 			return nil, errors.New("获取角色失败。" + err2.Error())
 		}

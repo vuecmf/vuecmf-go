@@ -168,15 +168,9 @@ type DropdownList struct {
 func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (interface{}, error) {
 	if form.RelationModelId > 0 {
 		form.ModelId = form.RelationModelId
-	}
-	if form.TableName == "" && form.ModelId == 0 {
-		return nil, nil
-	}
-
-	if form.TableName != "" {
+	} else if form.TableName != "" {
 		Db.Table(NS.TableName("model_config")).Select("id").
 			Where("table_name = ?", form.TableName).
-			Where("status = 10").
 			Find(&form.ModelId)
 	}
 
@@ -200,7 +194,7 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 
 	var result []DropdownList
 
-	Db.Table(NS.TableName(modelName)).Select(labelField+" label, value").
+	Db.Table(NS.TableName(modelName)).Select(labelField+" label, id value").
 		Where("model_id = ?", form.ModelId).
 		Where("status = 10").
 		Find(&result)

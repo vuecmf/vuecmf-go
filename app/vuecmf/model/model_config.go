@@ -16,16 +16,16 @@ type ModelConfig struct {
 
 // ModelConfigForm 模型配置表单
 type ModelConfigForm struct {
-	Id              uint     `json:"id" form:"id"`
-	TableName       string   `json:"table_name" form:"table_name"`
-	Label           string   `json:"label" form:"label"`
-	ComponentTpl    string   `json:"component_tpl" form:"component_tpl"`
-	DefaultActionId uint     `json:"default_action_id"`
-	SearchFieldId   []string `json:"search_field_id" form:"search_field_id"`
-	Type            uint16   `json:"type" form:"type"`
-	IsTree          uint16   `json:"is_tree" form:"is_tree"`
-	Remark          string   `json:"remark" form:"remark"`
-	Status          uint16   `json:"status" form:"status"`
+	Id              uint   `json:"id" form:"id"`
+	TableName       string `json:"table_name" form:"table_name"`
+	Label           string `json:"label" form:"label"`
+	ComponentTpl    string `json:"component_tpl" form:"component_tpl"`
+	DefaultActionId uint   `json:"default_action_id"`
+	SearchFieldId   []int  `json:"search_field_id" form:"search_field_id"`
+	Type            uint16 `json:"type" form:"type"`
+	IsTree          uint16 `json:"is_tree" form:"is_tree"`
+	Remark          string `json:"remark" form:"remark"`
+	Status          uint16 `json:"status" form:"status"`
 }
 
 // DataModelConfigForm 提交的表单数据

@@ -606,10 +606,9 @@ func (makeSer *makeService) UpdateRunFile() error {
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
-${import_package}
 	"github.com/vuecmf/vuecmf-go/app/route"
-	_ "github.com/vuecmf/vuecmf-go/app/vuecmf/controller"
 	"log"
+${import_package}
 )
 
 func main() {
@@ -785,13 +784,13 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
     {
         "field_name": "id",
         "label": "ID",
-        "model_id": "{$model_id}",
+        "model_id": {$model_id},
         "type": "int",
         "length": 11,
         "decimal_length": 0,
         "is_null": 20,
         "note": "自增ID",
-        "default_value": 0,
+        "default_value": "0",
         "is_auto_increment": 10,
         "is_label": 20,
         "is_signed": 20,
@@ -805,7 +804,7 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
     {
         "field_name": "title",
         "label": "标题",
-        "model_id": "{$model_id}",
+        "model_id": {$model_id},
         "type": "varchar",
         "length": 64,
         "decimal_length": 0,
@@ -825,13 +824,13 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
     {
         "field_name": "pid",
         "label": "父级",
-        "model_id": "{$model_id}",
+        "model_id": {$model_id},
         "type": "int",
         "length": 11,
         "decimal_length": 0,
         "is_null": 20,
         "note": "父级ID",
-        "default_value": 0,
+        "default_value": "0",
         "is_auto_increment": 20,
         "is_label": 20,
         "is_signed": 20,
@@ -845,7 +844,7 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
     {
         "field_name": "id_path",
         "label": "层级路径",
-        "model_id": "{$model_id}",
+        "model_id": {$model_id},
         "type": "varchar",
         "length": 255,
         "decimal_length": 0,
@@ -865,13 +864,13 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
     {
         "field_name": "sort_num",
         "label": "排序",
-        "model_id": "{$model_id}",
+        "model_id": {$model_id},
         "type": "int",
         "length": 11,
         "decimal_length": 0,
         "is_null": 20,
         "note": "排列顺序(小在前)",
-        "default_value": 0,
+        "default_value": "0",
         "is_auto_increment": 20,
         "is_label": 20,
         "is_signed": 20,
@@ -885,13 +884,13 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
     {
         "field_name": "status",
         "label": "状态",
-        "model_id": "{$model_id}",
+        "model_id": {$model_id},
         "type": "int",
         "length": 4,
         "decimal_length": 0,
         "is_null": 20,
         "note": "状态：10=开启，20=禁用",
-        "default_value": 10,
+        "default_value": "10",
         "is_auto_increment": 20,
         "is_label": 20,
         "is_signed": 20,
@@ -915,13 +914,13 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
     {
         "field_name": "id",
         "label": "ID",
-        "model_id": "{$model_id}",
+        "model_id": {$model_id},
         "type": "int",
         "length": 11,
         "decimal_length": 0,
         "is_null": 20,
         "note": "自增ID",
-        "default_value": 0,
+        "default_value": "0",
         "is_auto_increment": 10,
         "is_label": 20,
         "is_signed": 20,
@@ -935,13 +934,13 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
     {
         "field_name": "status",
         "label": "状态",
-        "model_id": "{$model_id}",
+        "model_id": {$model_id},
         "type": "int",
         "length": 4,
         "decimal_length": 0,
         "is_null": 20,
         "note": "状态：10=开启，20=禁用",
-        "default_value": 10,
+        "default_value": "10",
         "is_auto_increment": 20,
         "is_label": 20,
         "is_signed": 20,
@@ -966,7 +965,7 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
 	}
 
 	//写入数据
-	insertDataJson = strings.Replace(insertDataJson, "\"{$model_id}\"", strconv.Itoa(int(mc.Id)), -1)
+	insertDataJson = strings.Replace(insertDataJson, "{$model_id}", strconv.Itoa(int(mc.Id)), -1)
 	var insertData []model.ModelField
 	if err := json.Unmarshal([]byte(insertDataJson), &insertData); err != nil {
 		return err
@@ -976,15 +975,15 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
 	//添加字段选项
 	insertDataJson = `[
     {
-        "model_id": "{$model_id}",
-        "model_field_id": "{$model_field_id}",
-        "option_value": 10,
+        "model_id": {$model_id},
+        "model_field_id": {$model_field_id},
+        "option_value": "10",
         "option_label": "开启"
     },
     {
-        "model_id": "{$model_id}",
-        "model_field_id": "{$model_field_id}",
-        "option_value": 20,
+        "model_id": {$model_id},
+        "model_field_id": {$model_field_id},
+        "option_value": "20",
         "option_label": "禁用"
     }
 ]`
@@ -994,8 +993,8 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
 		Where("field_name = 'status'").
 		Where("status = 10").Find(&modelFieldId)
 
-	insertDataJson = strings.Replace(insertDataJson, "\"{$model_id}\"", strconv.Itoa(int(mc.Id)), -1)
-	insertDataJson = strings.Replace(insertDataJson, "\"{$model_field_id}\"", modelFieldId, -1)
+	insertDataJson = strings.Replace(insertDataJson, "{$model_id}", strconv.Itoa(int(mc.Id)), -1)
+	insertDataJson = strings.Replace(insertDataJson, "{$model_field_id}", modelFieldId, -1)
 	var fieldOptionData []model.FieldOption
 	if err := json.Unmarshal([]byte(insertDataJson), &fieldOptionData); err != nil {
 		return err

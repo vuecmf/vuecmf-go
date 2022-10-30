@@ -152,7 +152,7 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 				showFieldStr := "id"
 				if len(showFieldNameArr) > 0 {
 					showFieldStr = showFieldNameArr[0]
-					helper.SliceRemove(showFieldNameArr, 0)
+					showFieldNameArr = helper.SliceRemove(showFieldNameArr, 0)
 					if len(showFieldNameArr) > 0 {
 						showFieldStr = "concat(" + showFieldStr + ",'('," + strings.Join(showFieldNameArr, ",'-',") + ",')')"
 					}

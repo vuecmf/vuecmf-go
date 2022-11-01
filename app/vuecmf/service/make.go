@@ -626,9 +626,9 @@ func main() {
 `
 	var appList []string
 	Db.Table(NS.TableName("app_config") + " A").Select("app_name").
-		Joins("left join " + NS.TableName("app_model") + " AM on A.id = AM.app_id").
+		Joins("left join " + NS.TableName("model_config") + " MC on A.id = MC.app_id").
 		Where("A.status = 10").
-		Where("AM.status = 10").
+		Where("MC.status = 10").
 		Group("app_name").Find(&appList)
 
 	importPackage := ""
@@ -647,7 +647,7 @@ func main() {
 func (makeSer *makeService) RemoveAll(tableName string) error {
 	var err error
 	//先根据tableName查出所有相关的模型、服务及控制器，然后全部删除
-	appList := AppModel().GetAppList(tableName)
+	appList := AppConfig().GetAppListByTableName(tableName)
 
 	if len(appList) > 0 {
 		for _, appName := range appList {
@@ -669,7 +669,7 @@ func (makeSer *makeService) RemoveAll(tableName string) error {
 func (makeSer *makeService) MakeAll(tableName string) error {
 	var err error
 	//先根据tableName查出所有相关的模型、服务及控制器，然后生成
-	appList := AppModel().GetAppList(tableName)
+	appList := AppConfig().GetAppListByTableName(tableName)
 
 	if len(appList) > 0 {
 		for _, appName := range appList {
@@ -1067,7 +1067,7 @@ func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
 // UpdateModel 根据模型ID更新模型文件
 func (makeSer *makeService) UpdateModel(modelId uint) error {
 	var err error
-	appList := AppModel().GetAppListByModelId(modelId)
+	appList := AppConfig().GetAppListByModelId(modelId)
 	tableName := ModelConfig().GetModelTableName(int(modelId))
 	if len(appList) > 0 {
 		for _, appName := range appList {

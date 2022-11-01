@@ -143,7 +143,7 @@ func (ser *modelActionService) GetApiMap(tableName string, actionType string, ap
 		Joins("inner join "+NS.TableName("model_config")+" mc on ma.model_id = mc.id").
 		Where("mc.table_name = ?", tableName).
 		Where("ma.action_type = ?", actionType).
-		Where("ma.app_id = ?", appId).
+		Where("mc.app_id = ?", appId).
 		Where("ma.status = 10").
 		Where("mc.status = 10").
 		Find(&apiPath)
@@ -155,8 +155,11 @@ func (ser *modelActionService) GetApiMap(tableName string, actionType string, ap
 func (ser *modelActionService) GetNotAuthActionIds() []string {
 	var res []string
 	Db.Table(NS.TableName("model_action") + " MA").Select("MA.id").
-		Joins("left join " + NS.TableName("app_config") + " AC on MA.app_id = AC.id").
+		Joins("left join " + NS.TableName("model_config") + " MC on MC.id = MA.model_id").
+		Joins("left join " + NS.TableName("app_config") + " AC on MC.app_id = AC.id").
 		Where("AC.auth_enable = 20").
+		Where("MC.status = 10").
+		Where("AC.status = 10").
 		Where("MA.status = 10").Find(&res)
 	return res
 }
@@ -217,9 +220,11 @@ func (ser *modelActionService) GetActionList(roleName string) (interface{}, erro
 	for _, appName := range appList {
 		var actionRes []row
 		Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label model_label,  MA.label").
-			Joins("left join "+NS.TableName("app_config")+" AC on MA.app_id = AC.id").
 			Joins("left join "+NS.TableName("model_config")+" MC on MC.id = MA.model_id").
+			Joins("left join "+NS.TableName("app_config")+" AC on MC.app_id = AC.id").
 			Where("AC.app_name = ?", appName).
+			Where("MC.status = 10").
+			Where("AC.status = 10").
 			Where("MA.status = 10").Find(&actionRes)
 
 		for _, ac := range actionRes {

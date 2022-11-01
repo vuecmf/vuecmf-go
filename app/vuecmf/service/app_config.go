@@ -58,5 +58,26 @@ func (s *appConfigService) GetAppModelCount(appId uint) int64 {
 	return res
 }
 
+//GetAppListByModelId 根据模型ID获取应用列表
+func (s *appConfigService) GetAppListByModelId(modelId uint) []string {
+	var res []string
+	Db.Table(NS.TableName("app_config")+" AC").Select("app_name").
+		Joins("left join "+NS.TableName("model_config")+" MC ON MC.app_id = AC.id").
+		Where("MC.id = ?", modelId).
+		Where("AC.status = 10").
+		Where("MC.status = 10").
+		Group("app_name").Find(&res)
+	return res
+}
 
-
+//GetAppListByTableName 根据表名获取应用列表
+func (s *appConfigService) GetAppListByTableName(tableName string) []string {
+	var res []string
+	Db.Table(NS.TableName("app_config")+" AC").Select("app_name").
+		Joins("left join "+NS.TableName("model_config")+" MC ON MC.app_id = AC.id").
+		Where("MC.table_name = ?", tableName).
+		Where("AC.status = 10").
+		Where("MC.status = 10").
+		Group("app_name").Find(&res)
+	return res
+}

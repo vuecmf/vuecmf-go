@@ -58,39 +58,10 @@ func (ctrl *AppConfig) Delete(c *gin.Context) {
 		if num := service.AppConfig().GetAppModelCount(data.Data.Id); num > 0 {
 			return nil, errors.New("不允许删除有分配模型的应用！")
 		}
-		//移除应用相关目录
-		if err := service.Make().RemoveApp(data.Data.Id); err != nil {
-			return nil, err
-		}
 		return service.Base().Delete(data.Data.Id, ctrl.Model)
 	})
 }
 
-// GetAllModels 获取所有模型
-func (ctrl *AppConfig) GetAllModels(c *gin.Context) {
-	Common(c, nil, func() (interface{}, error) {
-		res := service.AppConfig().GetAllModels()
-		return res, nil
-	})
-}
 
-// GetModels 获取应用的所有模型
-func (ctrl *AppConfig) GetModels(c *gin.Context) {
-	dataAppIdForm := &model.DataAppIdForm{}
-	Common(c, dataAppIdForm, func() (interface{}, error) {
-		return service.AppConfig().GetModels(dataAppIdForm.Data.AppId)
-	})
-}
 
-// AddModel 给应用添加模型
-func (ctrl *AppConfig) AddModel(c *gin.Context) {
-	dataAddModelForm := &model.DataAddModelForm{}
-	Common(c, dataAddModelForm, func() (interface{}, error) {
-		if len(dataAddModelForm.Data.ModelIdList) == 0 {
-			//如果模型列表为空，即表示应用没有模型，则清空应用的所有模型
-			return service.AppConfig().DelAllModelsForApp(dataAddModelForm.Data.AppId)
-		} else {
-			return service.AppConfig().AddModelsForApp(dataAddModelForm.Data.AppId, dataAddModelForm.Data.ModelIdList)
-		}
-	})
-}
+

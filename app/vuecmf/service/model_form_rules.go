@@ -26,7 +26,7 @@ func ModelFormRules() *modelFormRulesService {
 }
 
 type ruleListFormST struct {
-	FieldName, RuleType, RuleValue, ErrorTips, FieldType string
+	FieldName, RuleType, RuleValue, ErrorTips, FieldType, FormType string
 }
 
 // GetRuleListForForm 根据模型ID获取对应的表单验证规则
@@ -34,7 +34,7 @@ func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 	var data []ruleListFormST
 
 	Db.Table(NS.TableName("model_form_rules")+" VMFR").
-		Select("VMF2.field_name, VMF2.type field_type, rule_type, rule_value, error_tips").
+		Select("VMF2.field_name, VMF2.type field_type, rule_type, rule_value, error_tips, VMF.type form_type").
 		Joins("LEFT JOIN "+NS.TableName("model_form")+" VMF ON VMFR.model_form_id = VMF.id").
 		Joins("INNER JOIN "+NS.TableName("model_field")+" VMF2 ON VMF.model_field_id = VMF2.id").
 		Where("rule_type IN ?", []string{"require", "length", "date", "email", "integer", "number", "regex", "float", "array", "url"}).
@@ -43,7 +43,6 @@ func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 		Where("VMF.status = 10").
 		Where("VMF2.status = 10").
 		Find(&data)
-
 
 	result := make(map[string][]map[string]interface{})
 
@@ -54,11 +53,14 @@ func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 		case "bigint","int","smallint","tinyint":
 			fieldType = "integer"
 		case "decimal","double","float":
-			fieldType = "number"
+			fieldType = "float"
 		case "date","datetime","timestamp":
 			fieldType = "date"
 		default:
 			fieldType = "string"
+			if val.FormType == "select_mul" {
+				fieldType = "array"
+			}
 		}
 
 		rule := make(map[string]interface{})

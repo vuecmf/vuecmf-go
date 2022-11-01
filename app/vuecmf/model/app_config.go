@@ -26,12 +26,3 @@ type DataAppIdForm struct {
 	Data *appIdForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
-type addModelForm struct {
-	AppId   uint `json:"app_id" form:"app_id" binding:"required" required_tips:"应用ID不能为空"`
-	ModelIdList []uint  `json:"model_id_list" form:"model_id_list"`
-}
-
-// DataAddModelForm 应用分配模型表单
-type DataAddModelForm struct {
-	Data *addModelForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
-}

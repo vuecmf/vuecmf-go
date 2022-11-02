@@ -688,26 +688,10 @@ func (makeSer *makeService) MakeAll(tableName string) error {
 }
 
 // MakeAppModel 根据应用ID及模型ID生成对应代码文件
-func (makeSer *makeService) MakeAppModel(appId, modelId uint) error {
-	var appName string
-	Db.Table(NS.TableName("app_config")).Select("app_name").
-		Where("id = ?", appId).
-		Where("status = 10").Find(&appName)
-
-	if appName == "vuecmf" {
-		return nil
-	}
-
+func (makeSer *makeService) MakeAppModel(appId uint, tableName string) error {
+	appName := AppConfig().GetAppNameById(appId)
 	if appName == "" {
 		return errors.New("没有找到应用名称")
-	}
-
-	var tableName string
-	Db.Table(NS.TableName("model_config")).Select("table_name").
-		Where("id = ?", modelId).
-		Where("status = 10").Find(&tableName)
-	if tableName == "" {
-		return errors.New("没有找到模型(" + strconv.Itoa(int(modelId)) + ")对应的表名")
 	}
 
 	if err := makeSer.Controller(tableName, appName); err != nil {

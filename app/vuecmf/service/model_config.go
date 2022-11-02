@@ -10,6 +10,7 @@ package service
 
 import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"gorm.io/gorm"
 	"strconv"
 	"strings"
 )
@@ -31,38 +32,71 @@ func ModelConfig() *modelConfigService {
 
 // Create 创建单条或多条数据, 成功返回影响行数
 func (s *modelConfigService) Create(data *model.ModelConfig) (int64, error) {
-	res := Db.Create(data)
-	//初始化模型相关数据
-	if err := Make().BuildModelData(data); err != nil {
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		//生成代码文件
+		err := Make().MakeAppModel(data.AppId, data.TableName)
+		if err != nil {
+			return err
+		}
+		err = tx.Create(data).Error
+		if err != nil {
+			return err
+		}
+		//初始化模型相关数据
+		return Make().BuildModelData(data)
+	})
+
+	if err != nil {
 		return 0, err
 	}
-	return res.RowsAffected, res.Error
+	return 1, nil
+}
+
+type modelConfigInfo struct {
+	TableName string
+	AppName   string
 }
 
 // Update 更新数据, 成功返回影响行数
 func (s *modelConfigService) Update(data *model.ModelConfig) (int64, error) {
-	var oldTableName string
-	Db.Table(NS.TableName("model_config")).Select("table_name").Where("id = ?", data.Id).Find(&oldTableName)
-	// 若更新时，修改了表名，则相应修改数据库表名
-	if oldTableName != "" && oldTableName != data.TableName {
-		if err := Db.Migrator().RenameTable(NS.TableName(oldTableName), NS.TableName(data.TableName)); err != nil {
-			return 0, err
+	var oldModel modelConfigInfo
+	Db.Table(NS.TableName("model_config")+" MC").Select("MC.table_name, AC.app_name").
+		Joins("left join "+NS.TableName("app_config")+" AC on MC.app_id = AC.id").
+		Where("MC.id = ?", data.Id).
+		Where("MC.status = 10").
+		Where("AC.status = 10").
+		Find(&oldModel)
+
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		// 若更新时，修改了表名，则相应修改数据库表名
+		if oldModel.TableName != "" && oldModel.TableName != data.TableName {
+			if err := Db.Migrator().RenameTable(NS.TableName(oldModel.TableName), NS.TableName(data.TableName)); err != nil {
+				return err
+			}
+			//清除原表相关代码文件，重新生成新的代码文件
+			if err := Make().RemoveAll(oldModel.TableName); err != nil {
+				return err
+			}
+			if err := Make().MakeAll(data.TableName); err != nil {
+				return err
+			}
 		}
-		//清除原表相关代码文件，重新生成新的代码文件
-		if err := Make().RemoveAll(oldTableName); err != nil {
-			return 0, err
-		}
-		if err := Make().MakeAll(data.TableName); err != nil {
-			return 0, err
-		}
+
+		//更新动作表中的api_path
+		appName := AppConfig().GetAppNameById(data.AppId)
+		oldPath := "/" + oldModel.AppName + "/" + oldModel.TableName
+		newPath := "/" + appName + "/" + data.TableName
+		Db.Table(NS.TableName("model_action")).
+			Where("model_id = ?", data.Id).
+			Where("status = 10").Update("api_path", gorm.Expr("replace(api_path,?,?)", oldPath, newPath))
+
+		return Db.Updates(data).Error
+	})
+
+	if err != nil {
+		return 0, err
 	}
-
-	//更新动作表中的api_path
-
-
-
-	res := Db.Updates(data)
-	return res.RowsAffected, res.Error
+	return 1, nil
 }
 
 // Delete 根据ID删除数据

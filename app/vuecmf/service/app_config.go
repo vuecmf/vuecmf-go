@@ -81,3 +81,13 @@ func (s *appConfigService) GetAppListByTableName(tableName string) []string {
 		Group("app_name").Find(&res)
 	return res
 }
+
+//GetAppNameById 根据应用ID获取对应的应用名称
+func (s *appConfigService) GetAppNameById(appId uint) string {
+	var res string
+	Db.Table(NS.TableName("app_config")).Select("app_name").
+		Where("id = ?", appId).
+		Where("status = 10").
+		Find(&res)
+	return res
+}

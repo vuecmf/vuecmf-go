@@ -57,6 +57,10 @@ func (s *modelConfigService) Update(data *model.ModelConfig) (int64, error) {
 		}
 	}
 
+	//更新动作表中的api_path
+
+
+
 	res := Db.Updates(data)
 	return res.RowsAffected, res.Error
 }

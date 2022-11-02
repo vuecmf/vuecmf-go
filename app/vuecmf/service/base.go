@@ -190,14 +190,18 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 		if len(labelFieldList) > 0 {
 			labelField = "concat(" + labelField + ",'('," + strings.Join(labelFieldList, ",'-',") + ",')')"
 		}
+
 	}
 
 	var result []DropdownList
 
-	Db.Table(NS.TableName(modelName)).Select(labelField+" label, id value").
-		Where("model_id = ?", form.ModelId).
-		Where("status = 10").
-		Find(&result)
+	query := Db.Table(NS.TableName(modelName)).Select(labelField+" label, id value").Where("status = 10");
+	if modelName == "model_config" {
+		query = query.Where("app_id = ?", form.AppId)
+	}else{
+		query = query.Where("model_id = ?", form.ModelId)
+	}
+	query.Find(&result)
 
 	return result, nil
 

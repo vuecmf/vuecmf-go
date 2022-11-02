@@ -238,6 +238,17 @@ func (ser *modelActionService) GetActionList(roleName string) (interface{}, erro
 	return res, nil
 }
 
+//GetListActionIdByModelId 获取模型的列表动作ID
+func (ser *modelActionService) GetListActionIdByModelId(modelId uint) uint {
+	var actionId uint
+	Db.Table(NS.TableName("model_action")).Select("id").
+		Where("model_id = ?", modelId).
+		Where("action_type = 'list'").
+		Where("status = 10").
+		Find(&actionId)
+	return actionId
+}
+
 var modelAction *modelActionService
 
 // ModelAction 获取modelAction服务实例

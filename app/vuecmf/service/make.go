@@ -1000,6 +1000,58 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
 		return err
 	}
 	Db.Create(fieldOptionData)
+
+	//添加动作信息
+	insertDataJson = `[
+    {
+        "label": "{$label}管理列表",
+        "api_path": "/{$app_name}/{$table_name}",
+		"model_id": {$model_id},
+        "action_type": "list"
+    },
+    {
+        "label": "保存{$label}",
+        "api_path": "/{$app_name}/{$table_name}/save",
+		"model_id": {$model_id},
+        "action_type": "save"
+    },
+	{
+        "label": "删除{$label}",
+        "api_path": "/{$app_name}/{$table_name}/save",
+		"model_id": {$model_id},
+        "action_type": "save"
+    },
+	{
+        "label": "{$label}下拉列表",
+        "api_path": "/{$app_name}/{$table_name}/dropdown",
+		"model_id": {$model_id},
+        "action_type": "dropdown"
+    },
+	{
+        "label": "批量保存{$label}",
+        "api_path": "/{$app_name}/{$table_name}/save_all",
+		"model_id": {$model_id},
+        "action_type": "save_all"
+    },
+]`
+	appName := AppConfig().GetAppNameById(mc.AppId)
+
+	insertDataJson = strings.Replace(insertDataJson, "{$label}", mc.Label, -1)
+	insertDataJson = strings.Replace(insertDataJson, "{$app_name}", appName, -1)
+	insertDataJson = strings.Replace(insertDataJson, "{$table_name}", mc.TableName, -1)
+	insertDataJson = strings.Replace(insertDataJson, "{$model_id}", strconv.Itoa(int(mc.Id)), -1)
+	var modelActionData []model.ModelAction
+	if err := json.Unmarshal([]byte(insertDataJson), &modelActionData); err != nil {
+		return err
+	}
+	Db.Create(modelActionData)
+
+	//设置模型的默认动作
+	listActionId := ModelAction().GetListActionIdByModelId(mc.Id)
+	Db.Table(NS.TableName("model_action")).
+		Where("id = ?", mc.Id).
+		Update("default_action_id", listActionId)
+
 	return nil
 }
 

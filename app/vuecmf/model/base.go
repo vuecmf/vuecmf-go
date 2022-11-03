@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"reflect"
@@ -44,13 +45,13 @@ type DataDropdownForm struct {
 }
 
 // GetError 获取form中错误提示信息
-func GetError(errs error, f interface{}) string {
+func GetError(errs error, f interface{}) error {
 	fData := reflect.ValueOf(f).Elem().FieldByName("Data")
 	fDataType := reflect.TypeOf(fData.Interface())
 
 	errList, ok := errs.(validator.ValidationErrors)
 	if !ok {
-		return errs.Error()
+		return errs
 	}
 
 	for _, fieldError := range errList {
@@ -63,7 +64,7 @@ func GetError(errs error, f interface{}) string {
 			if dfExist {
 				tagTips := dataField.Tag.Get(tagKey)
 				if tagTips != "" {
-					return tagTips
+					return errors.New(tagTips)
 				}
 			}
 		}
@@ -73,12 +74,12 @@ func GetError(errs error, f interface{}) string {
 		if exist {
 			tagTips := field.Tag.Get(tagKey)
 			if tagTips != "" {
-				return field.Tag.Get(tagKey) //获取结构字段中设置的tag标签信息
+				return errors.New(field.Tag.Get(tagKey)) //获取结构字段中设置的tag标签信息
 			}
 		}
-		return fieldName + " " + fieldError.Tag()
+		return errors.New(fieldName + " " + fieldError.Tag())
 	}
-	return errs.Error()
+	return errs
 }
 
 //时间格式化

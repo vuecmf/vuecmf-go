@@ -43,7 +43,7 @@ func (s *modelConfigService) Create(data *model.ModelConfig) (int64, error) {
 			return err
 		}
 		//初始化模型相关数据
-		return Make().BuildModelData(data)
+		return Make().BuildModelData(tx, data)
 	})
 
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *modelConfigService) Update(data *model.ModelConfig) (int64, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		// 若更新时，修改了表名，则相应修改数据库表名
 		if oldModel.TableName != "" && oldModel.TableName != data.TableName {
-			if err := Db.Migrator().RenameTable(NS.TableName(oldModel.TableName), NS.TableName(data.TableName)); err != nil {
+			if err := tx.Migrator().RenameTable(NS.TableName(oldModel.TableName), NS.TableName(data.TableName)); err != nil {
 				return err
 			}
 			//清除原表相关代码文件，重新生成新的代码文件
@@ -86,11 +86,11 @@ func (s *modelConfigService) Update(data *model.ModelConfig) (int64, error) {
 		appName := AppConfig().GetAppNameById(data.AppId)
 		oldPath := "/" + oldModel.AppName + "/" + oldModel.TableName
 		newPath := "/" + appName + "/" + data.TableName
-		Db.Table(NS.TableName("model_action")).
+		tx.Table(NS.TableName("model_action")).
 			Where("model_id = ?", data.Id).
 			Where("status = 10").Update("api_path", gorm.Expr("replace(api_path,?,?)", oldPath, newPath))
 
-		return Db.Updates(data).Error
+		return tx.Updates(data).Error
 	})
 
 	if err != nil {
@@ -101,39 +101,52 @@ func (s *modelConfigService) Update(data *model.ModelConfig) (int64, error) {
 
 // Delete 根据ID删除数据
 func (s *modelConfigService) Delete(id uint, model *model.ModelConfig) (int64, error) {
-	res := Db.Delete(model, id)
-	model.Id = id
-	//清除相关数据
-	if err := Make().RemoveModelData(model); err != nil {
-		return 0, err
-	}
-	//清除相关代码文件
-	if err := Make().RemoveAll(model.TableName); err != nil {
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		tx.Delete(model, id)
+		model.Id = id
+		//清除相关数据
+		if err := Make().RemoveModelData(tx,model); err != nil {
+			return err
+		}
+		//清除相关代码文件
+		if err := Make().RemoveAll(model.TableName); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
 		return 0, err
 	}
 
-	return res.RowsAffected, res.Error
+	return 1, err
 }
 
 // DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
 func (s *modelConfigService) DeleteBatch(idList string, model *model.ModelConfig) (int64, error) {
 	idArr := strings.Split(idList, ",")
-	res := Db.Delete(model, idArr)
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		tx.Delete(model, idArr)
+		for _, id := range idArr {
+			mid, _ := strconv.Atoi(id)
+			model.Id = uint(mid)
+			//清除相关数据
+			if err := Make().RemoveModelData(tx,model); err != nil {
+				return err
+			}
+			//清除相关代码文件
+			if err := Make().RemoveAll(model.TableName); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 
-	for _, id := range idArr {
-		mid, _ := strconv.Atoi(id)
-		model.Id = uint(mid)
-		//清除相关数据
-		if err := Make().RemoveModelData(model); err != nil {
-			return 0, err
-		}
-		//清除相关代码文件
-		if err := Make().RemoveAll(model.TableName); err != nil {
-			return 0, err
-		}
+	if err != nil {
+		return 0, err
 	}
 
-	return res.RowsAffected, res.Error
+	return 1, err
 }
 
 // GetModelId 根据表名获取模型ID

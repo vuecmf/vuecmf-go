@@ -14,6 +14,7 @@ import (
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"gorm.io/gorm"
 	"os"
 	"strconv"
 	"strings"
@@ -748,7 +749,7 @@ func (makeSer *makeService) RemoveAppModel(appId, modelId uint) error {
 }
 
 // BuildModelData 生成模型相关数据
-func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
+func (makeSer *makeService) BuildModelData(Db *gorm.DB, mc *model.ModelConfig) error {
 	var baseTable interface{}
 	var insertDataJson string
 	if mc.IsTree == 10 {
@@ -1040,7 +1041,7 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
 }
 
 // RemoveModelData 删除模型相关的所有数据
-func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
+func (makeSer *makeService) RemoveModelData(Db *gorm.DB, mc *model.ModelConfig) error {
 	//根据动作表找到对应权限项，清除rules表相关信息
 	var actionList []string
 	Db.Table(NS.TableName("model_action")).Select("api_path").

@@ -44,6 +44,7 @@ func (ctrl *ModelConfig) Save(c *gin.Context) {
 
 		saveData := &model.ModelConfig{}
 		saveData.Id = saveForm.Data.Id
+		saveData.AppId = saveForm.Data.AppId
 		saveData.TableName = saveForm.Data.TableName
 		saveData.Label = saveForm.Data.Label
 		saveData.ComponentTpl = saveForm.Data.ComponentTpl

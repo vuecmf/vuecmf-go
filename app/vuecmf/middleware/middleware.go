@@ -10,6 +10,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
@@ -27,7 +28,8 @@ func GetMiddleWares() map[string]func(ctx *gin.Context) {
 	middlewares["auth"] = func(ctx *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				app.Response(ctx).SendFailure("请求失败", err, 1003)
+				err2 := errors.New(fmt.Sprintf("%s", err))
+				app.Response(ctx).SendFailure("请求失败", service.GetErrMsg(err2), 1003)
 				ctx.Abort()
 			}
 		}()

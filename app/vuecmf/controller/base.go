@@ -17,7 +17,6 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
-	"runtime"
 )
 
 type Base struct {
@@ -28,33 +27,20 @@ type Base struct {
 	AppName      string      //当前应用标识
 }
 
-//GetErrMsg 获取异常信息
-func GetErrMsg(err error) string {
-	if service.Conf.Debug == false {
-		return err.Error()
-	}
-
-	if err != nil {
-		pc, file, line, _ := runtime.Caller(1)
-		return fmt.Sprintf("[error]%s 发生在 %s ，异常代码在文件 %s 第%d行\n", err.Error(), runtime.FuncForPC(pc).Name(), file, line)
-	}
-	return ""
-}
-
 //Common 控制器公共入口方法
 func Common(c *gin.Context, formParams interface{}, fun func() (interface{}, error)) {
 	defer func() {
 		if err := recover(); err != nil {
 			err2 := errors.New(fmt.Sprintf("%s", err))
-			fmt.Println("请求异常：", GetErrMsg(err2))
-			app.Response(c).SendFailure("请求异常", GetErrMsg(err2))
+			fmt.Println("请求异常：", service.GetErrMsg(err2))
+			app.Response(c).SendFailure("请求异常", service.GetErrMsg(err2))
 		}
 	}()
 
 	if formParams == nil {
 		list, err := fun()
 		if err != nil {
-			app.Response(c).SendFailure(GetErrMsg(err), nil)
+			app.Response(c).SendFailure(service.GetErrMsg(err), nil)
 			return
 		}
 		app.Response(c).SendSuccess("请求成功", list)
@@ -68,17 +54,17 @@ func Common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 		if err.Error() == "EOF" {
 			reason = "参数为空"
 		} else {
-			reason = GetErrMsg(model.GetError(err, formParams))
+			reason = service.GetErrMsg(model.GetError(err, formParams))
 		}
 
-		app.Response(c).SendFailure("请求失败22："+reason, nil)
+		app.Response(c).SendFailure("请求失败："+reason, nil)
 		return
 	}
 
 	list, err := fun()
 
 	if err != nil {
-		app.Response(c).SendFailure("请求失败："+err.Error(), nil)
+		app.Response(c).SendFailure("请求失败："+service.GetErrMsg(err), nil)
 		return
 	}
 

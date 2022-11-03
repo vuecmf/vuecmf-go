@@ -33,17 +33,15 @@ func ModelConfig() *modelConfigService {
 // Create 创建单条或多条数据, 成功返回影响行数
 func (s *modelConfigService) Create(data *model.ModelConfig) (int64, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
-		//生成代码文件
-		err := Make().MakeAppModel(data.AppId, data.TableName)
-		if err != nil {
-			return err
-		}
-		err = tx.Create(data).Error
-		if err != nil {
+		if err := tx.Create(data).Error; err != nil {
 			return err
 		}
 		//初始化模型相关数据
-		return Make().BuildModelData(tx, data)
+		if err := Make().BuildModelData(data); err != nil {
+			return err
+		}
+		//生成代码文件
+		return Make().MakeAppModel(data.AppId, data.TableName)
 	})
 
 	if err != nil {
@@ -105,7 +103,7 @@ func (s *modelConfigService) Delete(id uint, model *model.ModelConfig) (int64, e
 		tx.Delete(model, id)
 		model.Id = id
 		//清除相关数据
-		if err := Make().RemoveModelData(tx,model); err != nil {
+		if err := Make().RemoveModelData(model); err != nil {
 			return err
 		}
 		//清除相关代码文件
@@ -131,7 +129,7 @@ func (s *modelConfigService) DeleteBatch(idList string, model *model.ModelConfig
 			mid, _ := strconv.Atoi(id)
 			model.Id = uint(mid)
 			//清除相关数据
-			if err := Make().RemoveModelData(tx,model); err != nil {
+			if err := Make().RemoveModelData(model); err != nil {
 				return err
 			}
 			//清除相关代码文件

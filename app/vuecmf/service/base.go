@@ -9,11 +9,13 @@
 package service
 
 import (
+	"fmt"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+	"runtime"
 	"strings"
 )
 
@@ -42,6 +44,19 @@ type fullModelFields struct {
 	RelationInfo *modelRelationInfo                    `json:"relation_info"`
 	FormRules    interface{}                           `json:"form_rules"`
 	ModelId      int                                   `json:"model_id"`
+}
+
+//GetErrMsg 获取异常信息
+func GetErrMsg(err error) string {
+	if Conf.Debug == false {
+		return err.Error()
+	}
+
+	if err != nil {
+		pc, file, line, _ := runtime.Caller(1)
+		return fmt.Sprintf("[error]%s 发生在 %s ，异常代码在文件 %s 第%d行", err.Error(), runtime.FuncForPC(pc).Name(), file, line)
+	}
+	return ""
 }
 
 // CommonList 公共列表 服务方法
@@ -195,10 +210,10 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 
 	var result []DropdownList
 
-	query := Db.Table(NS.TableName(modelName)).Select(labelField+" label, id value").Where("status = 10");
+	query := Db.Table(NS.TableName(modelName)).Select(labelField + " label, id value").Where("status = 10")
 	if modelName == "model_config" {
 		query = query.Where("app_id = ?", form.AppId)
-	}else{
+	} else {
 		query = query.Where("model_id = ?", form.ModelId)
 	}
 	query.Find(&result)

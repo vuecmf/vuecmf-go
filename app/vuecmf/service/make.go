@@ -749,7 +749,7 @@ func (makeSer *makeService) RemoveAppModel(appId, modelId uint) error {
 }
 
 // BuildModelData 生成模型相关数据
-func (makeSer *makeService) BuildModelData(Db *gorm.DB, mc *model.ModelConfig) error {
+func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
 	var baseTable interface{}
 	var insertDataJson string
 	if mc.IsTree == 10 {
@@ -940,25 +940,28 @@ func (makeSer *makeService) BuildModelData(Db *gorm.DB, mc *model.ModelConfig) e
 
 	}
 
-	//创建表
-	if err := Db.Set("gorm:table_options", "ENGINE=InnoDB COLLATE=utf8mb4_unicode_ci COMMENT='"+mc.Remark+"'").AutoMigrate(&baseTable); err != nil {
-		return errors.New("创建基础表" + NS.TableName(mc.TableName) + "失败:" + err.Error())
-	}
-	//将表重命名为需要创建的表名称
-	if err := Db.Migrator().RenameTable(NS.TableName("base_table"), NS.TableName(mc.TableName)); err != nil {
-		return errors.New("创建表" + NS.TableName(mc.TableName) + "失败:" + err.Error())
-	}
+	return Db.Transaction(func(tx *gorm.DB) error {
+		//创建表
+		if err := tx.Set("gorm:table_options", "ENGINE=InnoDB COLLATE=utf8mb4_unicode_ci COMMENT='"+mc.Remark+"'").AutoMigrate(&baseTable); err != nil {
+			return errors.New("创建基础表" + NS.TableName(mc.TableName) + "失败:" + err.Error())
+		}
+		//将表重命名为需要创建的表名称
+		if err := tx.Migrator().RenameTable(NS.TableName("base_table"), NS.TableName(mc.TableName)); err != nil {
+			return errors.New("创建表" + NS.TableName(mc.TableName) + "失败:" + err.Error())
+		}
 
-	//写入数据
-	insertDataJson = strings.Replace(insertDataJson, "{$model_id}", strconv.Itoa(int(mc.Id)), -1)
-	var insertData []model.ModelField
-	if err := json.Unmarshal([]byte(insertDataJson), &insertData); err != nil {
-		return err
-	}
-	Db.Create(insertData)
+		//写入数据
+		insertDataJson = strings.Replace(insertDataJson, "{$model_id}", strconv.Itoa(int(mc.Id)), -1)
+		var insertData []model.ModelField
+		if err := json.Unmarshal([]byte(insertDataJson), &insertData); err != nil {
+			return err
+		}
+		if err := tx.Create(insertData).Error; err != nil {
+			return err
+		}
 
-	//添加字段选项
-	insertDataJson = `[
+		//添加字段选项
+		insertDataJson = `[
     {
         "model_id": {$model_id},
         "model_field_id": {$model_field_id},
@@ -972,22 +975,24 @@ func (makeSer *makeService) BuildModelData(Db *gorm.DB, mc *model.ModelConfig) e
         "option_label": "禁用"
     }
 ]`
-	var modelFieldId string
-	Db.Table(NS.TableName("model_field")).Select("id").
-		Where("model_id = ?", mc.Id).
-		Where("field_name = 'status'").
-		Where("status = 10").Find(&modelFieldId)
+		var modelFieldId string
+		tx.Table(NS.TableName("model_field")).Select("id").
+			Where("model_id = ?", mc.Id).
+			Where("field_name = 'status'").
+			Where("status = 10").Find(&modelFieldId)
 
-	insertDataJson = strings.Replace(insertDataJson, "{$model_id}", strconv.Itoa(int(mc.Id)), -1)
-	insertDataJson = strings.Replace(insertDataJson, "{$model_field_id}", modelFieldId, -1)
-	var fieldOptionData []model.FieldOption
-	if err := json.Unmarshal([]byte(insertDataJson), &fieldOptionData); err != nil {
-		return err
-	}
-	Db.Create(fieldOptionData)
+		insertDataJson = strings.Replace(insertDataJson, "{$model_id}", strconv.Itoa(int(mc.Id)), -1)
+		insertDataJson = strings.Replace(insertDataJson, "{$model_field_id}", modelFieldId, -1)
+		var fieldOptionData []model.FieldOption
+		if err := json.Unmarshal([]byte(insertDataJson), &fieldOptionData); err != nil {
+			return err
+		}
+		if err := tx.Create(fieldOptionData).Error; err != nil {
+			return err
+		}
 
-	//添加动作信息
-	insertDataJson = `[
+		//添加动作信息
+		insertDataJson = `[
     {
         "label": "{$label}管理列表",
         "api_path": "/{$app_name}/{$table_name}",
@@ -1019,86 +1024,111 @@ func (makeSer *makeService) BuildModelData(Db *gorm.DB, mc *model.ModelConfig) e
         "action_type": "save_all"
     },
 ]`
-	appName := AppConfig().GetAppNameById(mc.AppId)
+		appName := AppConfig().GetAppNameById(mc.AppId)
 
-	insertDataJson = strings.Replace(insertDataJson, "{$label}", mc.Label, -1)
-	insertDataJson = strings.Replace(insertDataJson, "{$app_name}", appName, -1)
-	insertDataJson = strings.Replace(insertDataJson, "{$table_name}", mc.TableName, -1)
-	insertDataJson = strings.Replace(insertDataJson, "{$model_id}", strconv.Itoa(int(mc.Id)), -1)
-	var modelActionData []model.ModelAction
-	if err := json.Unmarshal([]byte(insertDataJson), &modelActionData); err != nil {
-		return err
-	}
-	Db.Create(modelActionData)
+		insertDataJson = strings.Replace(insertDataJson, "{$label}", mc.Label, -1)
+		insertDataJson = strings.Replace(insertDataJson, "{$app_name}", appName, -1)
+		insertDataJson = strings.Replace(insertDataJson, "{$table_name}", mc.TableName, -1)
+		insertDataJson = strings.Replace(insertDataJson, "{$model_id}", strconv.Itoa(int(mc.Id)), -1)
+		var modelActionData []model.ModelAction
+		if err := json.Unmarshal([]byte(insertDataJson), &modelActionData); err != nil {
+			return err
+		}
+		if err := tx.Create(modelActionData).Error; err != nil {
+			return err
+		}
 
-	//设置模型的默认动作
-	listActionId := ModelAction().GetListActionIdByModelId(mc.Id)
-	Db.Table(NS.TableName("model_action")).
-		Where("id = ?", mc.Id).
-		Update("default_action_id", listActionId)
-
-	return nil
+		//设置模型的默认动作
+		listActionId := ModelAction().GetListActionIdByModelId(mc.Id)
+		return tx.Table(NS.TableName("model_action")).
+			Where("id = ?", mc.Id).
+			Update("default_action_id", listActionId).Error
+	})
 }
 
 // RemoveModelData 删除模型相关的所有数据
-func (makeSer *makeService) RemoveModelData(Db *gorm.DB, mc *model.ModelConfig) error {
+func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
 	//根据动作表找到对应权限项，清除rules表相关信息
 	var actionList []string
 	Db.Table(NS.TableName("model_action")).Select("api_path").
 		Where("model_id = ?", mc.Id).
 		Where("status = 10").Find(&actionList)
 
-	if len(actionList) > 0 {
-		for _, path := range actionList {
-			arr := strings.Split(strings.Trim(path, "/"), "/")
-			if len(arr) < 2 {
-				continue
+	return Db.Transaction(func(tx *gorm.DB) error {
+		if len(actionList) > 0 {
+			for _, path := range actionList {
+				arr := strings.Split(strings.Trim(path, "/"), "/")
+				if len(arr) < 2 {
+					continue
+				}
+				appName := arr[0]
+				ctrl := arr[1]
+				action := "index"
+				if arr[2] != "" {
+					action = arr[2]
+				}
+				if err := tx.Where("v1 = ?", appName).
+					Where("v2 = ?", ctrl).
+					Where("v3 = ?", action).
+					Delete(&model.Rules{}).Error; err != nil {
+					return err
+				}
 			}
-			appName := arr[0]
-			ctrl := arr[1]
-			action := "index"
-			if arr[2] != "" {
-				action = arr[2]
-			}
-			Db.Where("v1 = ?", appName).
-				Where("v2 = ?", ctrl).
-				Where("v3 = ?", action).
-				Delete(&model.Rules{})
 		}
-	}
 
-	//清除字段信息
-	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelField{})
+		//清除字段信息
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.ModelField{}).Error; err != nil {
+			return err
+		}
 
-	//清除索引信息
-	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelIndex{})
+		//清除索引信息
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.ModelIndex{}).Error; err != nil {
+			return err
+		}
 
-	//清除字段选项
-	Db.Where("model_id = ?", mc.Id).Delete(&model.FieldOption{})
+		//清除字段选项
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.FieldOption{}).Error; err != nil {
+			return err
+		}
 
-	//清除关联表信息
-	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelRelation{})
+		//清除关联表信息
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.ModelRelation{}).Error; err != nil {
+			return err
+		}
 
-	//清除动作信息
-	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelAction{})
+		//清除动作信息
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.ModelAction{}).Error; err != nil {
+			return err
+		}
 
-	//清除表单信息
-	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelForm{})
+		//清除表单信息
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.ModelForm{}).Error; err != nil {
+			return err
+		}
 
-	//清除表单校验规则信息
-	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelFormRules{})
+		//清除表单校验规则信息
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.ModelFormRules{}).Error; err != nil {
+			return err
+		}
 
-	//清除表单联动信息
-	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelFormLinkage{})
+		//清除表单联动信息
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.ModelFormLinkage{}).Error; err != nil {
+			return err
+		}
 
-	//清除菜单信息
-	Db.Where("model_id = ?", mc.Id).Delete(&model.Menu{})
+		//清除菜单信息
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.Menu{}).Error; err != nil {
+			return err
+		}
 
-	//清除应用中挂载的模型
-	Db.Where("model_id = ?", mc.Id).Delete(&model.ModelField{})
+		//清除应用中挂载的模型
+		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.ModelField{}).Error; err != nil {
+			return err
+		}
 
-	//删除模型对应表及相关数据
-	return Db.Migrator().DropTable(NS.TableName(mc.TableName))
+		//删除模型对应表及相关数据
+		return tx.Migrator().DropTable(NS.TableName(mc.TableName))
+	})
 }
 
 // UpdateModel 根据模型ID更新模型文件
@@ -1118,32 +1148,35 @@ func (makeSer *makeService) UpdateModel(modelId uint) error {
 
 // AddField 添加字段并更新模型文件
 func (makeSer *makeService) AddField(mf *model.ModelField) error {
-	var err error
-	if err = Db.Migrator().AddColumn(&model.ModelField{}, mf.FieldName); err != nil {
-		return err
-	}
-	//更新所有相关的模型文件
-	return makeSer.UpdateModel(mf.ModelId)
+	return Db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Migrator().AddColumn(&model.ModelField{}, mf.FieldName); err != nil {
+			return err
+		}
+		//更新所有相关的模型文件
+		return makeSer.UpdateModel(mf.ModelId)
+	})
 }
 
 // RenameField 添加字段并更新模型文件
 func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName string) error {
-	var err error
-	if err = Db.Migrator().RenameColumn(&model.ModelField{}, oldFieldName, mf.FieldName); err != nil {
-		return err
-	}
-	//更新所有相关的模型文件
-	return makeSer.UpdateModel(mf.ModelId)
+	return Db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Migrator().RenameColumn(&model.ModelField{}, oldFieldName, mf.FieldName); err != nil {
+			return err
+		}
+		//更新所有相关的模型文件
+		return makeSer.UpdateModel(mf.ModelId)
+	})
 }
 
 // DelField 删除字段并更新模型文件
 func (makeSer *makeService) DelField(mf *model.ModelField) error {
-	var err error
-	if err = Db.Migrator().DropColumn(&model.ModelField{}, mf.FieldName); err != nil {
-		return err
-	}
-	//更新所有相关的模型文件
-	return makeSer.UpdateModel(mf.ModelId)
+	return Db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Migrator().DropColumn(&model.ModelField{}, mf.FieldName); err != nil {
+			return err
+		}
+		//更新所有相关的模型文件
+		return makeSer.UpdateModel(mf.ModelId)
+	})
 }
 
 // AddIndex 添加索引 并更新模型文件
@@ -1163,10 +1196,11 @@ func (makeSer *makeService) AddIndex(mi *model.ModelIndex) error {
 		indexCol := "`" + strings.Join(fieldNameList, "`, `") + "`"
 
 		sql := "ALTER TABLE `" + tableName + "` ADD " + indexType + " INDEX `" + indexName + "`(" + indexCol + ") USING BTREE"
-		Db.Exec(sql)
-
-		//更新所有相关的模型文件
-		err = makeSer.UpdateModel(mi.ModelId)
+		err = Db.Transaction(func(tx *gorm.DB) error {
+			tx.Exec(sql)
+			//更新所有相关的模型文件
+			return makeSer.UpdateModel(mi.ModelId)
+		})
 	}
 	return err
 }
@@ -1182,10 +1216,11 @@ func (makeSer *makeService) DelIndex(modelFieldId string, modelId uint) error {
 			Find(&fieldNameList)
 		indexName := "idx_" + strings.Join(fieldNameList, "_")
 		sql := "ALTER TABLE `" + tableName + "` DROP INDEX " + indexName
-		Db.Exec(sql)
-
-		//更新所有相关的模型文件
-		err = makeSer.UpdateModel(modelId)
+		err = Db.Transaction(func(tx *gorm.DB) error {
+			tx.Exec(sql)
+			//更新所有相关的模型文件
+			return makeSer.UpdateModel(modelId)
+		})
 	}
 	return err
 }

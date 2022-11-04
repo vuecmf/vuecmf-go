@@ -13,7 +13,6 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
-	"strings"
 )
 
 type ModelIndex struct {
@@ -34,17 +33,10 @@ func init() {
 func (ctrl *ModelIndex) Save(c *gin.Context) {
 	saveForm := &model.DataModelIndexForm{}
 	Common(c, saveForm, func() (interface{}, error) {
-		saveData := &model.ModelIndex{}
-		saveData.Id = saveForm.Data.Id
-		saveData.ModelId = saveForm.Data.ModelId
-		saveData.ModelFieldId = strings.Join(saveForm.Data.ModelFieldId, ",")
-		saveData.IndexType = saveForm.Data.IndexType
-		saveData.Status = saveForm.Data.Status
-
 		if saveForm.Data.Id == uint(0) {
-			return service.ModelIndex().Create(saveData)
+			return service.ModelIndex().Create(saveForm.Data)
 		} else {
-			return service.ModelIndex().Update(saveData)
+			return service.ModelIndex().Update(saveForm.Data)
 		}
 	})
 }

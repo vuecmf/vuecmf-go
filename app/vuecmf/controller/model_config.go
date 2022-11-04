@@ -13,8 +13,6 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
-	"strconv"
-	"strings"
 )
 
 type ModelConfig struct {
@@ -35,30 +33,10 @@ func init() {
 func (ctrl *ModelConfig) Save(c *gin.Context) {
 	saveForm := &model.DataModelConfigForm{}
 	Common(c, saveForm, func() (interface{}, error) {
-		var searchFieldIdList []string
-		if len(saveForm.Data.SearchFieldId) > 0 {
-			for _, id := range saveForm.Data.SearchFieldId {
-				searchFieldIdList = append(searchFieldIdList, strconv.Itoa(id))
-			}
-		}
-
-		saveData := &model.ModelConfig{}
-		saveData.Id = saveForm.Data.Id
-		saveData.AppId = saveForm.Data.AppId
-		saveData.TableName = saveForm.Data.TableName
-		saveData.Label = saveForm.Data.Label
-		saveData.ComponentTpl = saveForm.Data.ComponentTpl
-		saveData.DefaultActionId = saveForm.Data.DefaultActionId
-		saveData.SearchFieldId = strings.Join(searchFieldIdList, ",")
-		saveData.Type = saveForm.Data.Type
-		saveData.IsTree = saveForm.Data.IsTree
-		saveData.Remark = saveForm.Data.Remark
-		saveData.Status = saveForm.Data.Status
-
 		if saveForm.Data.Id == uint(0) {
-			return service.ModelConfig().Create(saveData)
+			return service.ModelConfig().Create(saveForm.Data)
 		} else {
-			return service.ModelConfig().Update(saveData)
+			return service.ModelConfig().Update(saveForm.Data)
 		}
 	})
 }

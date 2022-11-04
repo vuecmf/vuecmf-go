@@ -608,7 +608,7 @@ func (makeSer *makeService) RemoveController(tableName string, appName string) e
 
 	pathName := "app/" + appName + "/controller/" + tableName + ".go"
 	//文件不存在的就直接返回
-	if _,err := os.Stat(pathName); err != nil {
+	if _, err := os.Stat(pathName); err != nil {
 		return nil
 	}
 
@@ -1030,7 +1030,7 @@ func (makeSer *makeService) BuildModel(mc *model.ModelConfig) error {
         "label": "删除{$label}",
         "api_path": "/{$app_name}/{$table_name}/save",
 		"model_id": {$model_id},
-        "action_type": "save"
+        "action_type": "delete"
     },
 	{
         "label": "{$label}下拉列表",
@@ -1043,7 +1043,7 @@ func (makeSer *makeService) BuildModel(mc *model.ModelConfig) error {
         "api_path": "/{$app_name}/{$table_name}/save_all",
 		"model_id": {$model_id},
         "action_type": "save_all"
-    },
+    }
 ]`
 		appName := AppConfig().GetAppNameById(mc.AppId)
 
@@ -1061,10 +1061,10 @@ func (makeSer *makeService) BuildModel(mc *model.ModelConfig) error {
 
 		//设置模型的默认动作
 		listActionId := ModelAction().GetListActionIdByModelId(mc.Id)
-		if err := tx.Table(NS.TableName("model_action")).
+		if err := tx.Table(NS.TableName("model_config")).
 			Where("id = ?", mc.Id).
 			Update("default_action_id", listActionId).Error; err != nil {
-				return err
+			return err
 		}
 
 		//生成代码文件
@@ -1090,7 +1090,7 @@ func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
 				appName := arr[0]
 				ctrl := arr[1]
 				action := "index"
-				if arr[2] != "" {
+				if len(arr) > 2 {
 					action = arr[2]
 				}
 				if err := tx.Where("v1 = ?", appName).

@@ -3,7 +3,7 @@ package model
 // ModelConfig 模型配置 模型结构
 type ModelConfig struct {
 	Id              uint   `json:"id" form:"id"  gorm:"column:id;primaryKey;autoIncrement;size:32;not null;comment:自增ID"`
-	AppId      uint   `json:"app_id" form:"app_id" binding:"required" required_tips:"请选择" gorm:"column:app_id;size:32;uniqueIndex:unique_index;not null;default:0;comment:所属应用ID"`
+	AppId           uint   `json:"app_id" form:"app_id" binding:"required" required_tips:"请选择" gorm:"column:app_id;size:32;uniqueIndex:unique_index;not null;default:0;comment:所属应用ID"`
 	TableName       string `json:"table_name" form:"table_name" binding:"required" required_tips:"表名必填" gorm:"column:table_name;size:64;uniqueIndex:unique_index;not null;default:'';comment:模型对应的表名(不含表前缘)"`
 	Label           string `json:"label" form:"label" binding:"required" required_tips:"模型标签必填" gorm:"column:label;size:64;not null;default:'';comment:模型标签"`
 	ComponentTpl    string `json:"component_tpl" form:"component_tpl" binding:"required" required_tips:"请选择" gorm:"column:component_tpl;size:255;not null;default:'';comment:组件模板"`

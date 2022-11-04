@@ -62,3 +62,19 @@ func (ctrl *ModelConfig) Save(c *gin.Context) {
 		}
 	})
 }
+
+// Delete 根据ID删除单条数据
+func (ctrl *ModelConfig) Delete(c *gin.Context) {
+	data := &model.DataIdForm{}
+	Common(c, data, func() (interface{}, error) {
+		return service.ModelConfig().Delete(data.Data.Id, &model.ModelConfig{})
+	})
+}
+
+// DeleteBatch 根据ID列表批量删除多条数据
+func (ctrl *ModelConfig) DeleteBatch(c *gin.Context) {
+	data := &model.DataIdListForm{}
+	Common(c, data, func() (interface{}, error) {
+		return service.ModelConfig().DeleteBatch(data.Data.IdList, &model.ModelConfig{})
+	})
+}

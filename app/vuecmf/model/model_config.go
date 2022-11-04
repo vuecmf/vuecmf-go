@@ -15,22 +15,7 @@ type ModelConfig struct {
 	Status          uint16 `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
 }
 
-// ModelConfigForm 模型配置表单
-type ModelConfigForm struct {
-	Id              uint   `json:"id" form:"id"`
-	AppId      uint   `json:"app_id" form:"app_id" binding:"required" required_tips:"请选择"`
-	TableName       string `json:"table_name" form:"table_name" binding:"required" required_tips:"表名必填"`
-	Label           string `json:"label" form:"label" binding:"required" required_tips:"模型标签必填"`
-	ComponentTpl    string `json:"component_tpl" form:"component_tpl" binding:"required" required_tips:"请选择"`
-	DefaultActionId uint   `json:"default_action_id"`
-	SearchFieldId   []int  `json:"search_field_id" form:"search_field_id"`
-	Type            uint16 `json:"type" form:"type"`
-	IsTree          uint16 `json:"is_tree" form:"is_tree"`
-	Remark          string `json:"remark" form:"remark"`
-	Status          uint16 `json:"status" form:"status"`
-}
-
 // DataModelConfigForm 提交的表单数据
 type DataModelConfigForm struct {
-	Data *ModelConfigForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
+	Data *ModelConfig `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }

@@ -32,7 +32,6 @@ func Common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 	defer func() {
 		if err := recover(); err != nil {
 			err2 := errors.New(fmt.Sprintf("%s", err))
-			fmt.Println("请求异常：", service.GetErrMsg(err2))
 			app.Response(c).SendFailure("请求异常", service.GetErrMsg(err2))
 		}
 	}()

@@ -578,14 +578,24 @@ func (ctrl *{{.controller_name}}) Save(c *gin.Context) {
 //				参数：tableName string 表名（不带表前缀）
 //			 		 appName string 应用名称
 func (makeSer *makeService) RemoveModel(tableName string, appName string) error {
-	return os.Remove("app/" + appName + "/model/" + tableName + ".go")
+	pathName := "app/" + appName + "/model/" + tableName + ".go"
+	//文件不存在的就直接返回
+	if _, err := os.Stat(pathName); err != nil {
+		return nil
+	}
+	return os.Remove(pathName)
 }
 
 // RemoveService 功能：删除服务代码文件
 //		  			参数：tableName string 表名（不带表前缀）
 //			   			 appName string 应用名称
 func (makeSer *makeService) RemoveService(tableName string, appName string) error {
-	return os.Remove("app/" + appName + "/service/" + tableName + ".go")
+	pathName := "app/" + appName + "/service/" + tableName + ".go"
+	//文件不存在的就直接返回
+	if _, err := os.Stat(pathName); err != nil {
+		return nil
+	}
+	return os.Remove(pathName)
 }
 
 // RemoveController 功能：删除控制器代码文件
@@ -596,7 +606,13 @@ func (makeSer *makeService) RemoveController(tableName string, appName string) e
 		return err
 	}
 
-	return os.Remove("app/" + appName + "/controller/" + tableName + ".go")
+	pathName := "app/" + appName + "/controller/" + tableName + ".go"
+	//文件不存在的就直接返回
+	if _,err := os.Stat(pathName); err != nil {
+		return nil
+	}
+
+	return os.Remove(pathName)
 }
 
 // UpdateRunFile 更新启动文件
@@ -653,13 +669,13 @@ func (makeSer *makeService) RemoveAll(tableName string) error {
 	if len(appList) > 0 {
 		for _, appName := range appList {
 			if err = makeSer.RemoveController(tableName, appName); err != nil {
-				break
+				return err
 			}
 			if err = makeSer.RemoveModel(tableName, appName); err != nil {
-				break
+				return err
 			}
 			if err = makeSer.RemoveService(tableName, appName); err != nil {
-				break
+				return err
 			}
 		}
 	}
@@ -748,8 +764,8 @@ func (makeSer *makeService) RemoveAppModel(appId, modelId uint) error {
 	return nil
 }
 
-// BuildModelData 生成模型相关数据
-func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
+// BuildModel 生成模型相关数据
+func (makeSer *makeService) BuildModel(mc *model.ModelConfig) error {
 	var baseTable interface{}
 	var insertDataJson string
 	if mc.IsTree == 10 {
@@ -941,6 +957,11 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
 	}
 
 	return Db.Transaction(func(tx *gorm.DB) error {
+		//创建模型配置数据
+		if err := tx.Create(mc).Error; err != nil {
+			return err
+		}
+
 		//创建表
 		if err := tx.Set("gorm:table_options", "ENGINE=InnoDB COLLATE=utf8mb4_unicode_ci COMMENT='"+mc.Remark+"'").AutoMigrate(&baseTable); err != nil {
 			return errors.New("创建基础表" + NS.TableName(mc.TableName) + "失败:" + err.Error())
@@ -1040,9 +1061,14 @@ func (makeSer *makeService) BuildModelData(mc *model.ModelConfig) error {
 
 		//设置模型的默认动作
 		listActionId := ModelAction().GetListActionIdByModelId(mc.Id)
-		return tx.Table(NS.TableName("model_action")).
+		if err := tx.Table(NS.TableName("model_action")).
 			Where("id = ?", mc.Id).
-			Update("default_action_id", listActionId).Error
+			Update("default_action_id", listActionId).Error; err != nil {
+				return err
+		}
+
+		//生成代码文件
+		return Make().MakeAppModel(mc.AppId, mc.TableName)
 	})
 }
 
@@ -1118,11 +1144,6 @@ func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
 
 		//清除菜单信息
 		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.Menu{}).Error; err != nil {
-			return err
-		}
-
-		//清除应用中挂载的模型
-		if err := tx.Where("model_id = ?", mc.Id).Delete(&model.ModelField{}).Error; err != nil {
 			return err
 		}
 

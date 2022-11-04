@@ -11,7 +11,6 @@ package service
 import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"gorm.io/gorm"
-	"strconv"
 	"strings"
 )
 
@@ -32,20 +31,9 @@ func ModelConfig() *modelConfigService {
 
 // Create 创建单条或多条数据, 成功返回影响行数
 func (s *modelConfigService) Create(data *model.ModelConfig) (int64, error) {
-	err := Db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(data).Error; err != nil {
-			return err
-		}
-		//初始化模型相关数据
-		if err := Make().BuildModelData(data); err != nil {
-			return err
-		}
-		//生成代码文件
-		return Make().MakeAppModel(data.AppId, data.TableName)
-	})
-
-	if err != nil {
-		return 0, err
+	//初始化模型相关数据
+	if err := Make().BuildModel(data); err != nil {
+		return 0,err
 	}
 	return 1, nil
 }
@@ -100,40 +88,48 @@ func (s *modelConfigService) Update(data *model.ModelConfig) (int64, error) {
 // Delete 根据ID删除数据
 func (s *modelConfigService) Delete(id uint, model *model.ModelConfig) (int64, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
-		tx.Delete(model, id)
 		model.Id = id
+		model.TableName = s.GetModelTableName(int(id))
 		//清除相关数据
 		if err := Make().RemoveModelData(model); err != nil {
 			return err
 		}
-		//清除相关代码文件
-		if err := Make().RemoveAll(model.TableName); err != nil {
+		if err := tx.Delete(model, id).Error; err != nil {
 			return err
 		}
-		return nil
+		//清除相关代码文件
+		return Make().RemoveAll(model.TableName)
 	})
 
 	if err != nil {
 		return 0, err
 	}
 
+	if err = Make().UpdateRunFile(); err != nil {
+		return 0, err
+	}
 	return 1, err
 }
 
 // DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
-func (s *modelConfigService) DeleteBatch(idList string, model *model.ModelConfig) (int64, error) {
+func (s *modelConfigService) DeleteBatch(idList string, modelInstace *model.ModelConfig) (int64, error) {
 	idArr := strings.Split(idList, ",")
 	err := Db.Transaction(func(tx *gorm.DB) error {
-		tx.Delete(model, idArr)
-		for _, id := range idArr {
-			mid, _ := strconv.Atoi(id)
-			model.Id = uint(mid)
+		var modelList []*model.ModelConfig
+		Db.Table(NS.TableName("model_config")).Select("id,table_name").
+			Where("id in ?", idArr).
+			Where("status = 10").Find(&modelList)
+
+		if err := tx.Delete(modelInstace, idArr).Error; err != nil {
+			return err
+		}
+		for _, mc := range modelList {
 			//清除相关数据
-			if err := Make().RemoveModelData(model); err != nil {
+			if err := Make().RemoveModelData(mc); err != nil {
 				return err
 			}
 			//清除相关代码文件
-			if err := Make().RemoveAll(model.TableName); err != nil {
+			if err := Make().RemoveAll(mc.TableName); err != nil {
 				return err
 			}
 		}

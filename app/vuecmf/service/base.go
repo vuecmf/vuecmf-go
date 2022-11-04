@@ -53,8 +53,24 @@ func GetErrMsg(err error) string {
 	}
 
 	if err != nil {
-		pc, file, line, _ := runtime.Caller(1)
-		return fmt.Sprintf("[error]%s 发生在 %s ，异常代码在文件 %s 第%d行", err.Error(), runtime.FuncForPC(pc).Name(), file, line)
+		prefix := "[error] "
+		res := ""
+		red := string([]byte{27, 91, 51, 49, 109})
+		reset := string([]byte{27, 91, 48, 109})
+
+		for i := 1; i <= 10; i++ {
+			pc, file, line, rs := runtime.Caller(i)
+
+			if rs {
+				errMsg := fmt.Sprintf("%s 在 %s ，文件 %s 第%d行; ", err.Error(), runtime.FuncForPC(pc).Name(), file, line)
+				if i == 1 {
+					res = prefix + errMsg
+				}
+				//红色显示打印
+				fmt.Println(red, prefix + errMsg, reset)
+			}
+		}
+		return res
 	}
 	return ""
 }

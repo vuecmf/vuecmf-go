@@ -11,6 +11,7 @@ package service
 import (
 	"errors"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"gorm.io/gorm"
 	"strings"
 )
 
@@ -19,27 +20,59 @@ type modelActionService struct {
 	*BaseService
 }
 
+// Create 创建单条或多条数据, 成功返回影响行数
+func (ser *modelActionService) Create(data *model.ModelAction) (int64, error) {
+	var num int64
+	Db.Table(NS.TableName("model_action")).
+		Where("model_id = ?", data.ModelId).
+		Where("action_type = ?", data.ActionType).
+		Count(&num)
+	if num > 0 {
+		return 0, errors.New("动作类型（" + data.ActionType + "）已存在")
+	}
+	res := Db.Create(data)
+	return res.RowsAffected, res.Error
+}
+
 // Update 更新数据, 成功返回影响行数
 func (ser *modelActionService) Update(data *model.ModelAction) (int64, error) {
-	//清除相关权限项
-	var oldApiPath string
-	Db.Table(NS.TableName("model_action")).Select("api_path").
-		Where("id = ?", data.Id).Find(&oldApiPath)
-	if oldApiPath != "" && oldApiPath != data.ApiPath {
-		arr := strings.Split(oldApiPath, "/")
-		if len(arr) == 2 {
-			if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], "index"); err != nil {
-				return 0, err
-			}
-		} else if len(arr) == 3 {
-			if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], arr[2]); err != nil {
-				return 0, err
-			}
-		}
+	var old model.ModelAction
+	Db.Table(NS.TableName("model_action")).
+		Where("id = ?", data.Id).
+		Find(&old)
+
+	var num int64
+	Db.Table(NS.TableName("model_action")).
+		Where("model_id = ?", data.ModelId).
+		Where("action_type = ?", data.ActionType).
+		Count(&num)
+
+	if num > 0 && old.ActionType != data.ActionType {
+		return 0, errors.New("动作类型（" + data.ActionType + "）已存在")
 	}
 
-	res := Db.Updates(data)
-	return res.RowsAffected, res.Error
+	//清除相关权限项
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		if old.ApiPath != "" && old.ApiPath != data.ApiPath {
+			arr := strings.Split(old.ApiPath, "/")
+			if len(arr) == 2 {
+				if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], "index"); err != nil {
+					return err
+				}
+			} else if len(arr) == 3 {
+				if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], arr[2]); err != nil {
+					return err
+				}
+			}
+		}
+
+		return tx.Updates(data).Error
+	})
+
+	if err != nil {
+		return 0, err
+	}
+	return 1, nil
 }
 
 // Delete 根据ID删除数据
@@ -48,48 +81,61 @@ func (ser *modelActionService) Delete(id uint, model *model.ModelAction) (int64,
 	var apiPath string
 	Db.Table(NS.TableName("model_action")).Select("api_path").
 		Where("id = ?", id).Find(&apiPath)
-	if apiPath != "" {
-		arr := strings.Split(apiPath, "/")
-		if len(arr) == 2 {
-			if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], "index"); err != nil {
-				return 0, err
-			}
-		} else if len(arr) == 3 {
-			if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], arr[2]); err != nil {
-				return 0, err
+
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		if apiPath != "" {
+			arr := strings.Split(apiPath, "/")
+			if len(arr) == 2 {
+				if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], "index"); err != nil {
+					return err
+				}
+			} else if len(arr) == 3 {
+				if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], arr[2]); err != nil {
+					return err
+				}
 			}
 		}
-	}
 
-	res := Db.Delete(model, id)
-	return res.RowsAffected, res.Error
+		return tx.Delete(model, id).Error
+	})
+
+	if err != nil {
+		return 0, err
+	}
+	return 1, nil
 }
 
 // DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
 func (ser *modelActionService) DeleteBatch(idList string, model *model.ModelAction) (int64, error) {
 	idArr := strings.Split(idList, ",")
 
-	//清除相关权限项
-	for _, id := range idArr {
-		var apiPath string
-		Db.Table(NS.TableName("model_action")).Select("api_path").
-			Where("id = ?", id).Find(&apiPath)
-		if apiPath != "" {
-			arr := strings.Split(apiPath, "/")
-			if len(arr) == 2 {
-				if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], "index"); err != nil {
-					return 0, err
-				}
-			} else if len(arr) == 3 {
-				if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], arr[2]); err != nil {
-					return 0, err
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		//清除相关权限项
+		for _, id := range idArr {
+			var apiPath string
+			tx.Table(NS.TableName("model_action")).Select("api_path").
+				Where("id = ?", id).Find(&apiPath)
+			if apiPath != "" {
+				arr := strings.Split(apiPath, "/")
+				if len(arr) == 2 {
+					if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], "index"); err != nil {
+						return err
+					}
+				} else if len(arr) == 3 {
+					if _, err := Auth().Enforcer.DeletePermission(arr[0], arr[1], arr[2]); err != nil {
+						return err
+					}
 				}
 			}
 		}
-	}
 
-	res := Db.Delete(model, idArr)
-	return res.RowsAffected, res.Error
+		return Db.Delete(model, idArr).Error
+	})
+
+	if err != nil {
+		return 0, err
+	}
+	return int64(len(idArr)), nil
 }
 
 // GetAllApiMap 根据动作ID获取 api 路径映射

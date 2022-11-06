@@ -202,6 +202,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 		id := strconv.Itoa(int(value.Id))
 		Db.Table(NS.TableName("model_index")).Select("id").
 			Where("model_field_id = ? or model_field_id like ? or model_field_id like ?", id, id+",%", "%,"+id).
+			Where("index_type = 'UNIQUE'").
 			Find(&modelIndexId)
 
 		if modelIndexId > 0 {
@@ -1028,7 +1029,7 @@ func (makeSer *makeService) BuildModel(mc *model.ModelConfig) error {
     },
 	{
         "label": "删除{$label}",
-        "api_path": "/{$app_name}/{$table_name}/save",
+        "api_path": "/{$app_name}/{$table_name}/delete",
 		"model_id": {$model_id},
         "action_type": "delete"
     },
@@ -1201,8 +1202,7 @@ func (makeSer *makeService) DelField(mf *model.ModelField) error {
 }
 
 // AddIndex 添加索引 并更新模型文件
-func (makeSer *makeService) AddIndex(mi *model.ModelIndex) error {
-	var err error
+func (makeSer *makeService) AddIndex(mi *model.ModelIndex, tx *gorm.DB) error {
 	if mi.ModelFieldId != "" {
 		tableName := ModelConfig().GetModelTableName(int(mi.ModelId))
 		indexType := mi.IndexType
@@ -1210,40 +1210,48 @@ func (makeSer *makeService) AddIndex(mi *model.ModelIndex) error {
 			indexType = ""
 		}
 		var fieldNameList []string
-		Db.Table(NS.TableName("model_field")).Select("field_name").
+		tx.Table(NS.TableName("model_field")).Select("field_name").
 			Where("id in ?", strings.Split(mi.ModelFieldId, ",")).
 			Find(&fieldNameList)
 		indexName := "idx_" + strings.Join(fieldNameList, "_")
 		indexCol := "`" + strings.Join(fieldNameList, "`, `") + "`"
 
-		sql := "ALTER TABLE `" + tableName + "` ADD " + indexType + " INDEX `" + indexName + "`(" + indexCol + ") USING BTREE"
-		err = Db.Transaction(func(tx *gorm.DB) error {
-			tx.Exec(sql)
-			//更新所有相关的模型文件
-			return makeSer.UpdateModel(mi.ModelId)
-		})
+		sql := "ALTER TABLE `" + NS.TableName(tableName) + "` ADD " + indexType + " INDEX `" + indexName + "`(" + indexCol + ") USING BTREE"
+		if err := tx.Exec(sql).Error; err != nil {
+			return err
+		}
+		//更新所有相关的模型文件
+		return makeSer.UpdateModel(mi.ModelId)
 	}
-	return err
+	return nil
+}
+
+type ModelIndexRes struct {
+	ModelFieldId string
+	ModelId      uint
 }
 
 // DelIndex 删除索引 并更新模型文件
-func (makeSer *makeService) DelIndex(modelFieldId string, modelId uint) error {
-	var err error
-	if modelFieldId != "" {
-		tableName := ModelConfig().GetModelTableName(int(modelId))
+func (makeSer *makeService) DelIndex(id uint, tx *gorm.DB) error {
+	var rs ModelIndexRes
+	Db.Table(NS.TableName("model_index")).Select("model_field_id, model_id").
+		Where("id = ?", id).Find(&rs)
+
+	tableName := ModelConfig().GetModelTableName(int(rs.ModelId))
+	if rs.ModelFieldId != "" {
 		var fieldNameList []string
 		Db.Table(NS.TableName("model_field")).Select("field_name").
-			Where("id in ?", strings.Split(modelFieldId, ",")).
+			Where("id in ?", strings.Split(rs.ModelFieldId, ",")).
 			Find(&fieldNameList)
 		indexName := "idx_" + strings.Join(fieldNameList, "_")
-		sql := "ALTER TABLE `" + tableName + "` DROP INDEX " + indexName
-		err = Db.Transaction(func(tx *gorm.DB) error {
-			tx.Exec(sql)
-			//更新所有相关的模型文件
-			return makeSer.UpdateModel(modelId)
-		})
+		sql := "ALTER TABLE `" + NS.TableName(tableName) + "` DROP INDEX " + indexName
+
+		if err := tx.Exec(sql).Error; err != nil {
+			return err
+		}
 	}
-	return err
+	//更新所有相关的模型文件
+	return makeSer.UpdateModel(rs.ModelId)
 }
 
 //CreateApp 创建应用相关目录

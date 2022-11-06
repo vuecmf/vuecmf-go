@@ -30,7 +30,7 @@ type formInfo struct {
 	Label        string `json:"label"`
 	Type         string `json:"type"`
 	DefaultValue string `json:"default_value"`
-	IsDisabled   int    `json:"is_disabled"`
+	IsDisabled   bool   `json:"is_disabled"`
 	SortNum      int    `json:"sort_num"`
 }
 
@@ -39,7 +39,7 @@ func (ser *modelFormService) GetFormInfo(modelId int) []formInfo {
 	var list []formInfo
 
 	Db.Table(NS.TableName("model_form")+" VMF").
-		Select("VMF.model_field_id field_id, VMF.`type`, VMF.default_value, VMF.is_disabled, VMF.sort_num, VMF2.field_name, VMF2.label").
+		Select("VMF.model_field_id field_id, VMF.`type`, VMF.default_value, if(VMF.is_disabled = 10, 1, 0) is_disabled, VMF.sort_num, VMF2.field_name, VMF2.label").
 		Joins("inner join "+NS.TableName("model_field")+" VMF2 ON VMF.model_field_id = VMF2.id").
 		Where("VMF.model_id = ?", modelId).
 		Where("VMF.status = 10").

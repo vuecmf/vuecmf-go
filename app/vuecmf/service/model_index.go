@@ -10,6 +10,8 @@ package service
 
 import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"gorm.io/gorm"
+	"strconv"
 	"strings"
 )
 
@@ -30,69 +32,72 @@ func ModelIndex() *modelIndexService {
 
 // Create 创建单条或多条数据, 成功返回影响行数
 func (s *modelIndexService) Create(data *model.ModelIndex) (int64, error) {
-	res := Db.Create(data)
-	if err := Make().AddIndex(data); err != nil {
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(data).Error; err != nil {
+			return err
+		}
+		return Make().AddIndex(data, tx)
+	})
+
+	if err != nil {
 		return 0, err
 	}
-	return res.RowsAffected, res.Error
+	return 1, nil
 }
 
 // Update 更新数据, 成功返回影响行数
 func (s *modelIndexService) Update(data *model.ModelIndex) (int64, error) {
-	//删除原索引
-	var oldModelFieldId string
-	Db.Table(NS.TableName("model_index")).Select("model_field_id").
-		Where("id = ?", data.Id).Find(&oldModelFieldId)
-	if err := Make().DelIndex(oldModelFieldId, data.ModelId); err != nil {
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		//删除原索引
+		if err := Make().DelIndex(data.Id, tx); err != nil {
+			return err
+		}
+		//更新索引数据
+		if err := tx.Updates(data).Error; err != nil {
+			return err
+		}
+		//添加新索引
+		return Make().AddIndex(data, tx)
+	})
+
+	if err != nil {
 		return 0, err
 	}
-
-	res := Db.Updates(data)
-
-	//添加新索引
-	if err := Make().AddIndex(data); err != nil {
-		return 0, err
-	}
-
-	return res.RowsAffected, res.Error
+	return 1, nil
 }
 
 // Delete 根据ID删除数据
 func (s *modelIndexService) Delete(id uint, model interface{}) (int64, error) {
-	type Res struct {
-		ModelFieldId string
-		ModelId      uint
-	}
-	var rs Res
-	Db.Table(NS.TableName("model_index")).Select("model_field_id, model_id").
-		Where("id = ?", id).Find(&rs)
-
-	if err := Make().DelIndex(rs.ModelFieldId, rs.ModelId); err != nil {
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Delete(model, id).Error; err != nil {
+			return err
+		}
+		return Make().DelIndex(id, tx)
+	})
+	if err != nil {
 		return 0, err
 	}
-
-	res := Db.Delete(model, id)
-	return res.RowsAffected, res.Error
+	return 1, nil
 }
 
 // DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
 func (s *modelIndexService) DeleteBatch(idList string, model interface{}) (int64, error) {
 	idArr := strings.Split(idList, ",")
-
-	type Res struct {
-		ModelFieldId string
-		ModelId      uint
-	}
-	for _, id := range idArr {
-		var rs Res
-		Db.Table(NS.TableName("model_index")).Select("model_field_id, model_id").
-			Where("id = ?", id).Find(&rs)
-
-		if err := Make().DelIndex(rs.ModelFieldId, rs.ModelId); err != nil {
-			return 0, err
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Delete(model, idArr).Error; err != nil {
+			return err
 		}
-	}
+		for _, id := range idArr {
+			delId, _ := strconv.Atoi(id)
+			if err := Make().DelIndex(uint(delId), tx); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 
-	res := Db.Delete(model, idArr)
-	return res.RowsAffected, res.Error
+	if err != nil {
+		return 0, err
+	}
+	return int64(len(idArr)), nil
 }

@@ -1169,36 +1169,36 @@ func (makeSer *makeService) UpdateModel(modelId uint) error {
 }
 
 // AddField 添加字段并更新模型文件
-func (makeSer *makeService) AddField(mf *model.ModelField) error {
-	return Db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Migrator().AddColumn(&model.ModelField{}, mf.FieldName); err != nil {
-			return err
-		}
-		//更新所有相关的模型文件
-		return makeSer.UpdateModel(mf.ModelId)
-	})
+func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
+	type photo struct {
+		Cid uint
+	}
+
+	// ALTER TABLE `vuecmf_photo` ADD `cid` bigint unsigned
+
+	if err := tx.Migrator().AddColumn(&photo{}, mf.FieldName); err != nil {
+		return err
+	}
+	//更新所有相关的模型文件
+	return makeSer.UpdateModel(mf.ModelId)
 }
 
 // RenameField 添加字段并更新模型文件
-func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName string) error {
-	return Db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Migrator().RenameColumn(&model.ModelField{}, oldFieldName, mf.FieldName); err != nil {
-			return err
-		}
-		//更新所有相关的模型文件
-		return makeSer.UpdateModel(mf.ModelId)
-	})
+func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName string, tx *gorm.DB) error {
+	if err := tx.Migrator().RenameColumn(&model.ModelField{}, oldFieldName, mf.FieldName); err != nil {
+		return err
+	}
+	//更新所有相关的模型文件
+	return makeSer.UpdateModel(mf.ModelId)
 }
 
 // DelField 删除字段并更新模型文件
-func (makeSer *makeService) DelField(mf *model.ModelField) error {
-	return Db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Migrator().DropColumn(&model.ModelField{}, mf.FieldName); err != nil {
-			return err
-		}
-		//更新所有相关的模型文件
-		return makeSer.UpdateModel(mf.ModelId)
-	})
+func (makeSer *makeService) DelField(mf *model.ModelField, tx *gorm.DB) error {
+	if err := tx.Migrator().DropColumn(&model.ModelField{}, mf.FieldName); err != nil {
+		return err
+	}
+	//更新所有相关的模型文件
+	return makeSer.UpdateModel(mf.ModelId)
 }
 
 // AddIndex 添加索引 并更新模型文件

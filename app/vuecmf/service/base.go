@@ -9,6 +9,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
@@ -197,21 +198,49 @@ type DropdownList struct {
 
 // Dropdown 获取模型的下拉列表
 func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (interface{}, error) {
+	var labelFieldIdList []string
+	var re model.ModelRelation
+
 	if form.RelationModelId > 0 {
 		form.ModelId = form.RelationModelId
 	} else if form.TableName != "" {
 		Db.Table(NS.TableName("model_config")).Select("id").
 			Where("table_name = ?", form.TableName).
 			Find(&form.ModelId)
+	} else if form.LinkageFieldId > 0 {
+		//联动模型的下拉
+		Db.Table(NS.TableName("model_relation")).Select("relation_model_id, relation_show_field_id").
+			Where("model_field_id = ?", form.LinkageFieldId).
+			Where("status = 10").
+			Find(&re)
+		if re.RelationModelId == 0 {
+			return nil, errors.New("联动字段没有设置模型关联")
+		}
+		form.ModelId = re.RelationModelId
 	}
 
-	modelId := ModelConfig().GetModelId(modelName)
+	if form.LinkageFieldId == 0 {
+		Db.Table(NS.TableName("model_relation")).Select("relation_show_field_id").
+			Where("relation_model_id = ?", form.ModelId).
+			Where("status = 10").
+			Limit(1).
+			Find(&re)
+	}
+
 	var labelFieldList []string
-	Db.Table(NS.TableName("model_field")).Select("field_name").
-		Where("model_id = ?", modelId).
-		Where("is_label = 10").
-		Where("status = 10").
-		Find(&labelFieldList)
+	labelQuery := Db.Table(NS.TableName("model_field")).Select("field_name").Where("status = 10")
+
+	if re.RelationShowFieldId != "" {
+		//字段有模型关联的，下拉列表中显示的字段 从模型关联中的设置的显示字段
+		labelFieldIdList = strings.Split(re.RelationShowFieldId, ",")
+		labelQuery = labelQuery.Where("id in ?", labelFieldIdList)
+	} else {
+		//没有模型模型关联的，下拉列表中直接显示标题字段
+		modelId := ModelConfig().GetModelId(modelName)
+		labelQuery = labelQuery.Where("is_label = 10").Where("model_id = ?", modelId)
+	}
+
+	labelQuery.Find(&labelFieldList)
 
 	labelField := "id"
 
@@ -221,7 +250,6 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 		if len(labelFieldList) > 0 {
 			labelField = "concat(" + labelField + ",'('," + strings.Join(labelFieldList, ",'-',") + ",')')"
 		}
-
 	}
 
 	var result []DropdownList

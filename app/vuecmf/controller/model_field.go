@@ -34,9 +34,25 @@ func (ctrl *ModelField) Save(c *gin.Context) {
 	saveForm := &model.DataModelFieldForm{}
 	Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
-			return service.Base().Create(saveForm.Data)
+			return service.ModelField().Create(saveForm.Data)
 		} else {
-			return service.Base().Update(saveForm.Data)
+			return service.ModelField().Update(saveForm.Data)
 		}
+	})
+}
+
+// Delete 根据ID删除单条数据
+func (ctrl *ModelField) Delete(c *gin.Context) {
+	data := &model.DataIdForm{}
+	Common(c, data, func() (interface{}, error) {
+		return service.ModelField().Delete(data.Data.Id, &model.ModelField{})
+	})
+}
+
+// DeleteBatch 根据ID列表批量删除多条数据
+func (ctrl *ModelField) DeleteBatch(c *gin.Context) {
+	data := &model.DataIdListForm{}
+	Common(c, data, func() (interface{}, error) {
+		return service.ModelField().DeleteBatch(data.Data.IdList, &model.ModelField{})
 	})
 }

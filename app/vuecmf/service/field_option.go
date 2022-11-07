@@ -43,7 +43,7 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 	var result []*resFieldOption
 
 	Db.Table(NS.TableName("field_option")).
-		Select("model_field_id field_id, option_value, option_label").
+		Select("model_field_id field_id, option_value, if((option_value REGEXP '[0-9]') = 1 , option_label, concat(option_value,' (',option_label, ')')) option_label").
 		Where("model_id = ?", modelId).
 		Where("status = 10").
 		Find(&result)

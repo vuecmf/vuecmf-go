@@ -1168,15 +1168,69 @@ func (makeSer *makeService) UpdateModel(modelId uint) error {
 	return err
 }
 
-// AddField 添加字段并更新模型文件
-func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
-	type photo struct {
-		Cid uint
+//GetFieldSql 获取字段SQL
+func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFieldName string) (string, error) {
+	tableName := ModelConfig().GetModelTableName(int(mf.ModelId))
+	fieldLen := ""
+	signed := ""
+	isNull := ""
+
+	if mf.Length > 0 {
+		switch mf.Type {
+		case "char", "varchar", "tinyint", "smallint", "int", "bigint", "datetime", "timestamp":
+			fieldLen = "(" + strconv.Itoa(int(mf.Length)) + ")"
+		case "float", "double", "decimal":
+			fieldLen = "(" + strconv.Itoa(int(mf.Length)) + ", " + strconv.Itoa(int(mf.DecimalLength)) + ")"
+		}
+	}
+	if mf.IsSigned == 20 {
+		signed = " unsigned "
+	}
+	if mf.IsNull == 10 {
+		isNull = " DEFAULT NULL "
+	} else {
+		isNull = " NOT NULL "
+		defVal := ""
+		if mf.DefaultValue == "" {
+			switch mf.Type {
+			case "char", "varchar", "text", "mediumtext", "longtext":
+				defVal = " DEFAULT '' "
+			case "tinyint", "smallint", "int", "bigint", "float", "double", "decimal":
+				defVal = " DEFAULT '0' "
+			}
+		} else {
+			defVal = " DEFAULT '" + mf.DefaultValue + "' "
+		}
+		isNull += defVal
 	}
 
-	// ALTER TABLE `vuecmf_photo` ADD `cid` bigint unsigned
+	comment := ""
+	if mf.Note != "" {
+		comment = " COMMENT '" + mf.Note + "' "
+	} else if mf.Label != "" {
+		comment = " COMMENT '" + mf.Label + "' "
+	}
 
-	if err := tx.Migrator().AddColumn(&photo{}, mf.FieldName); err != nil {
+	acSql := ""
+	if ac == "add" {
+		acSql = "` ADD `" + mf.FieldName + "` "
+	} else if ac == "modify" {
+		if oldFieldName == mf.FieldName {
+			acSql = "` MODIFY `" + mf.FieldName + "` "
+		} else {
+			acSql = "` CHANGE `" + oldFieldName + "` `" + mf.FieldName + "` "
+		}
+	} else {
+		return "", errors.New("参数ac只能为add或modify")
+	}
+
+	sql := "ALTER TABLE `" + NS.TableName(tableName) + acSql + mf.Type + fieldLen + signed + isNull + comment
+	return sql, nil
+}
+
+// AddField 添加字段并更新模型文件
+func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
+	if err := tx.Exec(makeSer.GetFieldSql(mf, "add", "")).Error; err != nil {
 		return err
 	}
 	//更新所有相关的模型文件
@@ -1185,7 +1239,7 @@ func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
 
 // RenameField 添加字段并更新模型文件
 func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName string, tx *gorm.DB) error {
-	if err := tx.Migrator().RenameColumn(&model.ModelField{}, oldFieldName, mf.FieldName); err != nil {
+	if err := tx.Exec(makeSer.GetFieldSql(mf, "modify", oldFieldName)).Error; err != nil {
 		return err
 	}
 	//更新所有相关的模型文件

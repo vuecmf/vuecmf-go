@@ -54,11 +54,8 @@ func (ser *modelFieldService) Update(data *model.ModelField) (int64, error) {
 		if err := tx.Updates(data).Error; err != nil {
 			return err
 		}
-		//若原字段名与新字段名不一致，则更新表字段名
-		if oldFieldName != "" && oldFieldName != data.FieldName {
-			if err := Make().RenameField(data, oldFieldName, tx); err != nil {
-				return err
-			}
+		if err := Make().RenameField(data, oldFieldName, tx); err != nil {
+			return err
 		}
 		return nil
 	})

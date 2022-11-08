@@ -372,7 +372,7 @@ var {{.service_name}} *{{.service_name}}Service
 // {{.service_method}} 获取{{.service_name}}服务实例
 func {{.service_method}}() *{{.service_name}}Service {
 	if {{.service_name}} == nil {
-		{{.service_name}} = &{{.service_name}}Service{TableName: "{{.service_name}}"}
+		{{.service_name}} = &{{.service_name}}Service{TableName: "{{.table_name}}"}
 	}
 	return {{.service_name}}
 }
@@ -380,7 +380,7 @@ func {{.service_method}}() *{{.service_name}}Service {
 // GetIdPath 获取父级ID的ID路径
 func (ser *{{.service_name}}Service) GetIdPath(pid uint) string {
 	var pidIdPath string
-	service.Db.Table(service.NS.TableName("{{.service_name}}")).Select("id_path").Where("id = ?", pid).Find(&pidIdPath)
+	service.Db.Table(service.NS.TableName("{{.table_name}}")).Select("id_path").Where("id = ?", pid).Find(&pidIdPath)
 	if pid > 0 {
 		if pidIdPath == "" {
 			pidIdPath = strconv.Itoa(int(pid))
@@ -437,6 +437,7 @@ func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interf
 	}
 
 	txt = strings.Replace(txt, "{{.app_name}}", appName, -1)
+	txt = strings.Replace(txt, "{{.table_name}}", tableName, -1)
 	txt = strings.Replace(txt, "{{.service_name}}", serviceName, -1)
 	txt = strings.Replace(txt, "{{.service_method}}", serviceMethod, -1)
 	txt = strings.Replace(txt, "{{.import_base}}", importBase, -1)
@@ -521,7 +522,7 @@ type {{.controller_name}} struct {
 
 func init() {
 	{{.controller_var_name}} := &{{.controller_name}}{}
-    {{.controller_var_name}}.TableName = "{{.controller_var_name}}"
+    {{.controller_var_name}}.TableName = "{{.table_name}}"
     {{.controller_var_name}}.Model = &model.{{.controller_name}}{}
     {{.controller_var_name}}.ListData = &[]model.{{.controller_name}}{}
     {{.controller_var_name}}.FilterFields = []string{{{.filter_fields}}}

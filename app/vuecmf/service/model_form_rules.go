@@ -8,7 +8,10 @@
 // +----------------------------------------------------------------------
 package service
 
-import "strings"
+import (
+	"gorm.io/gorm"
+	"strings"
+)
 
 // modelFormRulesService modelFormRules服务结构
 type modelFormRulesService struct {
@@ -23,6 +26,33 @@ func ModelFormRules() *modelFormRulesService {
 		modelFormRules = &modelFormRulesService{}
 	}
 	return modelFormRules
+}
+
+type modelInfo struct {
+	TableName string
+	AppName   string
+}
+
+// Delete 根据ID删除数据
+func (ser *modelFormRulesService) Delete(id uint, model interface{}) (int64, error) {
+	var res modelInfo
+	Db.Table(NS.TableName("model_form_rules")+" R").Select("C.table_name, A.app_name").
+		Joins("left join "+NS.TableName("model_config")+" C on R.model_id = C.id").
+		Joins("left join "+NS.TableName("app_config")+" A on C.app_id = A.id").
+		Where("R.id = ?", id).
+		Where("C.status = 10").
+		Where("A.status = 10").
+		Find(&res)
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Delete(model, id).Error; err != nil {
+			return err
+		}
+		return Make().Model(res.TableName, res.AppName)
+	})
+	if err != nil {
+		return 0, err
+	}
+	return 1, nil
 }
 
 type ruleListFormST struct {
@@ -50,11 +80,11 @@ func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 		var fieldType string
 
 		switch val.FieldType {
-		case "bigint","int","smallint","tinyint":
+		case "bigint", "int", "smallint", "tinyint":
 			fieldType = "integer"
-		case "decimal","double","float":
+		case "decimal", "double", "float":
 			fieldType = "float"
-		case "date","datetime","timestamp":
+		case "date", "datetime", "timestamp":
 			fieldType = "date"
 		default:
 			fieldType = "string"

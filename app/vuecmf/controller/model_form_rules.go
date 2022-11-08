@@ -40,3 +40,11 @@ func (ctrl *ModelFormRules) Save(c *gin.Context) {
 		}
 	})
 }
+
+// Delete 根据ID删除单条数据
+func (ctrl *ModelFormRules) Delete(c *gin.Context) {
+	data := &model.DataIdForm{}
+	Common(c, data, func() (interface{}, error) {
+		return service.ModelFormRules().Delete(data.Data.Id, ctrl.Model)
+	})
+}

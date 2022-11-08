@@ -33,7 +33,7 @@ func ModelConfig() *modelConfigService {
 func (s *modelConfigService) Create(data *model.ModelConfig) (int64, error) {
 	//初始化模型相关数据
 	if err := Make().BuildModel(data); err != nil {
-		return 0,err
+		return 0, err
 	}
 	return 1, nil
 }
@@ -64,6 +64,12 @@ func (s *modelConfigService) Update(data *model.ModelConfig) (int64, error) {
 				return err
 			}
 			if err := Make().MakeAll(data.TableName); err != nil {
+				return err
+			}
+		} else {
+			//否则只更新模型
+			appName := AppConfig().GetAppNameById(data.AppId)
+			if err := Make().Model(data.TableName, appName); err != nil {
 				return err
 			}
 		}

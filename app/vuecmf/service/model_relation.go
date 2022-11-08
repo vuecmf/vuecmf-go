@@ -99,7 +99,7 @@ type relationOptions struct {
 }
 
 // getRelationOptions 关联模型的数据列表
-func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}) map[string]interface{} {
+func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}, dType string) map[string]interface{} {
 	var reFieldInfo []relationFieldInfo
 	var result = make(map[string]interface{})
 
@@ -162,9 +162,9 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 					Select(showFieldStr + " label," + val.RelationFieldName + " field_name").
 					Where("status = 10")
 
-				if filter != nil && helper.InSlice(val.RelationTableName, []string{"model_field", "model_action"}) {
+				if filter != nil && (val.RelationTableName == "model_field" ) {
 					for field, filterVal := range filter {
-						if field == "model_id" {
+						/*if field == "model_id" {
 							//取出所关联的模型ID
 							var modelIdArr []int
 							Db.Table(NS.TableName("model_relation")).Select("relation_model_id").
@@ -174,7 +174,8 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 
 						} else {
 							query = query.Where(field+" = ?", filterVal)
-						}
+						}*/
+						query = query.Where(field+" = ?", filterVal)
 					}
 				}
 
@@ -205,11 +206,11 @@ func (ser *modelRelationService) GetRelationInfo(modelId int, filter map[string]
 	mri.Linkage = ser.getRelationLinkage(modelId)
 
 	//供表单中下拉框中使用
-	mri.Options = ser.getRelationOptions(modelId, filter)
+	mri.Options = ser.getRelationOptions(modelId, filter, "")
 
 	//供列表及搜索表单下拉框中使用
 	delete(filter, "model_id")
-	mri.FullOptions = ser.getRelationOptions(modelId, filter)
+	mri.FullOptions = ser.getRelationOptions(modelId, filter, "full")
 
 	return mri
 

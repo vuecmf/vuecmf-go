@@ -69,10 +69,10 @@ func (ser *modelFieldService) Update(data *model.ModelField) (int64, error) {
 // Delete 根据ID删除数据
 func (ser *modelFieldService) Delete(id uint, model *model.ModelField) (int64, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
+		tx.Model(model).Where("id = ?", id).Find(&model)
 		if err := tx.Delete(model, id).Error; err != nil {
 			return err
 		}
-		model.Id = id
 		return Make().DelField(model, tx)
 	})
 	if err != nil {

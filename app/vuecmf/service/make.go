@@ -1168,9 +1168,14 @@ func (makeSer *makeService) UpdateModel(modelId uint) error {
 	return err
 }
 
-//GetFieldSql 获取字段SQL
+//GetFieldSql 获取字段相关操作SQL
 func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFieldName string) (string, error) {
 	tableName := ModelConfig().GetModelTableName(int(mf.ModelId))
+
+	if ac == "del" {
+		return "ALTER TABLE `" + NS.TableName(tableName) + "` DROP " + mf.FieldName, nil
+	}
+
 	fieldLen := ""
 	signed := ""
 	isNull := ""
@@ -1183,25 +1188,28 @@ func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFiel
 			fieldLen = "(" + strconv.Itoa(int(mf.Length)) + ", " + strconv.Itoa(int(mf.DecimalLength)) + ")"
 		}
 	}
-	if mf.IsSigned == 20 {
+	if mf.IsSigned == 20 && (mf.Type == "tinyint" || mf.Type == "smallint" || mf.Type == "int" || mf.Type == "bigint" || mf.Type == "float" || mf.Type == "double" || mf.Type == "decimal") {
 		signed = " unsigned "
 	}
-	if mf.IsNull == 10 {
-		isNull = " DEFAULT NULL "
-	} else {
-		isNull = " NOT NULL "
-		defVal := ""
-		if mf.DefaultValue == "" {
-			switch mf.Type {
-			case "char", "varchar", "text", "mediumtext", "longtext":
-				defVal = " DEFAULT '' "
-			case "tinyint", "smallint", "int", "bigint", "float", "double", "decimal":
-				defVal = " DEFAULT '0' "
-			}
+
+	if mf.Type != "text" && mf.Type != "mediumtext" && mf.Type != "longtext" {
+		if mf.IsNull == 10 {
+			isNull = " DEFAULT NULL "
 		} else {
-			defVal = " DEFAULT '" + mf.DefaultValue + "' "
+			isNull = " NOT NULL "
+			defVal := ""
+			if mf.DefaultValue == "" {
+				switch mf.Type {
+				case "char", "varchar":
+					defVal = " DEFAULT '' "
+				case "tinyint", "smallint", "int", "bigint", "float", "double", "decimal":
+					defVal = " DEFAULT '0' "
+				}
+			} else {
+				defVal = " DEFAULT '" + mf.DefaultValue + "' "
+			}
+			isNull += defVal
 		}
-		isNull += defVal
 	}
 
 	comment := ""
@@ -1213,24 +1221,28 @@ func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFiel
 
 	acSql := ""
 	if ac == "add" {
-		acSql = "` ADD `" + mf.FieldName + "` "
+		acSql = " ADD `" + mf.FieldName + "` "
 	} else if ac == "modify" {
 		if oldFieldName == mf.FieldName {
-			acSql = "` MODIFY `" + mf.FieldName + "` "
+			acSql = " MODIFY `" + mf.FieldName + "` "
 		} else {
-			acSql = "` CHANGE `" + oldFieldName + "` `" + mf.FieldName + "` "
+			acSql = " CHANGE `" + oldFieldName + "` `" + mf.FieldName + "` "
 		}
 	} else {
 		return "", errors.New("参数ac只能为add或modify")
 	}
 
-	sql := "ALTER TABLE `" + NS.TableName(tableName) + acSql + mf.Type + fieldLen + signed + isNull + comment
+	sql := "ALTER TABLE `" + NS.TableName(tableName) + "`" + acSql + mf.Type + fieldLen + signed + isNull + comment
 	return sql, nil
 }
 
 // AddField 添加字段并更新模型文件
 func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
-	if err := tx.Exec(makeSer.GetFieldSql(mf, "add", "")).Error; err != nil {
+	sql, err := makeSer.GetFieldSql(mf, "add", "")
+	if err != nil {
+		return err
+	}
+	if err = tx.Exec(sql).Error; err != nil {
 		return err
 	}
 	//更新所有相关的模型文件
@@ -1239,7 +1251,11 @@ func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
 
 // RenameField 添加字段并更新模型文件
 func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName string, tx *gorm.DB) error {
-	if err := tx.Exec(makeSer.GetFieldSql(mf, "modify", oldFieldName)).Error; err != nil {
+	sql, err := makeSer.GetFieldSql(mf, "modify", oldFieldName)
+	if err != nil {
+		return err
+	}
+	if err = tx.Exec(sql).Error; err != nil {
 		return err
 	}
 	//更新所有相关的模型文件
@@ -1248,9 +1264,14 @@ func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName strin
 
 // DelField 删除字段并更新模型文件
 func (makeSer *makeService) DelField(mf *model.ModelField, tx *gorm.DB) error {
-	if err := tx.Migrator().DropColumn(&model.ModelField{}, mf.FieldName); err != nil {
+	sql, err := makeSer.GetFieldSql(mf, "del", "")
+	if err != nil {
 		return err
 	}
+	if err = tx.Exec(sql).Error; err != nil {
+		return err
+	}
+
 	//更新所有相关的模型文件
 	return makeSer.UpdateModel(mf.ModelId)
 }

@@ -228,19 +228,25 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 	}
 
 	var labelFieldList []string
-	labelQuery := Db.Table(NS.TableName("model_field")).Select("field_name").Where("status = 10")
-
-	if re.RelationShowFieldId != "" {
-		//字段有模型关联的，下拉列表中显示的字段 从模型关联中的设置的显示字段
-		labelFieldIdList = strings.Split(re.RelationShowFieldId, ",")
-		labelQuery = labelQuery.Where("id in ?", labelFieldIdList)
+	if modelName == "model_field" {
+		labelFieldList = []string{"field_name", "label"}
+	} else if modelName == "model_action" {
+		labelFieldList = []string{"action_type", "label"}
 	} else {
-		//没有模型模型关联的，下拉列表中直接显示标题字段
-		modelId := ModelConfig().GetModelId(modelName)
-		labelQuery = labelQuery.Where("is_label = 10").Where("model_id = ?", modelId)
-	}
+		labelQuery := Db.Table(NS.TableName("model_field")).Select("field_name").Where("status = 10")
 
-	labelQuery.Find(&labelFieldList)
+		if re.RelationShowFieldId != "" {
+			//字段有模型关联的，下拉列表中显示的字段 从模型关联中的设置的显示字段
+			labelFieldIdList = strings.Split(re.RelationShowFieldId, ",")
+			labelQuery = labelQuery.Where("id in ?", labelFieldIdList)
+		} else {
+			//没有模型模型关联的，下拉列表中直接显示标题字段
+			modelId := ModelConfig().GetModelId(modelName)
+			labelQuery = labelQuery.Where("is_label = 10").Where("model_id = ?", modelId)
+		}
+
+		labelQuery.Find(&labelFieldList)
+	}
 
 	labelField := "id"
 

@@ -88,7 +88,7 @@ func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 			fieldType = "date"
 		default:
 			fieldType = "string"
-			if val.FormType == "select_mul" {
+			if val.FormType == "select_mul" || val.FormType == "upload_image" || val.FormType == "upload_file" {
 				fieldType = "array"
 			}
 		}

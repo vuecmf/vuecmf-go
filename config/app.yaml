@@ -22,7 +22,7 @@ upload:
   allow_file_type: "gif,jpg,jpeg,png,bmp,tif,txt,csv,xls,xlsx,doc,docx,zip,rar,gz,vsd,mdb,pdf,rmvb,flv,mp4,mp3,mpg,wmv,wav,avi,mid,ini,wps,mov,dbx,pst,ram"       #支持上传除图片外的文件类型
   allow_file_mime: "image/gif,image/jpeg,image/png,application/zip,application/octet-stream,text/plain; charset=utf-8,application/pdf"
   dir: "uploads"            #文件保存目录
-  url: "http://www.vf.com/"  #文件访问链接域名
+  url: "http://localhost:8080/"  #文件访问链接域名
   image:
     resize_enable: true #是否缩放图片
     image_width: 600   #上传的图片裁切后的宽度

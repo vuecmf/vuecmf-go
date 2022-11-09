@@ -122,7 +122,7 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 		isTree := ModelConfig().IsTree(val.RelationModelId)
 		if isTree {
 			//若关联的模型是目录树的、则下拉选项需要格式化树型结构
-			helper.FormatTree(options, Db, NS.TableName(val.RelationTableName), "id", 0, "title", "pid", "sort_num", 1)
+			options = helper.FormatTree(options, Db, NS.TableName(val.RelationTableName), "id", 0, "title", "pid", "sort_num", 1)
 
 		} else {
 			var showFieldNameArr []string

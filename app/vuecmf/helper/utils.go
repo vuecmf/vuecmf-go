@@ -115,6 +115,25 @@ func GetRandomString(length int) string {
 	return string(result)
 }
 
+//SetString 对[]string 类型的切片进行元素唯一化处理
+func SetString(arr []string) []string {
+	newArr := make([]string, 0)
+
+	for i := 0; i < len(arr); i++ {
+		repeat := false
+		for j := i + 1; j < len(arr); j++ {
+			if arr[i] == arr[j] {
+				repeat = true
+			}
+
+		}
+		if !repeat {
+			newArr = append(newArr, arr[i])
+		}
+	}
+	return newArr
+}
+
 // InterfaceToInt interface类型转换成int
 func InterfaceToInt(val interface{}) int {
 	var res int

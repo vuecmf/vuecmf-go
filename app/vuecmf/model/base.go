@@ -36,8 +36,9 @@ type DropdownForm struct {
 	TableName       string `json:"table_name" form:"table_name"`
 	ModelId         uint   `json:"model_id" form:"model_id"`
 	RelationModelId uint   `json:"relation_model_id" form:"relation_model_id"`
-	AppId 			uint    `json:"app_id" form:"app_id"`
-	LinkageFieldId  uint	`json:"linkage_field_id" form:"linkage_field_id"`
+	AppId           uint   `json:"app_id" form:"app_id"`
+	LinkageFieldId  uint   `json:"linkage_field_id" form:"linkage_field_id"`
+	ModelFieldId    uint   `json:"model_field_id" form:"model_field_id"`
 }
 
 // DataDropdownForm 获取Dropdown数据所传form

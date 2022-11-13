@@ -59,7 +59,7 @@ func GetErrMsg(err error) string {
 		red := string([]byte{27, 91, 51, 49, 109})
 		reset := string([]byte{27, 91, 48, 109})
 
-		for i := 2; i < 7; i++ {
+		for i := 1; i < 6; i++ {
 			pc, file, line, rs := runtime.Caller(i)
 
 			if rs {
@@ -219,7 +219,7 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 		form.ModelId = re.RelationModelId
 	}
 
-	if form.LinkageFieldId == 0 {
+	if form.LinkageFieldId == 0 && form.ModelFieldId == 0 {
 		Db.Table(NS.TableName("model_relation")).Select("relation_show_field_id").
 			Where("relation_model_id = ?", form.ModelId).
 			Where("status = 10").
@@ -227,11 +227,17 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 			Find(&re)
 	}
 
+	labelField := "id"
+	valueField := "id"
+
 	var labelFieldList []string
 	if modelName == "model_field" {
 		labelFieldList = []string{"field_name", "label"}
 	} else if modelName == "model_action" {
 		labelFieldList = []string{"action_type", "label"}
+	} else if modelName == "field_option" {
+		labelFieldList = []string{"option_label"}
+		valueField = "option_value"
 	} else {
 		labelQuery := Db.Table(NS.TableName("model_field")).Select("field_name").Where("status = 10")
 
@@ -248,8 +254,6 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 		labelQuery.Find(&labelFieldList)
 	}
 
-	labelField := "id"
-
 	if len(labelFieldList) > 0 {
 		labelField = labelFieldList[0]
 		labelFieldList = helper.SliceRemove(labelFieldList, 0)
@@ -260,9 +264,11 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 
 	var result []DropdownList
 
-	query := Db.Table(NS.TableName(modelName)).Select(labelField + " label, id value").Where("status = 10")
+	query := Db.Table(NS.TableName(modelName)).Select(labelField + " label, " + valueField + " value").Where("status = 10")
 	if modelName == "model_config" {
 		query = query.Where("app_id = ?", form.AppId)
+	} else if form.ModelFieldId > 0 {
+		query = query.Where("model_field_id = ?", form.ModelFieldId)
 	} else {
 		query = query.Where("model_id = ?", form.ModelId)
 	}

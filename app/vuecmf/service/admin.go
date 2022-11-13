@@ -112,13 +112,9 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 
 	role := "超级管理员"
 	if adminInfo.IsSuper != 10 {
-		auth := Auth().Enforcer
-		if auth != nil {
-			return nil, errors.New("获取角色失败。")
-		}
-		roleArr, err2 := auth.GetRolesForUser(adminInfo.Username, "vuecmf")
-		if err2 != nil {
-			return nil, errors.New("获取角色失败。" + err2.Error())
+		roleArr, err := Auth().GetRolesForUser(adminInfo.Username)
+		if err != nil {
+			return nil, errors.New("获取角色失败。" + err.Error())
 		}
 		role = strings.Join(roleArr, ",")
 	}

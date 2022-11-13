@@ -52,11 +52,14 @@ func (au *auth) AddRolesForUser(username string, roleIdList []int) (bool, error)
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		rolesList := Roles().GetRoleNameList(roleIdList)
 		var err error
-		for _, roleName := range rolesList {
-			_, err2 := au.Enforcer.AddRoleForUser(username, roleName, "vuecmf")
-			if err2 != nil {
-				err = err2
-				break
+		appNameList := AppConfig().GetAuthAppList()
+		for _, appName := range appNameList {
+			for _, roleName := range rolesList {
+				_, err2 := au.Enforcer.AddRoleForUser(username, roleName, appName)
+				if err2 != nil {
+					err = err2
+					break
+				}
 			}
 		}
 
@@ -72,12 +75,16 @@ func (au *auth) AddRolesForUser(username string, roleIdList []int) (bool, error)
 // DelRolesForUser 批量删除指定用户下的角色
 func (au *auth) DelRolesForUser(username string, roles []string) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
-		for _, role := range roles {
-			_, err2 := au.Enforcer.DeleteRoleForUser(username, role, "vuecmf")
-			if err2 != nil {
-				return err2
+		appNameList := AppConfig().GetAuthAppList()
+		for _, appName := range appNameList {
+			for _, role := range roles {
+				_, err2 := au.Enforcer.DeleteRoleForUser(username, role, appName)
+				if err2 != nil {
+					return err2
+				}
 			}
 		}
+
 		return nil
 	})
 
@@ -90,10 +97,14 @@ func (au *auth) DelRolesForUser(username string, roles []string) (bool, error) {
 // DelAllRolesForUser 删除用户的所有角色
 func (au *auth) DelAllRolesForUser(username string) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
-		_, err2 := au.Enforcer.DeleteRolesForUser(username, "vuecmf")
-		if err2 != nil {
-			return err2
+		appNameList := AppConfig().GetAuthAppList()
+		for _, appName := range appNameList {
+			_, err2 := au.Enforcer.DeleteRolesForUser(username, appName)
+			if err2 != nil {
+				return err2
+			}
 		}
+
 		return nil
 	})
 
@@ -107,12 +118,17 @@ func (au *auth) DelAllRolesForUser(username string) (bool, error) {
 func (au *auth) AddUsersForRole(role string, username []string) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		roleArr := []string{role}
-		for _, user := range username {
-			_, err2 := au.Enforcer.AddRolesForUser(user, roleArr, "vuecmf")
-			if err2 != nil {
-				return err2
+
+		appNameList := AppConfig().GetAuthAppList()
+		for _, appName := range appNameList {
+			for _, user := range username {
+				_, err2 := au.Enforcer.AddRolesForUser(user, roleArr, appName)
+				if err2 != nil {
+					return err2
+				}
 			}
 		}
+
 		return nil
 	})
 
@@ -131,12 +147,16 @@ func (au *auth) DelUsersForRole(role string, userIdList []int) (bool, error) {
 	username := Admin().GetUserNames(userIdList)
 
 	err := Db.Transaction(func(tx *gorm.DB) error {
-		for _, user := range username {
-			_, err2 := au.Enforcer.DeleteRoleForUser(user, role, "vuecmf")
-			if err2 != nil {
-				return err2
+		appNameList := AppConfig().GetAuthAppList()
+		for _, appName := range appNameList {
+			for _, user := range username {
+				_, err2 := au.Enforcer.DeleteRoleForUser(user, role, appName)
+				if err2 != nil {
+					return err2
+				}
 			}
 		}
+
 		return nil
 	})
 
@@ -207,6 +227,7 @@ func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, err
 			appName := arr[0]
 			controller := arr[1]
 			action := "index"
+
 			if len(arr) >= 3 && arr[2] != "" {
 				action = arr[2]
 			}
@@ -215,6 +236,7 @@ func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, err
 				return err2
 			}
 		}
+
 		return nil
 	})
 
@@ -354,4 +376,9 @@ func (au *auth) GetAllRoles() interface{} {
 		Where("status = 10").
 		Find(&result)
 	return result
+}
+
+//GetRolesForUser 获取指定用户下所有角色名称
+func (au *auth) GetRolesForUser(userName string) ([]string, error) {
+	return au.Enforcer.GetRolesForUser(userName, "vuecmf")
 }

@@ -1183,7 +1183,7 @@ func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFiel
 
 	if mf.Length > 0 {
 		switch mf.Type {
-		case "char", "varchar", "tinyint", "smallint", "int", "bigint", "datetime", "timestamp":
+		case "char", "varchar", "tinyint", "smallint", "int", "bigint":
 			fieldLen = "(" + strconv.Itoa(int(mf.Length)) + ")"
 		case "float", "double", "decimal":
 			fieldLen = "(" + strconv.Itoa(int(mf.Length)) + ", " + strconv.Itoa(int(mf.DecimalLength)) + ")"
@@ -1199,7 +1199,13 @@ func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFiel
 		} else {
 			isNull = " NOT NULL "
 			defVal := ""
-			if mf.DefaultValue == "" {
+			if mf.Type == "datetime" || mf.Type == "timestamp" {
+				if strings.HasPrefix(mf.FieldName, "create") || strings.HasPrefix(mf.FieldName, "add") {
+					defVal = " DEFAULT CURRENT_TIMESTAMP "
+				} else {
+					defVal = " DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP "
+				}
+			} else if mf.DefaultValue == "" {
 				switch mf.Type {
 				case "char", "varchar":
 					defVal = " DEFAULT '' "

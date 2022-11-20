@@ -50,15 +50,15 @@ type menuInfo struct {
 }
 
 // GetPathName 获取父级ID的path路径
-func (ser *menuService) GetPathName(pid uint) string {
+func (ser *menuService) GetPathName(pid uint, title string) string {
 	pidPathName := ""
-	var mi menuInfo
-	Db.Table(NS.TableName(ser.TableName)).Select("title, path_name").Where("id = ?", pid).Find(&mi)
+	var parent menuInfo
+	Db.Table(NS.TableName(ser.TableName)).Select("title, path_name").Where("id = ?", pid).Find(&parent)
 	if pid > 0 {
-		if mi.PathName == "" {
-			pidPathName = mi.Title
+		if parent.PathName == "" {
+			pidPathName = parent.Title + "," + title
 		} else {
-			pidPathName += "," + mi.Title
+			pidPathName = parent.PathName + "," + title
 		}
 	}
 	return pidPathName
@@ -67,7 +67,7 @@ func (ser *menuService) GetPathName(pid uint) string {
 // Create 创建单条或多条数据, 成功返回影响行数
 func (ser *menuService) Create(data *model.Menu) (int64, error) {
 	data.IdPath = ser.GetIdPath(data.Pid)
-	data.PathName = ser.GetPathName(data.Pid)
+	data.PathName = ser.GetPathName(data.Pid, data.Title)
 	res := Db.Create(data)
 	return res.RowsAffected, res.Error
 }
@@ -75,7 +75,7 @@ func (ser *menuService) Create(data *model.Menu) (int64, error) {
 // Update 更新数据, 成功返回影响行数
 func (ser *menuService) Update(data *model.Menu) (int64, error) {
 	data.IdPath = ser.GetIdPath(data.Pid)
-	data.PathName = ser.GetPathName(data.Pid)
+	data.PathName = ser.GetPathName(data.Pid, data.Title)
 	res := Db.Updates(data)
 	return res.RowsAffected, res.Error
 }

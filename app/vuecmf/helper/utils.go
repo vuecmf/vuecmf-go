@@ -182,6 +182,7 @@ type ModelFieldOption struct {
 //	参数：
 // 		tree map				存储返回的结果
 // 		tableName string        表名
+//		filter string			过滤条件
 //		pk string				主键字段名称
 // 		pid int                 父级ID
 // 		label string            标题字段名
@@ -189,7 +190,7 @@ type ModelFieldOption struct {
 // 		orderField string       排序字段名
 // 		level int               层级数
 //	返回值：map
-func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, pk string, pid int, label string, pidField string, orderField string, level int) []*ModelFieldOption {
+func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, filter string, pk string, pid int, label string, pidField string, orderField string, level int) []*ModelFieldOption {
 	//参数为空的，设置默认值
 	if label == "" {
 		label = "title"
@@ -204,14 +205,25 @@ func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, pk stri
 	model := db.Table(tableName).Select(label+" label,"+pk+" id").
 		Where(pidField+" = ?", pid).
 		Where("status = 10")
-	if orderField != "" {
-		model.Order(orderField)
+
+	if filter != "" {
+		model = model.Where(filter)
 	}
+	if orderField != "" {
+		model = model.Order(orderField)
+	}
+
 	model.Find(&treeResList)
 
 	for key, val := range treeResList {
 		prefix := strings.Repeat("┊ ", level-1)
-		db.Table(tableName).Where(pidField+" = ?", val.Id).Where("status = 10").Count(&childTotal)
+
+		totalQuery := db.Table(tableName).Where(pidField+" = ?", val.Id).Where("status = 10")
+		if filter != "" {
+			totalQuery = totalQuery.Where(filter)
+		}
+		totalQuery.Count(&childTotal)
+
 		if childTotal > 0 || key != len(treeResList)-1 {
 			prefix += "┊┈ "
 		} else {
@@ -223,7 +235,7 @@ func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, pk stri
 			Label: prefix + val.Label,
 		})
 
-		tree = FormatTree(tree, db, tableName, pk, val.Id, label, pidField, orderField, level+1)
+		tree = FormatTree(tree, db, tableName, filter, pk, val.Id, label, pidField, orderField, level+1)
 	}
 
 	return tree

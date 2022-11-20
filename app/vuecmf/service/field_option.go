@@ -72,9 +72,9 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 			Where("field_name = 'pid'").
 			Where("model_id = ?", modelId).
 			Limit(1).Find(&pidFieldId)
-		
+
 		var tree []*helper.ModelFieldOption
-		tree = helper.FormatTree(tree, Db, NS.TableName(tableName), "id", 0, labelFieldName, "pid", orderField, 1)
+		tree = helper.FormatTree(tree, Db, NS.TableName(tableName), "", "id", 0, labelFieldName, "pid", orderField, 1)
 		list[strconv.Itoa(pidFieldId)] = tree
 
 	}

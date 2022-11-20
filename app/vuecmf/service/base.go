@@ -196,6 +196,11 @@ type DropdownList struct {
 	Label string `json:"label"`
 }
 
+type FieldOptionDropdownList struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
+}
+
 // Dropdown 获取模型的下拉列表
 func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (interface{}, error) {
 	var labelFieldIdList []string
@@ -230,6 +235,8 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 	labelField := "id"
 	valueField := "id"
 
+	fieldType := ""
+
 	var labelFieldList []string
 	if modelName == "model_field" {
 		labelFieldList = []string{"field_name", "label"}
@@ -238,6 +245,13 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 	} else if modelName == "field_option" {
 		labelFieldList = []string{"option_label"}
 		valueField = "option_value"
+		if form.ModelFieldId > 0 {
+			Db.Table(NS.TableName("model_field")).Select("type fieldType").
+				Where("id = ?", form.ModelFieldId).
+				Where("status = 10").
+				Limit(1).Find(&fieldType)
+		}
+
 	} else {
 		labelQuery := Db.Table(NS.TableName("model_field")).Select("field_name").Where("status = 10")
 
@@ -262,8 +276,6 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 		}
 	}
 
-	var result []DropdownList
-
 	query := Db.Table(NS.TableName(modelName)).Select(labelField + " label, " + valueField + " value").Where("status = 10")
 	if modelName == "model_config" {
 		query = query.Where("app_id = ?", form.AppId)
@@ -272,9 +284,16 @@ func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (inte
 	} else {
 		query = query.Where("model_id = ?", form.ModelId)
 	}
-	query.Find(&result)
 
-	return result, nil
+	if fieldType == "varchar" || fieldType == "char" {
+		var result []FieldOptionDropdownList
+		query.Find(&result)
+		return result, nil
+	} else {
+		var result []DropdownList
+		query.Find(&result)
+		return result, nil
+	}
 
 }
 

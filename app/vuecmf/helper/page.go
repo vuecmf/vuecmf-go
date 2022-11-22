@@ -49,7 +49,7 @@ type result struct {
 //	参数：
 //		model 模型实例
 //		params POST请求传递的参数
-func (p *page) Filter(model interface{}, params *DataListParams) (interface{}, error) {
+func (p *page) Filter(model interface{}, params *DataListParams) (*result, error) {
 	if params.Data == nil {
 		return nil, errors.New("请求参数data不能为空")
 	}

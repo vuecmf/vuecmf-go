@@ -21,12 +21,12 @@ type request struct {
 }
 
 // Input 获取客户端GET/POST请求及header的所有输入数据
-func (r *request) Input(param string, bindParam interface{}) error {
-	param = strings.ToLower(param)
+func (r *request) Input(method string, bindParam interface{}) error {
+	method = strings.ToLower(method)
 
 	var err error
 
-	switch param {
+	switch method {
 	case "post":
 		err = r.ShouldBind(bindParam)
 	case "get":

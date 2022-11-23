@@ -35,7 +35,8 @@ func GetMiddleWares() map[string]func(ctx *gin.Context) {
 		}()
 
 		path := strings.ToLower(ctx.Request.URL.String())
-		pathArr := strings.Split(path, "/")
+		tmpArr := strings.Split(path, "?")
+		pathArr := strings.Split(tmpArr[0], "/")
 		routeApp := "index"
 		routeController := "index"
 		routeAction := "index"
@@ -63,8 +64,9 @@ func GetMiddleWares() map[string]func(ctx *gin.Context) {
 		//过滤设置了排除验证的URL
 		flag := false
 		exclusionUrlArr := strings.Split(strings.ToLower(strings.Replace(appList[routeApp].ExclusionUrl, " ", "", -1)), ",")
+		checkUrl := "/" + routeApp + "/" + routeController + "/" + routeAction
 		for _, exUrl := range exclusionUrlArr {
-			if exUrl == path {
+			if exUrl == checkUrl || exUrl + "/index" == checkUrl {
 				flag = true
 				break
 			}

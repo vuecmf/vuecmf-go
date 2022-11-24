@@ -62,6 +62,7 @@ type Conf struct {
 	CrossDomain *crossDomain `yaml:"cross_domain"` //跨域请求配置
 	Upload      *upload      `yaml:"upload"`       //上传配置
 	Water       *Water       `yaml:"water"`        //水印配置
+	StaticDir   string		 `yaml:"static_dir"`   //静态资源目录
 }
 
 var appConf *Conf

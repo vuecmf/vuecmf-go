@@ -15,6 +15,8 @@ cross_domain:
   enable: true  #是否开启跨域请求
   allowed_origin: "http://localhost:8080, http://localhost:8081, http://localhost:8082"  #允许请求的来源，多个用英文逗号分隔，* 表示允许所有来源； 例如 http://www.vuecmf.com
 
+#静态资源目录
+static_dir: "static"
 
 #上传配置
 upload:

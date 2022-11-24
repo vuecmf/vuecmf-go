@@ -55,10 +55,10 @@ func InitRoute(eng *gin.Engine) {
 	eng.MaxMultipartMemory = int64(cfg.Upload.AllowFileSize) << 20
 
 	//上传目录 静态文件服务
-	eng.StaticFS("/uploads", http.Dir("uploads"))
+	eng.StaticFS("/uploads", http.Dir(cfg.Upload.Dir))
 
 	//静态文件目录（css、js、gif、jpg等）
-	eng.StaticFS("/static", http.Dir("static"))
+	eng.StaticFS("/static", http.Dir(cfg.StaticDir))
 
 	//加载模板目录
 	eng.LoadHTMLGlob("views/**/**/*")

@@ -23,6 +23,11 @@ func (r *response) SendHtml(tplName string, obj any) {
 	r.HTML(http.StatusOK, tplName, obj)
 }
 
+//SendText 输出文本
+func (r *response) SendText(msg string) {
+	r.String(http.StatusOK, "%s", msg)
+}
+
 // SendJson 输出JSON内容到客户端
 func (r *response) SendJson(code int, msg string, data interface{}) {
 	r.JSON(http.StatusOK, gin.H{

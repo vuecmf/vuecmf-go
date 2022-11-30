@@ -37,8 +37,8 @@ func init() {
 	}
 }
 
-// fullModelFields 模型的所有字段相关信息（字段、表单、字段选项、字段关联、表单验证规则）
-type fullModelFields struct {
+// FullModelFields 模型的所有字段相关信息（字段、表单、字段选项、字段关联、表单验证规则）
+type FullModelFields struct {
 	FieldInfo    []fieldInfo                           `json:"field_info"`
 	FormInfo     []formInfo                            `json:"form_info"`
 	FieldOption  map[string][]*helper.ModelFieldOption `json:"field_option"`
@@ -86,7 +86,7 @@ func (b *BaseService) CommonList(modelData interface{}, tableName string, filter
 }
 
 // GetFieldList 根据表名获取对应所有字段信息
-func (b *BaseService) GetFieldList(tableName string, filter map[string]interface{}) (*fullModelFields, error) {
+func (b *BaseService) GetFieldList(tableName string, filter map[string]interface{}) (*FullModelFields, error) {
 	modelCfg := ModelConfig().GetModelConfig(tableName)
 	modelId := modelCfg.ModelId
 	fieldInfoList := ModelField().GetFieldInfo(modelId) //模型的字段信息
@@ -99,7 +99,7 @@ func (b *BaseService) GetFieldList(tableName string, filter map[string]interface
 		return nil, err
 	}
 
-	return &fullModelFields{
+	return &FullModelFields{
 		FieldInfo:    fieldInfoList,
 		FormInfo:     formInfoList,
 		FieldOption:  fieldOptionList,

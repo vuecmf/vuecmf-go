@@ -190,7 +190,7 @@ type ModelFieldOption struct {
 // 		orderField string       排序字段名
 // 		level int               层级数
 //	返回值：map
-func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, filter string, pk string, pid int, label string, pidField string, orderField string, level int) []*ModelFieldOption {
+func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, filter map[string]interface{}, pk string, pid int, label string, pidField string, orderField string, level int) []*ModelFieldOption {
 	//参数为空的，设置默认值
 	if label == "" {
 		label = "title"
@@ -206,7 +206,7 @@ func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, filter 
 		Where(pidField+" = ?", pid).
 		Where("status = 10")
 
-	if filter != "" {
+	if filter != nil {
 		model = model.Where(filter)
 	}
 	if orderField != "" {
@@ -219,7 +219,7 @@ func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, filter 
 		prefix := strings.Repeat("┊ ", level-1)
 
 		totalQuery := db.Table(tableName).Where(pidField+" = ?", val.Id).Where("status = 10")
-		if filter != "" {
+		if filter != nil {
 			totalQuery = totalQuery.Where(filter)
 		}
 		totalQuery.Count(&childTotal)

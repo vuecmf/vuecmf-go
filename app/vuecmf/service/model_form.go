@@ -8,6 +8,8 @@
 // +----------------------------------------------------------------------
 package service
 
+import "github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+
 // modelFormService modelForm服务结构
 type modelFormService struct {
 	*BaseService
@@ -49,4 +51,10 @@ func (ser *modelFormService) GetFormInfo(modelId int) []formInfo {
 
 	return list
 
+}
+
+//DelByFieldId 根据字段ID删除
+func (ser *modelFormService) DelByFieldId(fieldId uint) error {
+	res := Db.Table(NS.TableName("model_form")).Delete(&model.ModelForm{ModelFieldId: fieldId})
+	return res.Error
 }

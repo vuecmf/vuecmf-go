@@ -38,7 +38,7 @@ type resFieldOption struct {
 }
 
 // GetFieldOptions 根据模型ID获取模型的字段选项列表
-func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, isTree bool, labelFieldName string) (map[string][]*helper.ModelFieldOption, error) {
+func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, isTree bool, labelFieldName string, filter map[string]interface{}) (map[string][]*helper.ModelFieldOption, error) {
 	var list = make(map[string][]*helper.ModelFieldOption)
 	var result []*resFieldOption
 
@@ -74,7 +74,7 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 			Limit(1).Find(&pidFieldId)
 
 		var tree []*helper.ModelFieldOption
-		tree = helper.FormatTree(tree, Db, NS.TableName(tableName), "", "id", 0, labelFieldName, "pid", orderField, 1)
+		tree = helper.FormatTree(tree, Db, NS.TableName(tableName), filter, "id", 0, labelFieldName, "pid", orderField, 1)
 		list[strconv.Itoa(pidFieldId)] = tree
 
 	}

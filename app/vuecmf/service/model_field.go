@@ -30,8 +30,8 @@ func ModelField() *modelFieldService {
 	return modelField
 }
 
-// Create 创建单条或多条数据, 成功返回影响行数
-func (ser *modelFieldService) Create(data *model.ModelField) (int64, error) {
+// Create 创建单条或多条数据, 成功返回插入的ID
+func (ser *modelFieldService) Create(data *model.ModelField) (uint, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(data).Error; err != nil {
 			return err
@@ -41,7 +41,7 @@ func (ser *modelFieldService) Create(data *model.ModelField) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return 1, nil
+	return data.Id, nil
 }
 
 // Update 更新数据, 成功返回影响行数
@@ -157,4 +157,15 @@ func (ser *modelFieldService) getFilterFields(tableName string) []string {
 		Limit(50).Find(&filterFields)
 
 	return filterFields
+}
+
+//GetFieldId 根据字段名获取对应字段ID
+func (ser *modelFieldService) GetFieldId(fieldName string, modelId uint) uint {
+	var id uint
+	Db.Table(NS.TableName("model_field")).Select("id").
+		Where("field_name = ?", fieldName).
+		Where("model_id = ?", modelId).
+		Where("status = 10").
+		Find(&id)
+	return id
 }

@@ -93,7 +93,7 @@ func (b *BaseService) GetFieldList(tableName string, filter map[string]interface
 	formInfoList := ModelForm().GetFormInfo(modelId)    //模型的表单信息
 	relationInfoList := ModelRelation().GetRelationInfo(modelId, filter)
 	formRulesInfoList := ModelFormRules().GetRuleListForForm(modelId)
-	fieldOptionList, err := FieldOption().GetFieldOptions(modelId, tableName, modelCfg.IsTree, modelCfg.LabelFieldName) //模型的关联信息
+	fieldOptionList, err := FieldOption().GetFieldOptions(modelId, tableName, modelCfg.IsTree, modelCfg.LabelFieldName, filter) //模型的关联信息
 
 	if err != nil {
 		return nil, err

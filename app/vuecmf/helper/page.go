@@ -16,7 +16,7 @@ import (
 )
 
 // ListParams 列表参数
-type listParams struct {
+type ListParams struct {
 	Keywords   string                 `json:"keywords" form:"keywords"`       //搜索关键字
 	OrderField string                 `json:"order_field" form:"order_field"` //列表排序字段
 	OrderSort  string                 `json:"order_sort" form:"order_sort"`   //字段排序方式 （desc 倒序, asc升序）
@@ -28,7 +28,7 @@ type listParams struct {
 
 // DataListParams 列表参数 用data包裹一下
 type DataListParams struct {
-	Data *listParams `json:"data" form:"data"`
+	Data *ListParams `json:"data" form:"data"`
 }
 
 // page 分页结构体

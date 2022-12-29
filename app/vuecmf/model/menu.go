@@ -107,7 +107,6 @@ func (m *Menu) ToNavTree(data []*NavMenu) NavMenuTree {
 			val.IdPath = strings.Split(val.IdPathStr, ",")
 			val.IdPath = append(val.IdPath, "m"+strconv.Itoa(int(val.Id)))
 			val.PathName = strings.Split(val.PathNameStr, ",")
-			val.PathName = append(val.PathName, val.Title)
 		}
 
 		treeData[val.Id] = val

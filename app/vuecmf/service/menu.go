@@ -85,7 +85,7 @@ func (ser *menuService) Update(data *model.Menu) (int64, error) {
 func (ser *menuService) List(params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
 		//拉取列表的字段信息
-		return ser.GetFieldList(ser.TableName, params.Data.Filter)
+		return ser.GetFieldList(ser.TableName, params.Data.Filter, 10)
 	} else {
 		//拉取列表的数据
 		var menuList []*model.Menu

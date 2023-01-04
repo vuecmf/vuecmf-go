@@ -19,6 +19,7 @@ type Admin struct {
 	LastLoginIp   string   `json:"last_login_ip" form:"last_login_ip"  gorm:"column:last_login_ip;size:24;not null;default:'';comment:最后登录IP"`
 	UpdateTime    JSONTime `json:"update_time" form:"update_time" gorm:"column:update_time;not null;autoCreateTime;autoUpdateTime;comment:更新时间"`
 	Token         string   `json:"token" form:"token"  gorm:"column:token;size:255;not null;default:'';comment:api访问token"`
+	Pid           uint     `json:"pid" form:"pid"  gorm:"column:pid;size:32;not null;default:0;comment:父级用户ID"`
 	Status        uint16   `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
 }
 

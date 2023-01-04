@@ -77,20 +77,20 @@ func GetErrMsg(err error) string {
 }
 
 // CommonList 公共列表 服务方法
-func (b *BaseService) CommonList(modelData interface{}, tableName string, filterFields []string, params *helper.DataListParams) (interface{}, error) {
+func (b *BaseService) CommonList(modelData interface{}, tableName string, filterFields []string, params *helper.DataListParams, isSuper int) (interface{}, error) {
 	if params.Data.Action == "getField" {
-		return b.GetFieldList(tableName, params.Data.Filter)
+		return b.GetFieldList(tableName, params.Data.Filter, isSuper)
 	} else {
 		return helper.Page(tableName, filterFields, Db, NS).Filter(modelData, params)
 	}
 }
 
 // GetFieldList 根据表名获取对应所有字段信息
-func (b *BaseService) GetFieldList(tableName string, filter map[string]interface{}) (*FullModelFields, error) {
+func (b *BaseService) GetFieldList(tableName string, filter map[string]interface{}, isSuper int) (*FullModelFields, error) {
 	modelCfg := ModelConfig().GetModelConfig(tableName)
 	modelId := modelCfg.ModelId
 	fieldInfoList := ModelField().GetFieldInfo(modelId) //模型的字段信息
-	formInfoList := ModelForm().GetFormInfo(modelId)    //模型的表单信息
+	formInfoList := ModelForm().GetFormInfo(modelId, isSuper)    //模型的表单信息
 	relationInfoList := ModelRelation().GetRelationInfo(modelId, filter)
 	formRulesInfoList := ModelFormRules().GetRuleListForForm(modelId)
 	fieldOptionList, err := FieldOption().GetFieldOptions(modelId, tableName, modelCfg.IsTree, modelCfg.LabelFieldName, filter) //模型的关联信息

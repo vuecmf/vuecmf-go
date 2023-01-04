@@ -83,6 +83,7 @@ func GetMiddleWares() map[string]func(ctx *gin.Context) {
 			//权限验证
 			if err == nil {
 				ctx.Set("is_super", adm.IsSuper)
+				ctx.Set("uid", adm.Id)
 				if adm.IsSuper == 10 {
 					return
 				}

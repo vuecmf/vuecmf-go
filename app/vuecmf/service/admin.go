@@ -43,6 +43,12 @@ type LoginRes struct {
 	Server map[string]string `json:"server"`
 }
 
+// Create 创建单条或多条数据, 成功返回影响行数
+func (ser *adminService) Create(data *model.Admin) (uint, error) {
+	res := Db.Create(&data)
+	return data.Id, res.Error
+}
+
 //IsLogin 验证是否登录
 func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, error) {
 	if token == "" {
@@ -50,7 +56,7 @@ func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, er
 	}
 
 	var adm *model.Admin
-	if err := Db.Table(NS.TableName("admin")).Select("username, password, is_super, last_login_time, status").
+	if err := Db.Table(NS.TableName("admin")).Select("id, username, password, is_super, last_login_time, status").
 		Where("token = ?", token).Find(&adm).Error; err != nil {
 		return nil, errors.New("验证是否登录IsLogin异常：" + err.Error())
 	}

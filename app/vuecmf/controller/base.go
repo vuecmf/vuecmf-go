@@ -74,7 +74,8 @@ func Common(c *gin.Context, formParams interface{}, fun func() (interface{}, err
 func (ctrl *Base) Index(c *gin.Context) {
 	listParams := &helper.DataListParams{}
 	Common(c, listParams, func() (interface{}, error) {
-		return service.Base().CommonList(ctrl.ListData, ctrl.TableName, ctrl.FilterFields, listParams)
+		isSuper := helper.InterfaceToInt(app.Request(c).GetCtxVal("is_super"))
+		return service.Base().CommonList(ctrl.ListData, ctrl.TableName, ctrl.FilterFields, listParams, isSuper)
 	})
 }
 

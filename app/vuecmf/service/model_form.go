@@ -37,17 +37,21 @@ type formInfo struct {
 }
 
 // GetFormInfo 根据模型ID获取模型的表单信息
-func (ser *modelFormService) GetFormInfo(modelId int) []formInfo {
+func (ser *modelFormService) GetFormInfo(modelId, isSuper int) []formInfo {
 	var list []formInfo
 
-	Db.Table(NS.TableName("model_form")+" VMF").
+	query := Db.Table(NS.TableName("model_form")+" VMF").
 		Select("VMF.model_field_id field_id, VMF.`type`, VMF.default_value, if(VMF.is_disabled = 10, 1, 0) is_disabled, VMF.sort_num, VMF2.field_name, VMF2.label").
 		Joins("inner join "+NS.TableName("model_field")+" VMF2 ON VMF.model_field_id = VMF2.id").
 		Where("VMF.model_id = ?", modelId).
 		Where("VMF.status = 10").
-		Where("VMF2.status = 10").
-		Order("VMF.sort_num").
-		Find(&list)
+		Where("VMF2.status = 10")
+
+	if isSuper != 10 {
+		query = query.Where("VMF2.field_name != 'is_super'")
+	}
+
+	query.Order("VMF.sort_num").Find(&list)
 
 	return list
 

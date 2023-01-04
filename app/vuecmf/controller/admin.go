@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/route"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 	"time"
@@ -31,12 +32,37 @@ func init() {
 	route.Register(admin, "POST", "vuecmf")
 }
 
+// Index 列表页
+func (ctrl *Admin) Index(c *gin.Context) {
+	listParams := &helper.DataListParams{}
+	Common(c, listParams, func() (interface{}, error) {
+		isSuper := helper.InterfaceToInt(app.Request(c).GetCtxVal("is_super"))
+		if isSuper != 10 {
+			uid := uint(helper.InterfaceToInt(app.Request(c).GetCtxVal("uid")))
+			listParams.Data.Filter["pid"] = uid
+		}
+
+		return service.Base().CommonList(ctrl.ListData, ctrl.TableName, ctrl.FilterFields, listParams, isSuper)
+	})
+}
+
 // Save 新增/更新 单条数据
 func (ctrl *Admin) Save(c *gin.Context) {
 	saveForm := &model.DataAdminForm{}
 	Common(c, saveForm, func() (interface{}, error) {
 		if saveForm.Data.Id == uint(0) {
-			return service.Base().Create(saveForm.Data)
+			newId, err := service.Admin().Create(saveForm.Data)
+			isSuper := app.Request(c).GetCtxVal("is_super")
+			if isSuper == 10 {
+				saveForm.Data.Pid = newId
+			} else {
+				saveForm.Data.Pid = uint(helper.InterfaceToInt(app.Request(c).GetCtxVal("uid")))
+			}
+			if err != nil {
+				return newId, err
+			}
+
+			return service.Base().Update(saveForm.Data)
 		} else {
 			return service.Base().Update(saveForm.Data)
 		}

@@ -102,7 +102,7 @@ func (ser *rolesService) DeleteBatch(idList string, model *model.Roles) (int64, 
 func (ser *rolesService) List(params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
 		//拉取列表的字段信息
-		return ser.GetFieldList(ser.TableName, params.Data.Filter)
+		return ser.GetFieldList(ser.TableName, params.Data.Filter, 10)
 	} else {
 		//拉取列表的数据
 		var rolesList []*model.Roles

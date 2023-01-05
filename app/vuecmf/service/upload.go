@@ -61,7 +61,7 @@ func (ser *uploadService) GetFileMimeType(fileHeader *multipart.FileHeader) (str
 }
 
 // UploadFile 文件上传
-func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interface{}, error) {
+func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (map[string]string, error) {
 	var uploadRules []*uploadRuleRow
 
 	var fileSize int
@@ -140,7 +140,9 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	newFileName := fmt.Sprintf("%x", codeByte)
 	currentTime := time.Now().Format("20060102")
 
-	saveDir := Conf.Upload.Dir + "/" + currentTime + "/"
+	uid := strconv.Itoa(helper.InterfaceToInt(app.Request(ctx).GetCtxVal("uid")))
+
+	saveDir := Conf.Upload.Dir + "/" + uid + "/" + currentTime + "/"
 
 	_, err = os.Stat(saveDir)
 	if err != nil {
@@ -184,6 +186,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (interf
 	var res = make(map[string]string)
 	res["field_name"] = fieldName
 	res["url"] = uploadUrl + dst
+	res["path"] = dst
 
 	return res, err
 

@@ -187,6 +187,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (map[st
 	res["field_name"] = fieldName
 	res["url"] = uploadUrl + dst
 	res["path"] = dst
+	res["file_name"] = fileName
 
 	return res, err
 

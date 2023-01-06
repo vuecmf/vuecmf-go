@@ -25,6 +25,10 @@ const (
 )
 
 type img struct {
+	FileObj *os.File  //文件实例
+	FileName string   //文件名
+	FileExt string    //文件扩展名
+	Err error         //异常信息
 }
 
 var imgInstance *img
@@ -36,38 +40,57 @@ func Img() *img {
 	return imgInstance
 }
 
-// GetImage 获取image实例及图片类型
-func (im *img) GetImage(fileName string) (image.Image, string, error) {
-	fileExt := GetFileExt(fileName)
+//Load 根据文件名加载文件
+func (im *img) Load(fileName string) *img {
+	im.FileName = fileName
+	im.FileExt = GetFileExt(fileName)
 	f, err := os.Open(fileName)
+	im.FileObj = f
 	if err != nil {
-		return nil, fileExt, errors.New("图像文件读取失败！" + err.Error())
+		im.Err = errors.New("图像文件读取失败！" + err.Error())
 	}
 
+	return im
+}
+
+//LoadFile 直接加载文件流
+//	参数：
+//		file 文件流
+//		fileName 文件名
+func (im *img) LoadFile(file *os.File, fileName string) *img {
+	im.FileName = fileName
+	im.FileExt = GetFileExt(fileName)
+	im.FileObj = file
+	return im
+}
+
+// GetImage 获取image实例及图片类型
+func (im *img) GetImage() (image.Image, string, error) {
 	defer func(f *os.File) {
 		_ = f.Close()
-	}(f)
+	}(im.FileObj)
 
 	var imgObj image.Image
+	var err error
 
-	switch fileExt {
+	switch im.FileExt {
 	case "gif":
-		imgObj, err = gif.Decode(f)
+		imgObj, err = gif.Decode(im.FileObj)
 	case "jpeg":
 		fallthrough
 	case "jpg":
-		imgObj, err = jpeg.Decode(f)
+		imgObj, err = jpeg.Decode(im.FileObj)
 	case "png":
-		imgObj, err = png.Decode(f)
+		imgObj, err = png.Decode(im.FileObj)
 	default:
-		err = errors.New("未知的图像类型: " + fileExt)
+		err = errors.New("未知的图像类型: " + im.FileExt)
 	}
 
 	if err != nil {
 		err = errors.New("图像文件解析错误：" + err.Error())
 	}
 
-	return imgObj, fileExt, err
+	return imgObj, im.FileExt, err
 }
 
 // SaveImage 保存图像文件
@@ -104,7 +127,6 @@ func (im *img) SaveImage(outImg image.Image, saveFileName string) error {
 
 // Resize 图片绽放
 // 	参数：
-//		srcFileName 原文件名
 //		newFileName 保存新的文件名
 //		width		缩放后的宽度
 //		height  	缩放后的高度
@@ -112,8 +134,8 @@ func (im *img) SaveImage(outImg image.Image, saveFileName string) error {
 //		fill		填充的背景颜色 0 - 255 （R、G、B）的值共一个数值， 0 = 透明背景， 255 = 白色背景
 //		centerAlign	是否以图片的中心来进行等比缩放
 //		crop		是否裁切
-func (im *img) Resize(srcFileName string, newFileName string, width int, height int, keepRatio bool, fill int, centerAlign bool, crop bool) error {
-	imgRes, _, err := im.GetImage(srcFileName)
+func (im *img) Resize(newFileName string, width int, height int, keepRatio bool, fill int, centerAlign bool, crop bool) error {
+	imgRes, _, err := im.GetImage()
 	if err != nil {
 		return err
 	}
@@ -208,26 +230,17 @@ func (im *img) Resize(srcFileName string, newFileName string, width int, height 
 }
 
 // FontWater 给图片添加文字水印
-func (im *img) FontWater(fileName string, typeface []app.FontInfo) error {
-	//需要加水印的图片
-	imgFile, err := os.Open(fileName)
-	if err != nil {
-		return errors.New("打开文件失败！" + err.Error())
-	}
-
-	defer func(imgFile *os.File) {
-		_ = imgFile.Close()
-	}(imgFile)
-
-	fileExt := GetFileExt(fileName)
+func (im *img) FontWater(typeface []app.FontInfo) error {
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(im.FileObj)
 
 	//新的加了水印图片覆盖原来文件
-	if fileExt == "gif" {
-		err = im.gifFontWater(imgFile, fileName, typeface)
+	if im.FileExt == "gif" {
+		return im.gifFontWater(im.FileObj, im.FileName, typeface)
 	} else {
-		err = im.staticFontWater(imgFile, fileName, fileExt, typeface)
+		return im.staticFontWater(im.FileObj, im.FileName, im.FileExt, typeface)
 	}
-	return err
 }
 
 //gif图片水印

@@ -162,8 +162,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (map[st
 	if isImage == true {
 		//缩放图像文件
 		if Conf.Upload.Image.ResizeEnable == true {
-			err = helper.Img().Resize(
-				dst,
+			err = helper.Img().Load(dst).Resize(
 				dst,
 				Conf.Upload.Image.ImageWidth,
 				Conf.Upload.Image.ImageHeight,
@@ -176,7 +175,7 @@ func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (map[st
 		//给图像添加水印
 		if Conf.Water.Enable == true {
 			fontList := []app.FontInfo{Conf.Water.Conf}
-			err = helper.Img().FontWater(dst, fontList)
+			err = helper.Img().Load(dst).FontWater(fontList)
 			if err != nil {
 				return nil, errors.New(fieldName + "|上传异常：添加水印失败！" + err.Error())
 			}

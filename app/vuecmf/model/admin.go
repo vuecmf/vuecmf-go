@@ -31,6 +31,7 @@ type DataAdminForm struct {
 //BeforeSave 数据更新前处理
 func (m *Admin) BeforeSave(tx *gorm.DB) error {
 	var err error
+	//如果有填写密码，则更新加密密码
 	if m.Password != "" && len(m.Password) >=4 && len(m.Password) <= 32 {
 		m.Password, err = helper.PasswordHash(m.Password)
 	}

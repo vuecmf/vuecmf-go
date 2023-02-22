@@ -261,24 +261,21 @@ func (ser *modelActionService) GetActionList(roleName string) (interface{}, erro
 		}
 	}
 
-	//否则，获取所有权限列表
-	appList := AppConfig().GetAuthAppList()
-	for _, appName := range appList {
-		var actionRes []row
-		Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label model_label,  MA.label").
-			Joins("left join "+NS.TableName("model_config")+" MC on MC.id = MA.model_id").
-			Joins("left join "+NS.TableName("app_config")+" AC on MC.app_id = AC.id").
-			Where("AC.app_name = ?", appName).
-			Where("MC.status = 10").
-			Where("AC.status = 10").
-			Where("MA.status = 10").Find(&actionRes)
+	//否则，获取所有权限列表(排除关闭权限验证的应用)
+	var actionRes []row
+	Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label model_label,  MA.label").
+		Joins("left join "+NS.TableName("model_config")+" MC on MC.id = MA.model_id").
+		Joins("left join "+NS.TableName("app_config")+" AC on MC.app_id = AC.id").
+		Where("AC.auth_enable = 10").
+		Where("MC.status = 10").
+		Where("AC.status = 10").
+		Where("MA.status = 10").Find(&actionRes)
 
-		for _, ac := range actionRes {
-			if res[ac.ModelLabel] == nil {
-				res[ac.ModelLabel] = make(map[string]string)
-			}
-			res[ac.ModelLabel][ac.Id] = ac.Label
+	for _, ac := range actionRes {
+		if res[ac.ModelLabel] == nil {
+			res[ac.ModelLabel] = make(map[string]string)
 		}
+		res[ac.ModelLabel][ac.Id] = ac.Label
 	}
 
 	return res, nil

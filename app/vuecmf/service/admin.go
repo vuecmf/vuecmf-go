@@ -49,6 +49,21 @@ func (ser *adminService) Create(data *model.Admin) (uint, error) {
 	return data.Id, res.Error
 }
 
+// Update 更新数据, 成功返回影响行数
+func (ser *adminService) Update(data *model.Admin) (int64, error) {
+	//如果修改用户名，则更新权限中用户名
+	var oldUserName string
+	Db.Table(NS.TableName("admin")).Select("username").
+		Where("id = ?", data.Id).Find(&oldUserName)
+	err := Auth().UpdateUser(oldUserName, data.Username)
+	if err != nil {
+		return 0, err
+	}
+
+	res := Db.Updates(data)
+	return res.RowsAffected, res.Error
+}
+
 //IsLogin 验证是否登录
 func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, error) {
 	if token == "" {

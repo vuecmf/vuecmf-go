@@ -58,13 +58,16 @@ func (ser *rolesService) Update(data *model.Roles) (int64, error) {
 	var oldRoleName string
 	Db.Table(NS.TableName("roles")).Select("role_name").
 		Where("id = ?", data.Id).Find(&oldRoleName)
+
+	data.IdPath = ser.GetIdPath(data.Pid)
+	res := Db.Updates(data)
+
 	if oldRoleName != "" && oldRoleName != data.RoleName {
-		if _, err := Auth().Enforcer.DeleteRole(oldRoleName); err != nil {
+		if err := Auth().UpdateRoles(oldRoleName, data.RoleName); err != nil {
 			return 0, err
 		}
 	}
-	data.IdPath = ser.GetIdPath(data.Pid)
-	res := Db.Updates(data)
+
 	return res.RowsAffected, res.Error
 }
 

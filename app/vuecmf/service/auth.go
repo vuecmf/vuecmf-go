@@ -259,26 +259,23 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[stri
 		Label string
 	}
 
-	appList := AppConfig().GetAuthAppList()
-	for _, appName := range appList {
-		if isSuper == 10 {
-			//超级管理员拥有所有权限
-			var actionList []action
+	if isSuper == 10 {
+		//超级管理员拥有所有权限
+		var actionList []action
 
-			Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
-				Joins("left join "+NS.TableName("model_config")+" MC on MA.model_id = MC.id").
-				Joins("left join "+NS.TableName("app_config")+" AC on MC.app_id = AC.id").
-				Where("AC.app_name = ?", appName).
-				Where("MA.status = 10").
-				Where("MC.status = 10").
-				Where("AC.status = 10").
-				Find(&actionList)
+		Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
+			Joins("left join "+NS.TableName("model_config")+" MC on MA.model_id = MC.id").
+			Where("MA.status = 10").
+			Where("MC.status = 10").
+			Find(&actionList)
 
-			for _, item := range actionList {
-				res[item.Label] = append(res[item.Label], item.Id)
-			}
+		for _, item := range actionList {
+			res[item.Label] = append(res[item.Label], item.Id)
+		}
 
-		} else {
+	} else {
+		appList := AppConfig().GetAuthAppList()
+		for _, appName := range appList {
 			data, err := au.Enforcer.GetImplicitPermissionsForUser(userOrRole, appName)
 			if err != nil {
 				return nil, err
@@ -329,6 +326,7 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[stri
 				}
 			}
 		}
+
 	}
 
 	return res, nil
@@ -382,3 +380,24 @@ func (au *auth) GetAllRoles() interface{} {
 func (au *auth) GetRolesForUser(userName string) ([]string, error) {
 	return au.Enforcer.GetRolesForUser(userName, "vuecmf")
 }
+
+//UpdateRoles 更新权限的角色名称
+func (au *auth) UpdateRoles(oldRoleName, newRoleName string) error {
+	Db.Table(NS.TableName("rules")).Where("ptype = 'p'").
+		Where("v0 = ?", oldRoleName).
+		Update("v0", newRoleName)
+
+	Db.Table(NS.TableName("rules")).Where("ptype = 'g'").
+		Where("v1 = ?", oldRoleName).
+		Update("v1", newRoleName)
+	return nil
+}
+
+//UpdateUser 更新权限的用户名
+func (au *auth) UpdateUser(oldUserName, newUserName string) error {
+	res := Db.Table(NS.TableName("rules")).Where("v0 = ?", oldUserName).
+		Update("v0", newUserName)
+
+	return res.Error
+}
+

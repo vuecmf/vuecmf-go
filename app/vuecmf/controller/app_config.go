@@ -58,6 +58,9 @@ func (ctrl *AppConfig) Delete(c *gin.Context) {
 		if num := service.AppConfig().GetAppModelCount(data.Data.Id); num > 0 {
 			return nil, errors.New("不允许删除有分配模型的应用！")
 		}
+		if err := service.Make().RemoveApp(data.Data.Id); err != nil {
+			return nil, err
+		}
 		return service.Base().Delete(data.Data.Id, ctrl.Model)
 	})
 }

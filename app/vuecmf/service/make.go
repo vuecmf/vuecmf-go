@@ -154,6 +154,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 		autoCreateTime := ""
 		uniqueIndex := ""
 		autoIncrement := ""
+		columnType := ""
 
 		if value.IsNull == 20 {
 			notNull = "not null;"
@@ -163,10 +164,16 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 			autoIncrement = "primaryKey;autoIncrement;"
 		}
 
+		if value.Type == "timestamp" {
+			columnType = "type:timestamp;"
+		}
+
 		if value.FieldName == "update_time" || value.FieldName == "last_login_time" || value.DefaultValue == "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" {
 			autoCreateTime = "autoCreateTime;autoUpdateTime;"
+			defaultVal = "default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;"
 		} else if value.DefaultValue == "CURRENT_TIMESTAMP" {
 			autoCreateTime = "autoCreateTime;"
+			defaultVal = "default:CURRENT_TIMESTAMP;"
 		} else {
 			//字段默认值
 			switch {
@@ -208,7 +215,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 		if modelIndexId > 0 {
 			uniqueIndex = "uniqueIndex:unique_index;"
 		}
-		gormCnf := " gorm:\"column:" + value.FieldName + ";" + autoIncrement + size + uniqueIndex + notNull + autoCreateTime + defaultVal +
+		gormCnf := " gorm:\"" + columnType + "column:" + value.FieldName + ";" + autoIncrement + size + uniqueIndex + notNull + autoCreateTime + defaultVal +
 			"comment:" + value.Note + "\""
 
 		fr.FieldName = value.FieldName                  //字段名

@@ -75,7 +75,8 @@ func Config() *Conf {
 
 	confContent, err := os.Open("config/app.yaml")
 	if err != nil {
-		log.Fatal("无法读取应用配置文件app.yaml")
+		//log.Fatal("无法读取应用配置文件app.yaml")
+		return nil
 	}
 
 	err = yaml.NewDecoder(confContent).Decode(&appConf)

@@ -31,7 +31,10 @@ type BaseService struct {
 
 func init() {
 	Conf = app.Config()
-	Db = app.Db(strings.ToLower(Conf.Env))
+	if Conf != nil {
+		Db = app.Db(strings.ToLower(Conf.Env))
+	}
+
 	if Db != nil {
 		NS = Db.NamingStrategy
 	}

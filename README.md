@@ -36,7 +36,17 @@ VueCMF开发框架主要有以下功能：
 * Go >= 1.17
 
 ## 下载vuecmf命令行工具
-根据自己的运行的操作系统选择对应版本下载
+根据自己的运行的操作系统选择对应版本下载:
+
+github下载地址：
+
+linux:  https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-linux_v2.1.0.zip
+
+windows: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-windows_v2.1.0.zip
+
+mac: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-mac_v2.1.0.zip
+
+gitee下载地址：
 
 linux:  https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-linux_v2.1.0.zip
 

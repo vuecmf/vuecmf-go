@@ -636,6 +636,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/route"
+	_ "github.com/vuecmf/vuecmf-go/app/vuecmf/controller"
 	"log"
 ${import_package}
 )

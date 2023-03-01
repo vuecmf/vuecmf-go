@@ -357,13 +357,15 @@ func {{.service_method}}() *{{.service_name}}Service {
 	}
 	return {{.service_name}}
 }`
+	moduleName := ""
 	modelConf := ModelConfig().GetModelConfig(tableName)
 	if modelConf.IsTree == true {
+		moduleName = app.Config().Module
 		txt = `package service
 
 import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
-	"github.com/vuecmf/vuecmf-go/app/{{.app_name}}/model"
+	"{{.module_name}}/app/{{.app_name}}/model"
 	{{.import_base2}}
 	"strconv"
 )
@@ -443,6 +445,7 @@ func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interf
 		extendBase = "*service.BaseService"
 	}
 
+	txt = strings.Replace(txt, "{{.module_name}}", moduleName, -1)
 	txt = strings.Replace(txt, "{{.app_name}}", appName, -1)
 	txt = strings.Replace(txt, "{{.table_name}}", tableName, -1)
 	txt = strings.Replace(txt, "{{.service_name}}", serviceName, -1)
@@ -654,6 +657,7 @@ func main() {
 	Db.Table(NS.TableName("app_config") + " A").Select("app_name").
 		Joins("left join " + NS.TableName("model_config") + " MC on A.id = MC.app_id").
 		Where("A.status = 10").
+		Where("A.app_name != 'vuecmf'").
 		Where("MC.status = 10").
 		Group("app_name").Find(&appList)
 

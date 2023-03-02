@@ -1,11 +1,11 @@
-// Package service
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
 package service
 
 import (
@@ -44,12 +44,16 @@ type LoginRes struct {
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数
+// 	参数：
+// 		data 需要保存的数据
 func (ser *adminService) Create(data *model.Admin) (uint, error) {
 	res := Db.Create(&data)
 	return data.Id, res.Error
 }
 
 // Update 更新数据, 成功返回影响行数
+// 	参数：
+// 		data 需要更新的数据
 func (ser *adminService) Update(data *model.Admin) (int64, error) {
 	//如果修改用户名，则更新权限中用户名
 	var oldUserName string
@@ -65,6 +69,9 @@ func (ser *adminService) Update(data *model.Admin) (int64, error) {
 }
 
 //IsLogin 验证是否登录
+// 	参数：
+// 		token 验证token
+//		loginIp 登录IP
 func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, error) {
 	if token == "" {
 		return nil, errors.New("您还没有登录，请先登录！")
@@ -93,6 +100,8 @@ func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, er
 }
 
 // Login 用户登录
+// 	参数：
+// 		loginForm 登录传入的表单数据
 func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) {
 	loginTimesCacheKey := "vuecmf:login_err_times:" + loginForm.LoginName
 	var loginErrTimes int
@@ -158,6 +167,8 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 }
 
 // Logout 用户退出登录
+// 	参数：
+// 		logoutForm 退出传入的表单数据
 func (ser *adminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
 	if logoutForm.Token == "" {
 		return false, errors.New("token不能为空")
@@ -173,6 +184,8 @@ func (ser *adminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
 }
 
 //GetUserNames 根据用户ID获取用户名
+// 	参数：
+// 		userIdList 用户ID列表
 func (ser *adminService) GetUserNames(userIdList []int) []string {
 	var res []string
 	Db.Table(NS.TableName("admin")).Select("username").
@@ -182,6 +195,8 @@ func (ser *adminService) GetUserNames(userIdList []int) []string {
 }
 
 //GetUser 根据用户ID获取用户信息
+// 	参数：
+// 		userId 用户ID
 func (ser *adminService) GetUser(userId uint) model.Admin {
 	var res model.Admin
 	Db.Table(NS.TableName("admin")).Select("*").

@@ -1,11 +1,11 @@
-// Package service
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
 package service
 
 import (
@@ -46,6 +46,8 @@ type actionInfoST struct {
 }
 
 //modelRelationService 联动关联字段信息
+// 参数：
+//		modelId 模型ID
 func (ser *modelRelationService) getRelationLinkage(modelId int) interface{} {
 	var fieldInfo []fieldInfoST
 	var result = make(map[int]map[int]map[string]string)
@@ -100,7 +102,10 @@ type relationOptions struct {
 }
 
 // getRelationOptions 关联模型的数据列表
-func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}, dType string) map[string]interface{} {
+// 参数：
+//		modelId 模型ID
+//		filter 筛选条件
+func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}) map[string]interface{} {
 	var reFieldInfo []relationFieldInfo
 	var result = make(map[string]interface{})
 
@@ -208,6 +213,9 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 }
 
 // GetRelationInfo 获取模型的关联信息
+// 参数：
+//		modelId 模型ID
+//		filter 筛选条件
 func (ser *modelRelationService) GetRelationInfo(modelId int, filter map[string]interface{}) *modelRelationInfo {
 	mri := &modelRelationInfo{}
 
@@ -215,11 +223,11 @@ func (ser *modelRelationService) GetRelationInfo(modelId int, filter map[string]
 	mri.Linkage = ser.getRelationLinkage(modelId)
 
 	//供表单中下拉框中使用
-	mri.Options = ser.getRelationOptions(modelId, filter, "")
+	mri.Options = ser.getRelationOptions(modelId, filter)
 
 	//供列表及搜索表单下拉框中使用
 	delete(filter, "model_id")
-	mri.FullOptions = ser.getRelationOptions(modelId, filter, "full")
+	mri.FullOptions = ser.getRelationOptions(modelId, filter)
 
 	return mri
 

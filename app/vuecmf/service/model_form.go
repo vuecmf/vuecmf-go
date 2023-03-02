@@ -1,11 +1,11 @@
-// Package service
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
 package service
 
 import "github.com/vuecmf/vuecmf-go/app/vuecmf/model"
@@ -37,6 +37,9 @@ type formInfo struct {
 }
 
 // GetFormInfo 根据模型ID获取模型的表单信息
+// 参数：
+//		modelId 模型ID
+//		isSuper 是否为超级管理员
 func (ser *modelFormService) GetFormInfo(modelId, isSuper int) []formInfo {
 	var list []formInfo
 
@@ -58,6 +61,8 @@ func (ser *modelFormService) GetFormInfo(modelId, isSuper int) []formInfo {
 }
 
 //DelByFieldId 根据字段ID删除
+// 参数：
+//		fieldId 字段ID
 func (ser *modelFormService) DelByFieldId(fieldId uint) error {
 	res := Db.Table(NS.TableName("model_form")).Delete(&model.ModelForm{ModelFieldId: fieldId})
 	return res.Error

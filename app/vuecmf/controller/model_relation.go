@@ -1,11 +1,11 @@
-// Package controller
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
 package controller
 
 import (
@@ -15,6 +15,7 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
+// ModelRelation 模型关联管理
 type ModelRelation struct {
 	Base
 }

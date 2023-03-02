@@ -1,11 +1,11 @@
-// Package service
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
 package service
 
 import (
@@ -38,13 +38,15 @@ func Upload() *uploadService {
 	return upload
 }
 
-type uploadRuleRow struct {
+type UploadRuleRow struct {
 	RuleType  string
 	RuleValue string
 	ErrorTips string
 }
 
 // GetFileMimeType 获取上传文件的MIME类型
+// 参数：
+// 		fileHeader 文件头信息
 func (ser *uploadService) GetFileMimeType(fileHeader *multipart.FileHeader) (string, error) {
 	file, err := fileHeader.Open()
 	if err != nil {
@@ -61,8 +63,11 @@ func (ser *uploadService) GetFileMimeType(fileHeader *multipart.FileHeader) (str
 }
 
 // UploadFile 文件上传
+// 参数：
+// 		fieldName 字段名
+//		ctx gin.Context上下文
 func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (map[string]string, error) {
-	var uploadRules []*uploadRuleRow
+	var uploadRules []*UploadRuleRow
 
 	var fileSize int
 	var fileExt string

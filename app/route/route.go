@@ -1,3 +1,12 @@
+//+----------------------------------------------------------------------
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
+
+// Package route 路由
 package route
 
 import (
@@ -16,6 +25,10 @@ import (
 var routes = make(map[string]map[string]map[string]reflect.Value)
 
 // Register 注册控制器路由
+// 参数：
+// 	ctrl 控制器实例
+// 	method 请求方式 可选值：GET  POST  GET|POST
+// 	appName 应用名
 func Register(ctrl interface{}, method, appName string) {
 	method = strings.ToUpper(method)
 	appName = helper.CamelToUnder(appName)

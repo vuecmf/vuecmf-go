@@ -1,11 +1,12 @@
-// Package helper
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
+// Package helper 助手工具
 package helper
 
 import (
@@ -20,6 +21,8 @@ import (
 )
 
 // ToFirstUpper 字符串首字母转大写
+// 	参数：
+// 		str 需要转换的字符串
 func ToFirstUpper(str string) string {
 	strArr := []rune(str)
 	strArr[0] -= 32
@@ -27,6 +30,8 @@ func ToFirstUpper(str string) string {
 }
 
 // ToFirstLower 字符串首字母转小写
+// 	参数：
+// 		str 需要转换的字符串
 func ToFirstLower(str string) string {
 	strArr := []rune(str)
 	strArr[0] += 32
@@ -34,6 +39,8 @@ func ToFirstLower(str string) string {
 }
 
 // UnderToCamel 下横线转驼峰风格
+// 	参数：
+// 		str 需要转换的字符串
 func UnderToCamel(str string) string {
 	str = strings.Replace(str, "_", " ", -1)
 	str = cases.Title(language.Und).String(str)
@@ -42,6 +49,8 @@ func UnderToCamel(str string) string {
 }
 
 // CamelToUnder 驼峰转下横线
+// 	参数：
+// 		str 需要转换的字符串
 func CamelToUnder(str string) string {
 	var output []rune
 
@@ -60,6 +69,9 @@ func CamelToUnder(str string) string {
 }
 
 // InSlice 判断字符串是否在指定的切片中
+// 	参数：
+// 		item 需要判断的字符串
+// 		items 指定的字符串切片
 func InSlice(item string, items []string) bool {
 	for _, val := range items {
 		if val == item {
@@ -70,29 +82,41 @@ func InSlice(item string, items []string) bool {
 }
 
 // SliceRemove 删除字符串切片中元素
+// 	参数：
+// 		slice 指定的字符串切片
+// 		index 需要删除的切片索引
 func SliceRemove(slice []string, index int) []string {
 	return append(slice[:index], slice[index+1:]...)
 }
 
 // PasswordHash 加密密码
+// 	参数：
+// 		password 需要加密的密码
 func PasswordHash(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
 
 // PasswordVerify 验证密码是否正确
+// 	参数：
+// 		password 需要验证的密码
+// 		hash 哈希值
 func PasswordVerify(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
 
 // GetFileExt 获取文件名的扩展名
+// 	参数：
+// 		fileName 文件名
 func GetFileExt(fileName string) string {
 	arr := strings.Split(fileName, ".")
 	return strings.ToLower(arr[len(arr)-1])
 }
 
 // GetFileBaseName 获取不包含扩展名的文件名称
+// 	参数：
+// 		fileName 文件名
 func GetFileBaseName(fileName string) string {
 	arr := strings.Split(fileName, ".")
 	if len(arr) > 1 {
@@ -103,6 +127,8 @@ func GetFileBaseName(fileName string) string {
 }
 
 // GetRandomString 生成图片名字
+// 	参数：
+// 		length 需要生成的字符串名字长度
 func GetRandomString(length int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyz"
 	bytes := []byte(str)
@@ -116,6 +142,8 @@ func GetRandomString(length int) string {
 }
 
 //SetString 对[]string 类型的切片进行元素唯一化处理
+// 	参数：
+// 		arr 需要处理的字符串切片
 func SetString(arr []string) []string {
 	newArr := make([]string, 0)
 
@@ -135,6 +163,8 @@ func SetString(arr []string) []string {
 }
 
 // InterfaceToInt interface类型转换成int
+// 	参数：
+// 		val 需要转换的值
 func InterfaceToInt(val interface{}) int {
 	var res int
 	switch val.(type) {
@@ -168,11 +198,13 @@ func InterfaceToInt(val interface{}) int {
 	return res
 }
 
+// TreeRes 存储目录树结果
 type TreeRes struct {
 	Id    int    //主键值
 	Label string //标题
 }
 
+// ModelFieldOption 存储模型字段选项
 type ModelFieldOption struct {
 	Value string `json:"value"`
 	Label string `json:"label"`

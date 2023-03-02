@@ -1,3 +1,12 @@
+//+----------------------------------------------------------------------
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
+
+// Package model 模型
 package model
 
 import (
@@ -14,6 +23,7 @@ type DataBatchForm struct {
 	Data string `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
+// IdForm 存储ID值
 type IdForm struct {
 	Id uint `json:"id" form:"id"`
 }
@@ -23,6 +33,7 @@ type DataIdForm struct {
 	Data *IdForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
+// IdListForm 存储ID列表
 type IdListForm struct {
 	IdList string `json:"id_list" form:"id_list"`
 }
@@ -32,6 +43,7 @@ type DataIdListForm struct {
 	Data *IdListForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
+// DropdownForm 存储Dropdown数据
 type DropdownForm struct {
 	TableName       string `json:"table_name" form:"table_name"`
 	ModelId         uint   `json:"model_id" form:"model_id"`

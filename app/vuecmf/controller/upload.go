@@ -1,11 +1,11 @@
-// Package controller
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
 package controller
 
 import (
@@ -17,6 +17,7 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
+// Upload 文件上传
 type Upload struct {
 	Base
 }

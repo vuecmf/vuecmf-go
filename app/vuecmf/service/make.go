@@ -1,11 +1,11 @@
-// Package service
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
 package service
 
 import (
@@ -42,9 +42,10 @@ type formRules struct {
 	ErrorTips string `json:"error_tips"` //错误提示
 }
 
-//Model 功能：生成模型代码文件
-//		参数：tableName string 表名（不带表前缀）
-//			 appName string 应用名称
+//Model 生成模型代码文件
+// 参数：
+//		tableName string 表名（不带表前缀）
+//		appName string 应用名称
 func (makeSer *makeService) Model(tableName string, appName string) error {
 	if appName == "" {
 		appName = "vuecmf"
@@ -325,9 +326,10 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 	return err
 }
 
-//Service 功能：生成服务代码文件
-//		  参数：tableName string 表名（不带表前缀）
-//			   appName string 应用名称
+//Service 生成服务代码文件
+// 参数：
+//		tableName string 表名（不带表前缀）
+//		appName string 应用名称
 func (makeSer *makeService) Service(tableName string, appName string) error {
 	if appName == "" {
 		appName = "vuecmf"
@@ -458,9 +460,10 @@ func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interf
 	return err
 }
 
-//Controller 功能：生成控制器代码文件
-//		  参数：tableName string 表名（不带表前缀）
-//			   appName string 应用名称
+//Controller 生成控制器代码文件
+//参数：
+//		tableName string 表名（不带表前缀）
+//		appName string 应用名称
 func (makeSer *makeService) Controller(tableName string, appName string) error {
 	if appName == "" {
 		appName = "vuecmf"
@@ -586,9 +589,10 @@ func (ctrl *{{.controller_name}}) Save(c *gin.Context) {
 	return os.WriteFile("app/"+appName+"/controller/"+tableName+".go", []byte(txt), 0666)
 }
 
-//RemoveModel 功能：删除模型代码文件
-//				参数：tableName string 表名（不带表前缀）
-//			 		 appName string 应用名称
+//RemoveModel 删除模型代码文件
+//参数：
+//		tableName string 表名（不带表前缀）
+//		appName string 应用名称
 func (makeSer *makeService) RemoveModel(tableName string, appName string) error {
 	pathName := "app/" + appName + "/model/" + tableName + ".go"
 	//文件不存在的就直接返回
@@ -598,9 +602,10 @@ func (makeSer *makeService) RemoveModel(tableName string, appName string) error 
 	return os.Remove(pathName)
 }
 
-// RemoveService 功能：删除服务代码文件
-//		  			参数：tableName string 表名（不带表前缀）
-//			   			 appName string 应用名称
+// RemoveService 删除服务代码文件
+// 参数：
+//		tableName string 表名（不带表前缀）
+//		appName string 应用名称
 func (makeSer *makeService) RemoveService(tableName string, appName string) error {
 	pathName := "app/" + appName + "/service/" + tableName + ".go"
 	//文件不存在的就直接返回
@@ -610,9 +615,10 @@ func (makeSer *makeService) RemoveService(tableName string, appName string) erro
 	return os.Remove(pathName)
 }
 
-// RemoveController 功能：删除控制器代码文件
-//		  参数：tableName string 表名（不带表前缀）
-//			   appName string 应用名称
+// RemoveController 删除控制器代码文件
+// 参数：
+//		tableName string 表名（不带表前缀）
+//		appName string 应用名称
 func (makeSer *makeService) RemoveController(tableName string, appName string) error {
 	if err := makeSer.UpdateRunFile(); err != nil {
 		return err
@@ -675,6 +681,8 @@ func main() {
 }
 
 // RemoveAll 删除表名相关所有控制器、模型及服务
+// 参数：
+//		tableName 表名
 func (makeSer *makeService) RemoveAll(tableName string) error {
 	var err error
 	//先根据tableName查出所有相关的模型、服务及控制器，然后全部删除
@@ -697,6 +705,8 @@ func (makeSer *makeService) RemoveAll(tableName string) error {
 }
 
 // MakeAll 根据表名生成相关的所有控制器、模型及服务
+// 参数：
+//		tableName 表名
 func (makeSer *makeService) MakeAll(tableName string) error {
 	var err error
 	//先根据tableName查出所有相关的模型、服务及控制器，然后生成
@@ -719,6 +729,9 @@ func (makeSer *makeService) MakeAll(tableName string) error {
 }
 
 // MakeAppModel 根据应用ID及模型ID生成对应代码文件
+// 参数：
+//		appId 应用ID
+//		tableName 表名
 func (makeSer *makeService) MakeAppModel(appId uint, tableName string) error {
 	appName := AppConfig().GetAppNameById(appId)
 	if appName == "" {
@@ -738,6 +751,9 @@ func (makeSer *makeService) MakeAppModel(appId uint, tableName string) error {
 }
 
 // RemoveAppModel 根据应用ID及模型ID删除对应代码文件
+// 参数：
+//		appId 应用ID
+//		modelId 模型ID
 func (makeSer *makeService) RemoveAppModel(appId, modelId uint) error {
 	var appName string
 	Db.Table(NS.TableName("app_config")).Select("app_name").
@@ -779,6 +795,8 @@ func (makeSer *makeService) RemoveAppModel(appId, modelId uint) error {
 }
 
 // BuildModel 生成模型相关数据
+// 参数：
+//		mc 模型配置实例
 func (makeSer *makeService) BuildModel(mc *model.ModelConfig) error {
 	var baseTable interface{}
 	var insertDataJson string
@@ -1087,6 +1105,8 @@ func (makeSer *makeService) BuildModel(mc *model.ModelConfig) error {
 }
 
 // RemoveModelData 删除模型相关的所有数据
+// 参数：
+//		mc 模型配置实例
 func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
 	//根据动作表找到对应权限项，清除rules表相关信息
 	var actionList []string
@@ -1167,6 +1187,8 @@ func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
 }
 
 // UpdateModel 根据模型ID更新模型文件
+// 参数：
+//		modelId 模型ID
 func (makeSer *makeService) UpdateModel(modelId uint) error {
 	var err error
 	appList := AppConfig().GetAppListByModelId(modelId)
@@ -1182,6 +1204,10 @@ func (makeSer *makeService) UpdateModel(modelId uint) error {
 }
 
 //GetFieldSql 获取字段相关操作SQL
+// 参数：
+//		mf 模型字段实例
+//		ac 动作名称 可选值：add  modify  del
+//		oldFieldName 原字段名
 func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFieldName string) (string, error) {
 	tableName := ModelConfig().GetModelTableName(int(mf.ModelId))
 
@@ -1256,6 +1282,9 @@ func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFiel
 }
 
 // AddField 添加字段并更新模型文件
+// 参数：
+//		mf 模型字段实例
+//		tx gorm.DB实例
 func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
 	sql, err := makeSer.GetFieldSql(mf, "add", "")
 	if err != nil {
@@ -1269,6 +1298,10 @@ func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
 }
 
 // RenameField 添加字段并更新模型文件
+// 参数：
+//		mf 模型字段实例
+//		oldFieldName 原字段名
+//		tx gorm.DB实例
 func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName string, tx *gorm.DB) error {
 	sql, err := makeSer.GetFieldSql(mf, "modify", oldFieldName)
 	if err != nil {
@@ -1282,6 +1315,9 @@ func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName strin
 }
 
 // DelField 删除字段并更新模型文件
+// 参数：
+//		mf 模型字段实例
+//		tx gorm.DB实例
 func (makeSer *makeService) DelField(mf *model.ModelField, tx *gorm.DB) error {
 	sql, err := makeSer.GetFieldSql(mf, "del", "")
 	if err != nil {
@@ -1296,6 +1332,9 @@ func (makeSer *makeService) DelField(mf *model.ModelField, tx *gorm.DB) error {
 }
 
 // AddIndex 添加索引 并更新模型文件
+// 参数：
+//		mi 模型索引实例
+//		tx gorm.DB实例
 func (makeSer *makeService) AddIndex(mi *model.ModelIndex, tx *gorm.DB) error {
 	if mi.ModelFieldId != "" {
 		tableName := ModelConfig().GetModelTableName(int(mi.ModelId))
@@ -1326,6 +1365,9 @@ type ModelIndexRes struct {
 }
 
 // DelIndex 删除索引 并更新模型文件
+// 参数：
+//		id 模型索引ID
+//		tx gorm.DB实例
 func (makeSer *makeService) DelIndex(id uint, tx *gorm.DB) error {
 	var rs ModelIndexRes
 	Db.Table(NS.TableName("model_index")).Select("model_field_id, model_id").
@@ -1349,6 +1391,8 @@ func (makeSer *makeService) DelIndex(id uint, tx *gorm.DB) error {
 }
 
 //CreateApp 创建应用相关目录
+// 参数：
+//		appName 应用名称
 func (makeSer *makeService) CreateApp(appName string) error {
 	//先创建目录
 	appDir := "app/" + appName
@@ -1393,6 +1437,9 @@ func (makeSer *makeService) CreateApp(appName string) error {
 }
 
 //RenameApp 重命名应用名称
+// 参数：
+//		appId 应用ID
+//		newAppName 新应用名称
 func (makeSer *makeService) RenameApp(appId uint, newAppName string) error {
 	var oldAppName string
 	Db.Table(NS.TableName("app_config")).Select("app_name").
@@ -1420,6 +1467,8 @@ func (makeSer *makeService) RenameApp(appId uint, newAppName string) error {
 }
 
 //RemoveApp 移除应用
+// 参数：
+//		appId 应用ID
 func (makeSer *makeService) RemoveApp(appId uint) error {
 	var appName string
 	Db.Table(NS.TableName("app_config")).Select("app_name").

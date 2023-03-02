@@ -1,11 +1,12 @@
-// Package controller
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
+// Package controller 控制器
 package controller
 
 import (
@@ -19,6 +20,7 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
 )
 
+// Base 基础结构
 type Base struct {
 	TableName    string      //表名称
 	Model        interface{} //表对应的模型实例

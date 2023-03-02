@@ -1,11 +1,11 @@
-// Package app
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
 package app
 
 import (
@@ -115,8 +115,8 @@ func connect(confName string) *gorm.DB {
 	return conn[confName]
 }
 
-// Db 获取数据库连接
-//    参数：confName 数据库配置名称
+//Db 获取数据库连接
+//参数：confName 数据库配置名称
 func Db(confName string) *gorm.DB {
 	//初始化项目时，不返回数据库连接
 	args := os.Args

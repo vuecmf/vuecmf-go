@@ -1,3 +1,11 @@
+//+----------------------------------------------------------------------
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
+// +----------------------------------------------------------------------
+// | Author: vuecmf <tulihua2004@126.com>
+// +----------------------------------------------------------------------
+
 package helper
 
 import (
@@ -33,6 +41,7 @@ type img struct {
 
 var imgInstance *img
 
+// Img 获取图像处理实例
 func Img() *img {
 	if imgInstance == nil {
 		imgInstance = &img{}
@@ -41,6 +50,8 @@ func Img() *img {
 }
 
 //Load 根据文件名加载文件
+//参数：
+//	fileName 文件名
 func (im *img) Load(fileName string) *img {
 	im.FileName = fileName
 	im.FileExt = GetFileExt(fileName)
@@ -94,6 +105,8 @@ func (im *img) GetImage() (image.Image, string, error) {
 }
 
 // SaveImage 保存图像文件
+// 	outImg 需要保存的image实例
+//	saveFileName 保存的文件名
 func (im *img) SaveImage(outImg image.Image, saveFileName string) error {
 	fileExt := GetFileExt(saveFileName)
 	f, _ := os.Create(saveFileName)

@@ -1,11 +1,11 @@
-// Package service
 //+----------------------------------------------------------------------
-// | Copyright (c) 2022 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
 // | Author: vuecmf <tulihua2004@126.com>
 // +----------------------------------------------------------------------
+
 package service
 
 import (
@@ -30,6 +30,8 @@ func ModelConfig() *modelConfigService {
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数
+// 参数：
+//		data 需保存的数据
 func (s *modelConfigService) Create(data *model.ModelConfig) (int64, error) {
 	//初始化模型相关数据
 	if err := Make().BuildModel(data); err != nil {
@@ -44,6 +46,8 @@ type modelConfigInfo struct {
 }
 
 // Update 更新数据, 成功返回影响行数
+// 参数：
+//		data 需更新的数据
 func (s *modelConfigService) Update(data *model.ModelConfig) (int64, error) {
 	var oldModel modelConfigInfo
 	Db.Table(NS.TableName("model_config")+" MC").Select("MC.table_name, AC.app_name").
@@ -92,6 +96,9 @@ func (s *modelConfigService) Update(data *model.ModelConfig) (int64, error) {
 }
 
 // Delete 根据ID删除数据
+// 参数：
+//		id 需删除的ID
+// 		model 模型实例
 func (s *modelConfigService) Delete(id uint, model *model.ModelConfig) (int64, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
 		model.Id = id
@@ -118,6 +125,9 @@ func (s *modelConfigService) Delete(id uint, model *model.ModelConfig) (int64, e
 }
 
 // DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
+// 参数：
+//		idList 需删除的ID列表
+// 		modelInstace 模型实例
 func (s *modelConfigService) DeleteBatch(idList string, modelInstace *model.ModelConfig) (int64, error) {
 	idArr := strings.Split(idList, ",")
 	err := Db.Transaction(func(tx *gorm.DB) error {
@@ -150,6 +160,8 @@ func (s *modelConfigService) DeleteBatch(idList string, modelInstace *model.Mode
 }
 
 // GetModelId 根据表名获取模型ID
+// 参数：
+//		tableName 表名
 func (s *modelConfigService) GetModelId(tableName string) int {
 	var modelId int
 	Db.Table(NS.TableName("model_config")).Select("id").
@@ -160,6 +172,8 @@ func (s *modelConfigService) GetModelId(tableName string) int {
 }
 
 // GetModelTableName 根据模型ID获取模型对应表名
+// 参数：
+//		modelId 模型ID
 func (s *modelConfigService) GetModelTableName(modelId int) string {
 	var tableName string
 	Db.Table(NS.TableName("model_config")).Select("table_name").
@@ -169,6 +183,8 @@ func (s *modelConfigService) GetModelTableName(modelId int) string {
 }
 
 // IsTree 根据模型ID判断是否为目录树
+// 参数：
+//		modelId 模型ID
 func (s *modelConfigService) IsTree(modelId int) bool {
 	var isTree int
 	Db.Table(NS.TableName("model_config")).Select("is_tree").
@@ -185,6 +201,8 @@ type modelConf struct {
 }
 
 // GetModelConfig 根据模型表名获取模型的配置信息
+// 参数：
+//		tableName 表名
 func (s *modelConfigService) GetModelConfig(tableName string) modelConf {
 	var mc modelConf
 	Db.Table(NS.TableName("model_config")).

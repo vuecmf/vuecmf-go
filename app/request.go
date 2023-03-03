@@ -21,7 +21,7 @@ type request struct {
 }
 
 //Input 获取客户端GET/POST请求及header的所有输入数据
-//参数：
+//	参数：
 //	method 请求方式 post/get/header
 //	bindParam 绑定参数，用于存储客户端提交的数据
 func (r *request) Input(method string, bindParam interface{}) error {
@@ -44,28 +44,28 @@ func (r *request) Input(method string, bindParam interface{}) error {
 }
 
 //Get 获取GET请求参数
-//参数：
+//	参数：
 //	fieldName 字段名
 func (r *request) Get(fieldName string) string {
 	return r.Query(fieldName)
 }
 
 //Post 获取formData方式的POST请求参数
-//参数：
+//	参数：
 //	fieldName 字段名
 func (r *request) Post(fieldName string) string {
 	return r.PostForm(fieldName)
 }
 
 //Header 获取头信息中数据
-//参数：
+//	参数：
 //	fieldName 字段名
 func (r *request) Header(fieldName string) string {
 	return r.GetHeader(fieldName)
 }
 
 // GetCtxVal 根据key获取中间件中传入的数据
-//参数：
+//	参数：
 //	key 传入的键名
 func (r *request) GetCtxVal(key string) interface{} {
 	val, exist := r.Context.Get(key)

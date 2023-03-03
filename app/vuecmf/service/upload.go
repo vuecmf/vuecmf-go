@@ -45,7 +45,7 @@ type UploadRuleRow struct {
 }
 
 // GetFileMimeType 获取上传文件的MIME类型
-// 参数：
+//	参数：
 // 		fileHeader 文件头信息
 func (ser *uploadService) GetFileMimeType(fileHeader *multipart.FileHeader) (string, error) {
 	file, err := fileHeader.Open()
@@ -63,7 +63,7 @@ func (ser *uploadService) GetFileMimeType(fileHeader *multipart.FileHeader) (str
 }
 
 // UploadFile 文件上传
-// 参数：
+//	参数：
 // 		fieldName 字段名
 //		ctx gin.Context上下文
 func (ser *uploadService) UploadFile(fieldName string, ctx *gin.Context) (map[string]string, error) {

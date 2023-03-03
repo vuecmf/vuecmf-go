@@ -60,7 +60,7 @@ func (s *appConfigService) GetFullAppList() map[string]*model.AppConfig {
 }
 
 //GetAppModelCount 获取指定应用的模型数量
-//参数：
+//	参数：
 //		appId 应用ID
 func (s *appConfigService) GetAppModelCount(appId uint) int64 {
 	var res int64
@@ -69,7 +69,7 @@ func (s *appConfigService) GetAppModelCount(appId uint) int64 {
 }
 
 //GetAppListByModelId 根据模型ID获取应用列表
-//参数：
+//	参数：
 //		modelId 模型ID
 func (s *appConfigService) GetAppListByModelId(modelId uint) []string {
 	var res []string
@@ -83,7 +83,7 @@ func (s *appConfigService) GetAppListByModelId(modelId uint) []string {
 }
 
 //GetAppListByTableName 根据表名获取应用列表
-//参数：
+//	参数：
 //		tableName 表名
 func (s *appConfigService) GetAppListByTableName(tableName string) []string {
 	var res []string
@@ -97,7 +97,7 @@ func (s *appConfigService) GetAppListByTableName(tableName string) []string {
 }
 
 //GetAppNameById 根据应用ID获取对应的应用名称
-//参数：
+//	参数：
 //		appId 应用ID
 func (s *appConfigService) GetAppNameById(appId uint) string {
 	var res string

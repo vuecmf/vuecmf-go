@@ -31,7 +31,7 @@ func Menu() *menuService {
 }
 
 // GetIdPath 获取父级ID的ID路径
-// 参数：
+//	参数：
 //		pid 父级ID
 func (ser *menuService) GetIdPath(pid uint) string {
 	var pidIdPath string
@@ -52,7 +52,7 @@ type menuInfo struct {
 }
 
 // GetPathName 获取父级ID的path路径
-// 参数：
+//	参数：
 //		pid 父级ID
 //		title 标题
 func (ser *menuService) GetPathName(pid uint, title string) string {
@@ -70,7 +70,7 @@ func (ser *menuService) GetPathName(pid uint, title string) string {
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数
-// 参数：
+//	参数：
 //		data 需保存的数据
 func (ser *menuService) Create(data *model.Menu) (int64, error) {
 	data.IdPath = ser.GetIdPath(data.Pid)
@@ -80,7 +80,7 @@ func (ser *menuService) Create(data *model.Menu) (int64, error) {
 }
 
 // Update 更新数据, 成功返回影响行数
-// 参数：
+//	参数：
 //		data 需更新的数据
 func (ser *menuService) Update(data *model.Menu) (int64, error) {
 	data.IdPath = ser.GetIdPath(data.Pid)
@@ -90,7 +90,7 @@ func (ser *menuService) Update(data *model.Menu) (int64, error) {
 }
 
 // List 获取列表数据
-// 参数：
+//	参数：
 //		params 查询参数
 func (ser *menuService) List(params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
@@ -111,7 +111,7 @@ func (ser *menuService) List(params *helper.DataListParams) (interface{}, error)
 }
 
 // Nav 获取用户的后台导航菜单
-// 参数：
+//	参数：
 // 		username 用户名
 //		isSuper 是否为超级管理员
 func (ser *menuService) Nav(username string, isSuper interface{}) (interface{}, error) {

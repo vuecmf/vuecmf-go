@@ -81,7 +81,7 @@ func GetErrMsg(err error) string {
 }
 
 // CommonList 公共列表 服务方法
-// 参数：
+//	参数：
 // 		modelData 存储列表数据
 //		tableName 表名
 //		filterFields 需要模糊查询的字段列表
@@ -96,7 +96,7 @@ func (b *BaseService) CommonList(modelData interface{}, tableName string, filter
 }
 
 // GetFieldList 根据表名获取对应所有字段信息
-// 参数：
+//	参数：
 //		tableName 表名
 //		filter 查询条件参数
 //		isSuper 是否为超级管理员
@@ -175,7 +175,7 @@ func (b *BaseService) GetList(dataList interface{}, tableName string, params *he
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数
-// 参数：
+//	参数：
 // 		data 保存的数据
 func (b *BaseService) Create(data interface{}) (int64, error) {
 	res := Db.Create(data)
@@ -183,7 +183,7 @@ func (b *BaseService) Create(data interface{}) (int64, error) {
 }
 
 // Update 更新数据, 成功返回影响行数
-// 参数：
+//	参数：
 // 		data 更新的数据
 func (b *BaseService) Update(data interface{}) (int64, error) {
 	res := Db.Updates(data)
@@ -191,7 +191,7 @@ func (b *BaseService) Update(data interface{}) (int64, error) {
 }
 
 // Detail 根据ID获取详情
-// 参数：
+//	参数：
 // 		id 查询ID
 //		result 存储结果数据
 func (b *BaseService) Detail(id uint, result interface{}) error {
@@ -200,7 +200,7 @@ func (b *BaseService) Detail(id uint, result interface{}) error {
 }
 
 // Delete 根据ID删除数据
-// 参数：
+//	参数：
 // 		id 需要删除的ID
 //		model 模型实例
 func (b *BaseService) Delete(id uint, model interface{}) (int64, error) {
@@ -209,7 +209,7 @@ func (b *BaseService) Delete(id uint, model interface{}) (int64, error) {
 }
 
 // DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
-// 参数：
+//	参数：
 // 		idList 需要删除的ID列表
 //		model 模型实例
 func (b *BaseService) DeleteBatch(idList string, model interface{}) (int64, error) {
@@ -229,7 +229,7 @@ type FieldOptionDropdownList struct {
 }
 
 // Dropdown 获取模型的下拉列表
-// 参数：
+//	参数：
 // 		form 模型的下拉筛选条件表单
 //		modelName 模型名称
 func (b *BaseService) Dropdown(form *model.DropdownForm, modelName string) (interface{}, error) {

@@ -50,7 +50,7 @@ func Img() *img {
 }
 
 //Load 根据文件名加载文件
-//参数：
+//	参数：
 //	fileName 文件名
 func (im *img) Load(fileName string) *img {
 	im.FileName = fileName
@@ -66,8 +66,8 @@ func (im *img) Load(fileName string) *img {
 
 //LoadFile 直接加载文件流
 //	参数：
-//		file 文件流
-//		fileName 文件名
+//	file 文件流
+//	fileName 文件名
 func (im *img) LoadFile(file *os.File, fileName string) *img {
 	im.FileName = fileName
 	im.FileExt = GetFileExt(fileName)
@@ -105,6 +105,7 @@ func (im *img) GetImage() (image.Image, string, error) {
 }
 
 // SaveImage 保存图像文件
+//	参数：
 // 	outImg 需要保存的image实例
 //	saveFileName 保存的文件名
 func (im *img) SaveImage(outImg image.Image, saveFileName string) error {
@@ -139,7 +140,7 @@ func (im *img) SaveImage(outImg image.Image, saveFileName string) error {
 }
 
 // Resize 图片绽放
-// 	参数：
+//	参数：
 //		newFileName 保存新的文件名
 //		width		缩放后的宽度
 //		height  	缩放后的高度

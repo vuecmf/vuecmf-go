@@ -48,7 +48,7 @@ func Auth() *auth {
 }
 
 // AddRolesForUser 给指定用户添加角色
-// 参数：
+//	参数：
 //		username 用户名
 //		roleIdList 角色ID列表
 func (au *auth) AddRolesForUser(username string, roleIdList []int) (bool, error) {
@@ -76,7 +76,7 @@ func (au *auth) AddRolesForUser(username string, roleIdList []int) (bool, error)
 }
 
 // DelRolesForUser 批量删除指定用户下的角色
-// 参数：
+//	参数：
 //		username 用户名
 //		roles 角色列表
 func (au *auth) DelRolesForUser(username string, roles []string) (bool, error) {
@@ -101,7 +101,7 @@ func (au *auth) DelRolesForUser(username string, roles []string) (bool, error) {
 }
 
 // DelAllRolesForUser 删除用户的所有角色
-// 参数：
+//	参数：
 //		username 用户名
 func (au *auth) DelAllRolesForUser(username string) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
@@ -123,7 +123,7 @@ func (au *auth) DelAllRolesForUser(username string) (bool, error) {
 }
 
 // AddUsersForRole 给角色分配用户
-// 参数：
+//	参数：
 //		role 角色名
 //		username 用户名列表
 func (au *auth) AddUsersForRole(role string, username []string) (bool, error) {
@@ -150,7 +150,7 @@ func (au *auth) AddUsersForRole(role string, username []string) (bool, error) {
 }
 
 // DelUsersForRole 批量删除指定角色下的用户
-// 参数：
+//	参数：
 //		role 角色名
 //		userIdList 用户ID列表
 func (au *auth) DelUsersForRole(role string, userIdList []int) (bool, error) {
@@ -181,7 +181,7 @@ func (au *auth) DelUsersForRole(role string, userIdList []int) (bool, error) {
 }
 
 // AddPermission 根据动作ID 给用户或角色分配权限
-// 参数：
+//	参数：
 //		userOrRole 用户名或角色名
 //		actionIdList 动作ID列表
 func (au *auth) AddPermission(userOrRole string, actionIdList string) (bool, error) {
@@ -226,7 +226,7 @@ func (au *auth) AddPermission(userOrRole string, actionIdList string) (bool, err
 }
 
 // DelPermission 根据动作ID 删除用户或角色的权限
-// 参数：
+//	参数：
 //		userOrRole 用户名或角色名
 //		actionIdList 动作ID列表
 func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, error) {
@@ -267,7 +267,7 @@ func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, err
 }
 
 // GetPermissions 获取(用户或角色)所有权限ID列表
-// 参数：
+//	参数：
 //		userOrRole 用户名或角色名
 //		isSuper 是否为超级管理员
 func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[string][]string, error) {
@@ -365,7 +365,7 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[stri
 }*/
 
 // GetUsers 获取指定角色下所有用户
-// 参数：
+//	参数：
 //		role 角色名
 func (au *auth) GetUsers(role string) ([]string, error) {
 	if role == "" {
@@ -375,7 +375,7 @@ func (au *auth) GetUsers(role string) ([]string, error) {
 }
 
 // GetRoles 获取指定用户名下所有角色
-// 参数：
+//	参数：
 //		username 用户名
 func (au *auth) GetRoles(username string) ([]int, error) {
 	if username == "" {
@@ -404,14 +404,14 @@ func (au *auth) GetAllRoles() interface{} {
 }
 
 //GetRolesForUser 获取指定用户下所有角色名称
-// 参数：
+//	参数：
 //		userName 用户名
 func (au *auth) GetRolesForUser(userName string) ([]string, error) {
 	return au.Enforcer.GetRolesForUser(userName, "vuecmf")
 }
 
 //UpdateRoles 更新权限的角色名称
-// 参数：
+//	参数：
 //		oldRoleName 原角色名
 //		newRoleName 新角色名
 func (au *auth) UpdateRoles(oldRoleName, newRoleName string) error {
@@ -426,7 +426,7 @@ func (au *auth) UpdateRoles(oldRoleName, newRoleName string) error {
 }
 
 //UpdateUser 更新权限的用户名
-// 参数：
+//	参数：
 //		oldUserName 原用户名
 //		newUserName 新用户名
 func (au *auth) UpdateUser(oldUserName, newUserName string) error {

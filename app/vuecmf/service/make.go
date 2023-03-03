@@ -43,7 +43,7 @@ type formRules struct {
 }
 
 //Model 生成模型代码文件
-// 参数：
+//	参数：
 //		tableName string 表名（不带表前缀）
 //		appName string 应用名称
 func (makeSer *makeService) Model(tableName string, appName string) error {
@@ -327,7 +327,7 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 }
 
 //Service 生成服务代码文件
-// 参数：
+//	参数：
 //		tableName string 表名（不带表前缀）
 //		appName string 应用名称
 func (makeSer *makeService) Service(tableName string, appName string) error {
@@ -461,7 +461,7 @@ func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interf
 }
 
 //Controller 生成控制器代码文件
-//参数：
+//	参数：
 //		tableName string 表名（不带表前缀）
 //		appName string 应用名称
 func (makeSer *makeService) Controller(tableName string, appName string) error {
@@ -590,7 +590,7 @@ func (ctrl *{{.controller_name}}) Save(c *gin.Context) {
 }
 
 //RemoveModel 删除模型代码文件
-//参数：
+//	参数：
 //		tableName string 表名（不带表前缀）
 //		appName string 应用名称
 func (makeSer *makeService) RemoveModel(tableName string, appName string) error {
@@ -603,7 +603,7 @@ func (makeSer *makeService) RemoveModel(tableName string, appName string) error 
 }
 
 // RemoveService 删除服务代码文件
-// 参数：
+//	参数：
 //		tableName string 表名（不带表前缀）
 //		appName string 应用名称
 func (makeSer *makeService) RemoveService(tableName string, appName string) error {
@@ -616,7 +616,7 @@ func (makeSer *makeService) RemoveService(tableName string, appName string) erro
 }
 
 // RemoveController 删除控制器代码文件
-// 参数：
+//	参数：
 //		tableName string 表名（不带表前缀）
 //		appName string 应用名称
 func (makeSer *makeService) RemoveController(tableName string, appName string) error {
@@ -681,7 +681,7 @@ func main() {
 }
 
 // RemoveAll 删除表名相关所有控制器、模型及服务
-// 参数：
+//	参数：
 //		tableName 表名
 func (makeSer *makeService) RemoveAll(tableName string) error {
 	var err error
@@ -705,7 +705,7 @@ func (makeSer *makeService) RemoveAll(tableName string) error {
 }
 
 // MakeAll 根据表名生成相关的所有控制器、模型及服务
-// 参数：
+//	参数：
 //		tableName 表名
 func (makeSer *makeService) MakeAll(tableName string) error {
 	var err error
@@ -729,7 +729,7 @@ func (makeSer *makeService) MakeAll(tableName string) error {
 }
 
 // MakeAppModel 根据应用ID及模型ID生成对应代码文件
-// 参数：
+//	参数：
 //		appId 应用ID
 //		tableName 表名
 func (makeSer *makeService) MakeAppModel(appId uint, tableName string) error {
@@ -751,7 +751,7 @@ func (makeSer *makeService) MakeAppModel(appId uint, tableName string) error {
 }
 
 // RemoveAppModel 根据应用ID及模型ID删除对应代码文件
-// 参数：
+//	参数：
 //		appId 应用ID
 //		modelId 模型ID
 func (makeSer *makeService) RemoveAppModel(appId, modelId uint) error {
@@ -795,7 +795,7 @@ func (makeSer *makeService) RemoveAppModel(appId, modelId uint) error {
 }
 
 // BuildModel 生成模型相关数据
-// 参数：
+//	参数：
 //		mc 模型配置实例
 func (makeSer *makeService) BuildModel(mc *model.ModelConfig) error {
 	var baseTable interface{}
@@ -1105,7 +1105,7 @@ func (makeSer *makeService) BuildModel(mc *model.ModelConfig) error {
 }
 
 // RemoveModelData 删除模型相关的所有数据
-// 参数：
+//	参数：
 //		mc 模型配置实例
 func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
 	//根据动作表找到对应权限项，清除rules表相关信息
@@ -1187,7 +1187,7 @@ func (makeSer *makeService) RemoveModelData(mc *model.ModelConfig) error {
 }
 
 // UpdateModel 根据模型ID更新模型文件
-// 参数：
+//	参数：
 //		modelId 模型ID
 func (makeSer *makeService) UpdateModel(modelId uint) error {
 	var err error
@@ -1204,7 +1204,7 @@ func (makeSer *makeService) UpdateModel(modelId uint) error {
 }
 
 //GetFieldSql 获取字段相关操作SQL
-// 参数：
+//	参数：
 //		mf 模型字段实例
 //		ac 动作名称 可选值：add  modify  del
 //		oldFieldName 原字段名
@@ -1282,7 +1282,7 @@ func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFiel
 }
 
 // AddField 添加字段并更新模型文件
-// 参数：
+//	参数：
 //		mf 模型字段实例
 //		tx gorm.DB实例
 func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
@@ -1298,7 +1298,7 @@ func (makeSer *makeService) AddField(mf *model.ModelField, tx *gorm.DB) error {
 }
 
 // RenameField 添加字段并更新模型文件
-// 参数：
+//	参数：
 //		mf 模型字段实例
 //		oldFieldName 原字段名
 //		tx gorm.DB实例
@@ -1315,7 +1315,7 @@ func (makeSer *makeService) RenameField(mf *model.ModelField, oldFieldName strin
 }
 
 // DelField 删除字段并更新模型文件
-// 参数：
+//	参数：
 //		mf 模型字段实例
 //		tx gorm.DB实例
 func (makeSer *makeService) DelField(mf *model.ModelField, tx *gorm.DB) error {
@@ -1332,7 +1332,7 @@ func (makeSer *makeService) DelField(mf *model.ModelField, tx *gorm.DB) error {
 }
 
 // AddIndex 添加索引 并更新模型文件
-// 参数：
+//	参数：
 //		mi 模型索引实例
 //		tx gorm.DB实例
 func (makeSer *makeService) AddIndex(mi *model.ModelIndex, tx *gorm.DB) error {
@@ -1365,7 +1365,7 @@ type ModelIndexRes struct {
 }
 
 // DelIndex 删除索引 并更新模型文件
-// 参数：
+//	参数：
 //		id 模型索引ID
 //		tx gorm.DB实例
 func (makeSer *makeService) DelIndex(id uint, tx *gorm.DB) error {
@@ -1391,7 +1391,7 @@ func (makeSer *makeService) DelIndex(id uint, tx *gorm.DB) error {
 }
 
 //CreateApp 创建应用相关目录
-// 参数：
+//	参数：
 //		appName 应用名称
 func (makeSer *makeService) CreateApp(appName string) error {
 	//先创建目录
@@ -1437,7 +1437,7 @@ func (makeSer *makeService) CreateApp(appName string) error {
 }
 
 //RenameApp 重命名应用名称
-// 参数：
+//	参数：
 //		appId 应用ID
 //		newAppName 新应用名称
 func (makeSer *makeService) RenameApp(appId uint, newAppName string) error {
@@ -1467,7 +1467,7 @@ func (makeSer *makeService) RenameApp(appId uint, newAppName string) error {
 }
 
 //RemoveApp 移除应用
-// 参数：
+//	参数：
 //		appId 应用ID
 func (makeSer *makeService) RemoveApp(appId uint) error {
 	var appName string

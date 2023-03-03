@@ -25,7 +25,7 @@ import (
 var routes = make(map[string]map[string]map[string]reflect.Value)
 
 // Register 注册控制器路由
-// 参数：
+//	参数：
 // 	ctrl 控制器实例
 // 	method 请求方式 可选值：GET  POST  GET|POST
 // 	appName 应用名

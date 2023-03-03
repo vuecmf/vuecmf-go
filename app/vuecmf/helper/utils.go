@@ -21,7 +21,7 @@ import (
 )
 
 // ToFirstUpper 字符串首字母转大写
-// 	参数：
+//	参数：
 // 		str 需要转换的字符串
 func ToFirstUpper(str string) string {
 	strArr := []rune(str)
@@ -30,7 +30,7 @@ func ToFirstUpper(str string) string {
 }
 
 // ToFirstLower 字符串首字母转小写
-// 	参数：
+//	参数：
 // 		str 需要转换的字符串
 func ToFirstLower(str string) string {
 	strArr := []rune(str)
@@ -39,7 +39,7 @@ func ToFirstLower(str string) string {
 }
 
 // UnderToCamel 下横线转驼峰风格
-// 	参数：
+//	参数：
 // 		str 需要转换的字符串
 func UnderToCamel(str string) string {
 	str = strings.Replace(str, "_", " ", -1)
@@ -49,7 +49,7 @@ func UnderToCamel(str string) string {
 }
 
 // CamelToUnder 驼峰转下横线
-// 	参数：
+//	参数：
 // 		str 需要转换的字符串
 func CamelToUnder(str string) string {
 	var output []rune
@@ -69,7 +69,7 @@ func CamelToUnder(str string) string {
 }
 
 // InSlice 判断字符串是否在指定的切片中
-// 	参数：
+//	参数：
 // 		item 需要判断的字符串
 // 		items 指定的字符串切片
 func InSlice(item string, items []string) bool {
@@ -82,7 +82,7 @@ func InSlice(item string, items []string) bool {
 }
 
 // SliceRemove 删除字符串切片中元素
-// 	参数：
+//	参数：
 // 		slice 指定的字符串切片
 // 		index 需要删除的切片索引
 func SliceRemove(slice []string, index int) []string {
@@ -90,7 +90,7 @@ func SliceRemove(slice []string, index int) []string {
 }
 
 // PasswordHash 加密密码
-// 	参数：
+//	参数：
 // 		password 需要加密的密码
 func PasswordHash(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -98,7 +98,7 @@ func PasswordHash(password string) (string, error) {
 }
 
 // PasswordVerify 验证密码是否正确
-// 	参数：
+//	参数：
 // 		password 需要验证的密码
 // 		hash 哈希值
 func PasswordVerify(password, hash string) bool {
@@ -107,7 +107,7 @@ func PasswordVerify(password, hash string) bool {
 }
 
 // GetFileExt 获取文件名的扩展名
-// 	参数：
+//	参数：
 // 		fileName 文件名
 func GetFileExt(fileName string) string {
 	arr := strings.Split(fileName, ".")
@@ -115,7 +115,7 @@ func GetFileExt(fileName string) string {
 }
 
 // GetFileBaseName 获取不包含扩展名的文件名称
-// 	参数：
+//	参数：
 // 		fileName 文件名
 func GetFileBaseName(fileName string) string {
 	arr := strings.Split(fileName, ".")
@@ -127,7 +127,7 @@ func GetFileBaseName(fileName string) string {
 }
 
 // GetRandomString 生成图片名字
-// 	参数：
+//	参数：
 // 		length 需要生成的字符串名字长度
 func GetRandomString(length int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyz"
@@ -142,7 +142,7 @@ func GetRandomString(length int) string {
 }
 
 //SetString 对[]string 类型的切片进行元素唯一化处理
-// 	参数：
+//	参数：
 // 		arr 需要处理的字符串切片
 func SetString(arr []string) []string {
 	newArr := make([]string, 0)
@@ -163,7 +163,7 @@ func SetString(arr []string) []string {
 }
 
 // InterfaceToInt interface类型转换成int
-// 	参数：
+//	参数：
 // 		val 需要转换的值
 func InterfaceToInt(val interface{}) int {
 	var res int

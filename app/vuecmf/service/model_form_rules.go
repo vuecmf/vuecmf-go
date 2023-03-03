@@ -34,7 +34,7 @@ type modelInfo struct {
 }
 
 // Delete 根据ID删除数据
-// 参数：
+//	参数：
 //		id 需删除的ID
 // 		model 模型实例
 func (ser *modelFormRulesService) Delete(id uint, model interface{}) (int64, error) {
@@ -63,7 +63,7 @@ type ruleListFormST struct {
 }
 
 // GetRuleListForForm 根据模型ID获取对应的表单验证规则
-// 参数：
+//	参数：
 //		modelId 模型ID
 func (ser *modelFormRulesService) GetRuleListForForm(modelId int) interface{} {
 	var data []ruleListFormST

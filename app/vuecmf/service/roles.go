@@ -33,7 +33,7 @@ func Roles() *rolesService {
 }
 
 // GetIdPath 获取父级ID的ID路径
-// 参数：
+//	参数：
 //		pid 父级ID
 func (ser *rolesService) GetIdPath(pid uint) string {
 	var pidIdPath string
@@ -49,7 +49,7 @@ func (ser *rolesService) GetIdPath(pid uint) string {
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数
-// 参数：
+//	参数：
 //		data 需保存的数据
 func (ser *rolesService) Create(data *model.Roles) (int64, error) {
 	data.IdPath = ser.GetIdPath(data.Pid)
@@ -58,7 +58,7 @@ func (ser *rolesService) Create(data *model.Roles) (int64, error) {
 }
 
 // Update 更新数据, 成功返回影响行数
-// 参数：
+//	参数：
 //		data 需更新的数据
 func (ser *rolesService) Update(data *model.Roles) (int64, error) {
 	var oldRoleName string
@@ -78,7 +78,7 @@ func (ser *rolesService) Update(data *model.Roles) (int64, error) {
 }
 
 // Delete 根据ID删除数据
-// 参数：
+//	参数：
 //		id 需删除的ID
 // 		model 模型实例
 func (ser *rolesService) Delete(id uint, model *model.Roles) (int64, error) {
@@ -94,7 +94,7 @@ func (ser *rolesService) Delete(id uint, model *model.Roles) (int64, error) {
 }
 
 // DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
-// 参数：
+//	参数：
 //		idList 需删除的ID列表
 // 		model 模型实例
 func (ser *rolesService) DeleteBatch(idList string, model *model.Roles) (int64, error) {
@@ -113,7 +113,7 @@ func (ser *rolesService) DeleteBatch(idList string, model *model.Roles) (int64, 
 }
 
 // List 获取列表数据
-// 参数：
+//	参数：
 //		params 查询参数
 func (ser *rolesService) List(params *helper.DataListParams) (interface{}, error) {
 	if params.Data.Action == "getField" {
@@ -134,7 +134,7 @@ func (ser *rolesService) List(params *helper.DataListParams) (interface{}, error
 }
 
 // AddUsers 给角色分配用户
-// 参数：
+//	参数：
 //		roleName 角色名
 // 		userIdList 用户ID列表
 func (ser *rolesService) AddUsers(roleName string, userIdList []int) (interface{}, error) {
@@ -155,7 +155,7 @@ func (ser *rolesService) AddUsers(roleName string, userIdList []int) (interface{
 }
 
 // GetUsers 获取角色下所有用户的ID
-// 参数：
+//	参数：
 //		roleName 角色名
 func (ser *rolesService) GetUsers(roleName string) ([]int, error) {
 	userList, err := Auth().GetUsers(roleName)
@@ -189,7 +189,7 @@ func (ser *rolesService) GetAllUsers() (interface{}, error) {
 }
 
 //GetRoleNameList 根据角色ID获取角色名称
-// 参数：
+//	参数：
 //		roleIdList 角色ID列表
 func (ser *rolesService) GetRoleNameList(roleIdList []int) []string {
 	var res []string
@@ -198,7 +198,7 @@ func (ser *rolesService) GetRoleNameList(roleIdList []int) []string {
 }
 
 //GetRoleIdList 根据角色名称获取角色ID
-// 参数：
+//	参数：
 //		roleNameList 角色名称列表
 func (ser *rolesService) GetRoleIdList(roleNameList []string) []int {
 	var res []int

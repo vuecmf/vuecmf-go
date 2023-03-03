@@ -21,7 +21,7 @@ type modelActionService struct {
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数
-// 参数：
+//	参数：
 //		data 需保存的数据
 func (ser *modelActionService) Create(data *model.ModelAction) (int64, error) {
 	var num int64
@@ -37,7 +37,7 @@ func (ser *modelActionService) Create(data *model.ModelAction) (int64, error) {
 }
 
 // Update 更新数据, 成功返回影响行数
-// 参数：
+//	参数：
 //		data 需更新的数据
 func (ser *modelActionService) Update(data *model.ModelAction) (int64, error) {
 	var old model.ModelAction
@@ -80,7 +80,7 @@ func (ser *modelActionService) Update(data *model.ModelAction) (int64, error) {
 }
 
 // Delete 根据ID删除数据
-// 参数：
+//	参数：
 //		id 需删除的ID
 // 		model 模型实例
 func (ser *modelActionService) Delete(id uint, model *model.ModelAction) (int64, error) {
@@ -113,7 +113,7 @@ func (ser *modelActionService) Delete(id uint, model *model.ModelAction) (int64,
 }
 
 // DeleteBatch 根据ID删除数据， 多个用英文逗号分隔
-// 参数：
+//	参数：
 //		idList 需删除的ID列表
 // 		model 模型实例
 func (ser *modelActionService) DeleteBatch(idList string, model *model.ModelAction) (int64, error) {
@@ -149,7 +149,7 @@ func (ser *modelActionService) DeleteBatch(idList string, model *model.ModelActi
 }
 
 // GetAllApiMap 根据动作ID获取 api 路径映射
-// 参数：
+//	参数：
 //		apiIdList api ID列表
 func (ser *modelActionService) GetAllApiMap(apiIdList []string) interface{} {
 	var res = make(map[string]map[string]string)
@@ -180,7 +180,7 @@ func (ser *modelActionService) GetAllApiMap(apiIdList []string) interface{} {
 }
 
 // GetModelIdListById 根据动作ID获取对应模型ID列表
-// 参数：
+//	参数：
 //		apiIdList api ID列表
 func (ser *modelActionService) GetModelIdListById(apiIdList []string) []string {
 	var res []string
@@ -194,7 +194,7 @@ func (ser *modelActionService) GetModelIdListById(apiIdList []string) []string {
 }
 
 // GetApiMap 获取API映射的路径
-// 参数：
+//	参数：
 //		tableName 表名
 //		actionType 动作类型
 //		appId 应用ID
@@ -229,7 +229,7 @@ func (ser *modelActionService) GetNotAuthActionIds() []string {
 }
 
 // GetActionList 获取所有模型的动作列表
-// 参数：
+//	参数：
 //		roleName 角色名
 func (ser *modelActionService) GetActionList(roleName string) (interface{}, error) {
 	var res = make(map[string]map[string]string)
@@ -302,7 +302,7 @@ func (ser *modelActionService) GetActionList(roleName string) (interface{}, erro
 }
 
 //GetListActionIdByModelId 获取模型的列表动作ID
-// 参数：
+//	参数：
 //		modelId 模型ID
 func (ser *modelActionService) GetListActionIdByModelId(modelId uint) uint {
 	var actionId uint

@@ -116,7 +116,8 @@ func connect(confName string) *gorm.DB {
 }
 
 //Db 获取数据库连接
-//参数：confName 数据库配置名称
+//	参数：
+//	confName 数据库配置名称
 func Db(confName string) *gorm.DB {
 	//初始化项目时，不返回数据库连接
 	args := os.Args

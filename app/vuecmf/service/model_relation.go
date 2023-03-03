@@ -46,7 +46,7 @@ type actionInfoST struct {
 }
 
 //modelRelationService 联动关联字段信息
-// 参数：
+//	参数：
 //		modelId 模型ID
 func (ser *modelRelationService) getRelationLinkage(modelId int) interface{} {
 	var fieldInfo []fieldInfoST
@@ -102,7 +102,7 @@ type relationOptions struct {
 }
 
 // getRelationOptions 关联模型的数据列表
-// 参数：
+//	参数：
 //		modelId 模型ID
 //		filter 筛选条件
 func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}) map[string]interface{} {
@@ -213,7 +213,7 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 }
 
 // GetRelationInfo 获取模型的关联信息
-// 参数：
+//	参数：
 //		modelId 模型ID
 //		filter 筛选条件
 func (ser *modelRelationService) GetRelationInfo(modelId int, filter map[string]interface{}) *modelRelationInfo {

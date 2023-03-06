@@ -11,7 +11,7 @@ connect:
     prefix: vuecmf_   #表前缀
     max_idle_conn_nums: 10  #设置空闲连接池中连接的最大数量
     max_open_conn_nums: 100 #设置打开数据库连接的最大数量
-    conn_max_lifetime: 2  #设置了连接可复用的最大时间，单位：分钟
+    conn_max_lifetime: 1440  #设置了连接可复用的最大时间，单位：分钟
     skip_default_transaction: true #是否禁用默认事务, 若禁用默认事务 只在需要时使用事务 性能会提升30%+
     debug: true   #是否开启调试模式，开启后，控制台会打印所执行的SQL语句
 
@@ -27,7 +27,7 @@ connect:
     prefix: vuecmf_
     max_idle_conn_nums: 10
     max_open_conn_nums: 100
-    conn_max_lifetime: 60
+    conn_max_lifetime: 1440
     skip_default_transaction: true
     debug: true
 
@@ -43,6 +43,6 @@ connect:
     prefix: vuecmf_
     max_idle_conn_nums: 10
     max_open_conn_nums: 100
-    conn_max_lifetime: 60
+    conn_max_lifetime: 1440
     skip_default_transaction: true
     debug: false

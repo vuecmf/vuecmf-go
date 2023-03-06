@@ -635,6 +635,10 @@ func (makeSer *makeService) RemoveController(tableName string, appName string) e
 
 // UpdateRunFile 更新启动文件
 func (makeSer *makeService) UpdateRunFile() error {
+	if app.Config().UpdateMain == false {
+		return nil
+	}
+
 	projectName := app.Config().Module
 	mainFile := `package main
 

@@ -65,6 +65,7 @@ type crossDomain struct {
 type Conf struct {
 	Module      string       `yaml:"module"`       //项目名称，与go.mod中module保持一致
 	Env         string       `yaml:"env"`          //当前运行环境， dev 开发环境，test 测试环境，prod 生产环境
+	UpdateMain  bool		 `yaml:"update_main"`  //创建或更新模型时是否重新生成入口文件main.go, 默认为true
 	Debug       bool         `yaml:"debug"`        //是否开启调试模式
 	ServerHost  string		 `yaml:"server_host"`  //服务器地址或域名
 	ServerPort  string       `yaml:"server_port"`  //服务运行的端口

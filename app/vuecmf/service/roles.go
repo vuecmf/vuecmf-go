@@ -124,7 +124,7 @@ func (ser *rolesService) List(params *helper.DataListParams) (interface{}, error
 		var rolesList []*model.Roles
 		var res = make(map[string]interface{})
 
-		ser.GetList(&rolesList, ser.TableName, params)
+		ser.GetList(&rolesList, ser.TableName, params.Data)
 
 		//转换成树形列表
 		tree := model.RolesModel().ToTree(rolesList)

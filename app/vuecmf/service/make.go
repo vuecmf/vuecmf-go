@@ -427,7 +427,7 @@ func (ser *{{.service_name}}Service) List(params *helper.DataListParams) (interf
 		var {{.service_name}}List []*model.{{.service_method}}
 		var res = make(map[string]interface{})
 
-		ser.GetList(&{{.service_name}}List, ser.TableName, params)
+		ser.GetList(&{{.service_name}}List, ser.TableName, params.Data)
 
 		//转换成树形列表
 		tree := model.{{.service_method}}Model().ToTree({{.service_name}}List)

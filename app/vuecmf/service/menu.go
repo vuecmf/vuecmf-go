@@ -101,7 +101,7 @@ func (ser *menuService) List(params *helper.DataListParams) (interface{}, error)
 		var menuList []*model.Menu
 		var res = make(map[string]interface{})
 
-		ser.GetList(&menuList, ser.TableName, params)
+		ser.GetList(&menuList, ser.TableName, params.Data)
 
 		//转换成树形列表
 		tree := model.MenuModel().ToTree(menuList)

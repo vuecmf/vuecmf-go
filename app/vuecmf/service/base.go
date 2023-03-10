@@ -91,7 +91,7 @@ func (b *BaseService) CommonList(modelData interface{}, tableName string, filter
 	if params.Data.Action == "getField" {
 		return b.GetFieldList(tableName, params.Data.Filter, isSuper)
 	} else {
-		return helper.Page(tableName, filterFields, Db, NS).Filter(modelData, params)
+		return helper.Page(tableName, filterFields, Db, NS).Filter(modelData, params.Data)
 	}
 }
 
@@ -128,12 +128,10 @@ func (b *BaseService) GetFieldList(tableName string, filter map[string]interface
 //		dataList  需要填充的列表数据
 //		tableName 表名
 //		params    过滤条件
-func (b *BaseService) GetList(dataList interface{}, tableName string, params *helper.DataListParams) {
+func (b *BaseService) GetList(dataList interface{}, tableName string, data *helper.ListParams) {
 	query := Db.Table(NS.TableName(tableName)).Select("*").Where("status = 10")
 
 	modelCfg := ModelConfig().GetModelConfig(tableName)
-
-	data := params.Data
 
 	if data.Keywords != "" {
 		query = query.Where(modelCfg.LabelFieldName+" like ?", "%"+data.Keywords+"%")

@@ -1,3 +1,3 @@
 package vuecmf
 
-const Version = "2.1.2"
+const Version = "2.1.3"

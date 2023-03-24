@@ -11,6 +11,7 @@ package service
 import (
 	"errors"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"gorm.io/gorm"
 	"strconv"
 )
 
@@ -44,7 +45,8 @@ type resFieldOption struct {
 //		isTree 是否为目录树
 //		labelFieldName 需要显示为标签的字段
 //		filter 筛选条件
-func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, isTree bool, labelFieldName string, filter map[string]interface{}) (map[string][]*helper.ModelFieldOption, error) {
+//		db  菜单下拉的db实例
+func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, isTree bool, labelFieldName string, filter map[string]interface{}, db *gorm.DB) (map[string][]*helper.ModelFieldOption, error) {
 	var list = make(map[string][]*helper.ModelFieldOption)
 	var result []*resFieldOption
 
@@ -80,7 +82,7 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 			Limit(1).Find(&pidFieldId)
 
 		var tree []*helper.ModelFieldOption
-		tree = helper.FormatTree(tree, Db, NS.TableName(tableName), filter, "id", 0, labelFieldName, "pid", orderField, 1)
+		tree = helper.FormatTree(tree, db, db.NamingStrategy.TableName(tableName), filter, "id", 0, labelFieldName, "pid", orderField, 1)
 		list[strconv.Itoa(pidFieldId)] = tree
 
 	}

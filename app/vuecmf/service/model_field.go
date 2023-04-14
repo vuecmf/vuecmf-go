@@ -126,6 +126,7 @@ type fieldInfo struct {
 	Show     bool   `json:"show"`
 	Fixed    bool   `json:"fixed"`
 	Filter   bool   `json:"filter"`
+	Code   	 bool   `json:"code"`
 	Tooltip  string `json:"tooltip"`
 	ModelId  int    `json:"model_id"`
 	Sortable bool   `json:"sortable"`
@@ -147,6 +148,7 @@ func (ser *modelFieldService) GetFieldInfo(modelId int) []fieldInfo {
 			"if(is_show = 10,true, false) `show`,"+
 			"if(is_fixed = 10,true, false) fixed,"+
 			"if(is_filter = 10,true, false) `filter`,"+
+			"if(is_code = 10,true, false) `code`,"+
 			"note tooltip,"+
 			"model_id,"+
 			"true sortable").

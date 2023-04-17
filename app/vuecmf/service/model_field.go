@@ -115,8 +115,8 @@ func (ser *modelFieldService) DeleteBatch(idList string, model *model.ModelField
 
 }
 
-// fieldInfo 列表表字段信息
-type fieldInfo struct {
+// FieldInfo 列表表字段信息
+type FieldInfo struct {
 	FieldId  int    `json:"field_id"`
 	Prop     string `json:"prop"`
 	Type     string `json:"type"`
@@ -135,8 +135,8 @@ type fieldInfo struct {
 // GetFieldInfo 根据模型ID获取对应的字段信息
 //	参数：
 //		modelId 模型ID
-func (ser *modelFieldService) GetFieldInfo(modelId int) []fieldInfo {
-	var list []fieldInfo
+func (ser *modelFieldService) GetFieldInfo(modelId int) []FieldInfo {
+	var list []FieldInfo
 
 	Db.Table(NS.TableName("model_field")).Select(
 		"id field_id,"+

@@ -36,19 +36,34 @@ type page struct {
 	db           *gorm.DB //数据库连接实例
 	ns           schema.Namer
 	filterFields []string //需要模糊查询的字段
+	group        string   //分组查询
+	Fields       string   //需要查询的字段
 }
 
 // result 存放分页列表返回结果
-type result struct {
+type Result struct {
 	Data  interface{} `json:"data"`
 	Total int64       `json:"total"`
 }
+
+//Field 需要查询的字段
+func (p *page) Field(queryFields string) *page {
+	p.Fields = queryFields
+	return p
+}
+
+//Group 分组查询
+func (p *page) Group(name string) *page {
+	p.group = name
+	return p
+}
+
 
 // Filter 列表过滤器
 //	参数：
 //		model 模型实例
 //		params POST请求传递的参数
-func (p *page) Filter(model interface{}, data *ListParams) (*result, error) {
+func (p *page) Filter(model interface{}, data *ListParams) (*Result, error) {
 	if data.PageSize == 0 {
 		data.PageSize = 20
 	}
@@ -62,7 +77,13 @@ func (p *page) Filter(model interface{}, data *ListParams) (*result, error) {
 	}
 
 	offset := (data.Page - 1) * data.PageSize
-	query := p.db.Table(p.ns.TableName(p.tableName)).Offset(offset).Limit(data.PageSize)
+	query := p.db.Table(p.ns.TableName(p.tableName))
+	if p.Fields != "" {
+		query = query.Select(p.Fields)
+	}
+
+	query = query.Offset(offset).Limit(data.PageSize)
+
 	totalQuery := p.db.Table(p.ns.TableName(p.tableName))
 
 	if data.Keywords != "" {
@@ -98,6 +119,17 @@ func (p *page) Filter(model interface{}, data *ListParams) (*result, error) {
 				if len(val) == 0 {
 					delete(data.Filter, k)
 				}
+			default:
+				k = strings.ToLower(k)
+				if k == "not" {
+					query = query.Not(v)
+					totalQuery = totalQuery.Not(v)
+					delete(data.Filter, k)
+				} else if k == "or" {
+					query = query.Or(v)
+					totalQuery = totalQuery.Not(v)
+					delete(data.Filter, k)
+				}
 			}
 		}
 
@@ -105,12 +137,19 @@ func (p *page) Filter(model interface{}, data *ListParams) (*result, error) {
 		totalQuery = totalQuery.Where(data.Filter)
 	}
 
-	query.Order(data.OrderField + " " + data.OrderSort).Find(model)
+	if p.group != "" {
+		query = query.Group(p.group)
+		totalQuery = totalQuery.Group(p.group)
+	}else{
+		query = query.Order(data.OrderField + " " + data.OrderSort)
+	}
+
+	query.Find(model)
 
 	var total int64
 	totalQuery.Count(&total)
 
-	res := &result{
+	res := &Result{
 		Data:  model,
 		Total: total,
 	}

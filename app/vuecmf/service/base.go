@@ -43,7 +43,7 @@ func init() {
 
 // FullModelFields 模型的所有字段相关信息（字段、表单、字段选项、字段关联、表单验证规则）
 type FullModelFields struct {
-	FieldInfo    []fieldInfo                           `json:"field_info"`
+	FieldInfo    []FieldInfo                           `json:"field_info"`
 	FormInfo     []formInfo                            `json:"form_info"`
 	FieldOption  map[string][]*helper.ModelFieldOption `json:"field_option"`
 	RelationInfo *modelRelationInfo                    `json:"relation_info"`

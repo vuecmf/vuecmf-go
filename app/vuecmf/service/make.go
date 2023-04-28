@@ -184,6 +184,9 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 				defaultVal = "default:" + value.DefaultValue + ";"
 			case value.IsAutoIncrement != 10 && value.DefaultValue == "":
 				defaultVal = "default:'';"
+				if value.Type == "datetime" || value.Type == "date" {
+					defaultVal = "default:null;"
+				}
 			}
 
 			//针对MYSQL整型类型字段长度处理

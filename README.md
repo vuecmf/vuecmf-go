@@ -1,9 +1,9 @@
 # 欢迎使用VueCMF
 
-VueCMF内容管理快速开发框架v2.1(Go版后端API)
+VueCMF内容管理快速开发框架v2(Go版后端API)
 
 ## VueCMF是什么？
-VueCMF是一款完全开源免费的内容管理快速开发框架。采用前后端分离模式搭建，2.1+版本前端使用vue3、Element Plus和TypeScript构建，后端API的PHP版基于ThinkPHP6开发，Go版基于Gin开发。可用于快速开发CMS、CRM、WMS、OMS、ERP等管理系统，开发简单、高效易用，极大减少系统的开发周期和研发成本！甚至不用写一行代码使用VueCMF就能设计出功能强大的后台管理系统。
+VueCMF是一款完全开源免费的内容管理快速开发框架。采用前后端分离模式搭建，v2版本前端使用vue3、Element Plus和TypeScript构建，后端API的PHP版基于ThinkPHP6开发，Go版基于Gin开发。可用于快速开发CMS、CRM、WMS、OMS、ERP等管理系统，开发简单、高效易用，极大减少系统的开发周期和研发成本！甚至不用写一行代码使用VueCMF就能设计出功能强大的后台管理系统。
 
 VueCMF开发框架主要有以下功能：
 
@@ -23,7 +23,7 @@ github https://github.com/vuecmf/vuecmf
 
 gitee  https://gitee.com/emei/vuecmf
 
-#### v2.1.x:
+#### v2.1.x及以上:
 github https://github.com/vuecmf/vuecmf-web
 
 gitee https://gitee.com/emei/vuecmf-web
@@ -41,7 +41,7 @@ github https://github.com/vuecmf/vuecmf-go
 
 gitee https://gitee.com/emei/vuecmf-go
 
-注意：前端v2.0.x与后端v2.0.x匹配, 前端v2.1.x与后端v2.1.x匹配
+注意：前端v2.0与后端v2.0匹配, 前端v2.1与后端v2.1匹配，以此类推
 
 
 ## 环境要求
@@ -53,19 +53,19 @@ gitee https://gitee.com/emei/vuecmf-go
 
 github下载地址：
 
-linux:  https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-linux_v2.2.0.zip
+linux:  https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-linux_v2.2.2.zip
 
-windows: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-windows_v2.2.0.zip
+windows: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-windows_v2.2.2.zip
 
-mac: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-mac_v2.2.0.zip
+mac: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-mac_v2.2.2.zip
 
 gitee下载地址：
 
-linux:  https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-linux_v2.2.0.zip
+linux:  https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-linux_v2.2.2.zip
 
-windows: https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-windows_v2.2.0.zip
+windows: https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-windows_v2.2.2.zip
 
-mac: https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-mac_v2.2.0.zip
+mac: https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-mac_v2.2.2.zip
 
 下载并解压，将解压好的文件所在路径添加环境变量中，这样任何目录中都可以执行vuecmf命令行工具。
 

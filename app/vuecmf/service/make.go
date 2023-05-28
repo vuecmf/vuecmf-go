@@ -176,19 +176,6 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 			autoCreateTime = "autoCreateTime;"
 			defaultVal = "default:CURRENT_TIMESTAMP;"
 		} else {
-			//字段默认值
-			switch {
-			case value.IsAutoIncrement != 10 && (value.Type == "varchar" || value.Type == "char" || value.Type == "text" || value.Type == "mediumtext" || value.Type == "longtext"):
-				defaultVal = "default:'" + value.DefaultValue + "';"
-			case value.IsAutoIncrement != 10 && value.DefaultValue != "":
-				defaultVal = "default:" + value.DefaultValue + ";"
-			case value.IsAutoIncrement != 10 && value.DefaultValue == "":
-				defaultVal = "default:'';"
-				if value.Type == "datetime" || value.Type == "date" {
-					defaultVal = "default:null;"
-				}
-			}
-
 			//针对MYSQL整型类型字段长度处理
 			if strings.ToLower(dbType) == "mysql" && (value.Type == "int" || value.Type == "bigint" || value.Type == "smallint" || value.Type == "tinyint") {
 				switch {
@@ -206,6 +193,24 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 			}
 
 			size = "size:" + strconv.Itoa(int(value.Length)) + ";"
+
+			//字段默认值
+			switch {
+			case value.IsAutoIncrement != 10 && (value.Type == "varchar" || value.Type == "char"):
+				defaultVal = "default:'" + value.DefaultValue + "';"
+				size = "type:" + value.Type + "(" + strconv.Itoa(int(value.Length)) + ");"
+			case value.IsAutoIncrement != 10 && (value.Type == "text" || value.Type == "mediumtext" || value.Type == "longtext"):
+				defaultVal = ""
+				size = "type:" + value.Type + ";"
+			case value.IsAutoIncrement != 10 && value.DefaultValue != "":
+				defaultVal = "default:" + value.DefaultValue + ";"
+			case value.IsAutoIncrement != 10 && value.DefaultValue == "":
+				defaultVal = "default:'';"
+				if value.Type == "datetime" || value.Type == "date" {
+					defaultVal = "default:null;"
+				}
+			}
+
 		}
 
 		//字段唯一索引处理
@@ -1238,31 +1243,35 @@ func (makeSer *makeService) GetFieldSql(mf *model.ModelField, ac string, oldFiel
 		signed = " unsigned "
 	}
 
-	if mf.Type != "text" && mf.Type != "mediumtext" && mf.Type != "longtext" {
-		if mf.IsNull == 10 {
-			isNull = " DEFAULT NULL "
+	defVal := ""
+	if mf.Type == "datetime" || mf.Type == "timestamp" {
+		if strings.HasPrefix(mf.FieldName, "create") || strings.HasPrefix(mf.FieldName, "add") {
+			defVal = " DEFAULT CURRENT_TIMESTAMP "
 		} else {
-			isNull = " NOT NULL "
-			defVal := ""
-			if mf.Type == "datetime" || mf.Type == "timestamp" {
-				if strings.HasPrefix(mf.FieldName, "create") || strings.HasPrefix(mf.FieldName, "add") {
-					defVal = " DEFAULT CURRENT_TIMESTAMP "
-				} else {
-					defVal = " DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP "
-				}
-			} else if mf.DefaultValue == "" {
-				switch mf.Type {
-				case "char", "varchar":
-					defVal = " DEFAULT '' "
-				case "tinyint", "smallint", "int", "bigint", "float", "double", "decimal":
-					defVal = " DEFAULT '0' "
-				}
-			} else {
-				defVal = " DEFAULT '" + mf.DefaultValue + "' "
-			}
-			isNull += defVal
+			defVal = " DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP "
 		}
+	} else if mf.DefaultValue == "" {
+		switch mf.Type {
+		case "char", "varchar":
+			defVal = " DEFAULT '' "
+		case "tinyint", "smallint", "int", "bigint", "float", "double", "decimal":
+			defVal = " DEFAULT '0' "
+		}
+	} else {
+		defVal = " DEFAULT '" + mf.DefaultValue + "' "
 	}
+
+	if mf.IsNull == 10 {
+		isNull = " DEFAULT NULL "
+	} else {
+		isNull = " NOT NULL "
+	}
+
+	if mf.IsNull == 10 || mf.Type == "text" || mf.Type == "mediumtext" || mf.Type == "longtext" {
+		defVal = ""
+	}
+
+	isNull += defVal
 
 	comment := ""
 	if mf.Note != "" {

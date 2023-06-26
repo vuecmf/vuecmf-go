@@ -170,7 +170,7 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 					}
 				}
 
-				query := Db.Table(NS.TableName(val.RelationTableName) + " " + val.RelationTableName).
+				query := db.Table(db.NamingStrategy.TableName(val.RelationTableName) + " " + val.RelationTableName).
 					Select(showFieldStr + " label," + val.RelationFieldName + " field_name").
 					Where("status = 10")
 

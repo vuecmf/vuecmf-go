@@ -170,7 +170,14 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 					}
 				}
 
-				query := db.Table(db.NamingStrategy.TableName(val.RelationTableName) + " " + val.RelationTableName).
+				curDb := db
+				curNs := db.NamingStrategy
+				if helper.InSlice(val.RelationTableName, []string{"admin", "app_config", "field_option", "menu", "model_action", "model_config", "model_field", "model_form", "model_form_linkage", "model_form_rules", "model_index", "model_relation", "roles", "upload_file"}) {
+					curDb = Db
+					curNs = NS
+				}
+
+				query := curDb.Table(curNs.TableName(val.RelationTableName) + " " + val.RelationTableName).
 					Select(showFieldStr + " label," + val.RelationFieldName + " field_name").
 					Where("status = 10")
 

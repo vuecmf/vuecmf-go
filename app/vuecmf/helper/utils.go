@@ -68,17 +68,23 @@ func CamelToUnder(str string) string {
 	return string(output)
 }
 
+//StrSliceToMap 字符串切片转map
+func StrSliceToMap(items []string) map[string]struct{} {
+	res := make(map[string]struct{}, len(items))
+	for _, v := range items {
+		res[v] = struct{}{}
+	}
+	return res
+}
+
 // InSlice 判断字符串是否在指定的切片中
 //	参数：
 // 		item 需要判断的字符串
 // 		items 指定的字符串切片
 func InSlice(item string, items []string) bool {
-	for _, val := range items {
-		if val == item {
-			return true
-		}
-	}
-	return false
+	m := StrSliceToMap(items)
+	_, ok := m[item]
+	return ok
 }
 
 // SliceRemove 删除字符串切片中元素

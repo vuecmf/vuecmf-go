@@ -58,7 +58,6 @@ func (p *page) Group(name string) *page {
 	return p
 }
 
-
 // Filter 列表过滤器
 //	参数：
 //		model 模型实例
@@ -127,7 +126,7 @@ func (p *page) Filter(model interface{}, data *ListParams) (*Result, error) {
 					delete(data.Filter, k)
 				} else if k == "or" {
 					query = query.Or(v)
-					totalQuery = totalQuery.Not(v)
+					totalQuery = totalQuery.Or(v)
 					delete(data.Filter, k)
 				}
 			}
@@ -140,7 +139,7 @@ func (p *page) Filter(model interface{}, data *ListParams) (*Result, error) {
 	if p.group != "" {
 		query = query.Group(p.group)
 		totalQuery = totalQuery.Group(p.group)
-	}else{
+	} else {
 		query = query.Order(data.OrderField + " " + data.OrderSort)
 	}
 

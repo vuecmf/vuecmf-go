@@ -18,6 +18,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -103,8 +104,8 @@ func (b *BaseService) CommonList(modelData interface{}, tableName string, filter
 func (b *BaseService) GetFieldList(tableName string, filter map[string]interface{}, isSuper int) (*FullModelFields, error) {
 	modelCfg := ModelConfig().GetModelConfig(tableName)
 	modelId := modelCfg.ModelId
-	fieldInfoList := ModelField().GetFieldInfo(modelId) //模型的字段信息
-	formInfoList := ModelForm().GetFormInfo(modelId, isSuper)    //模型的表单信息
+	fieldInfoList := ModelField().GetFieldInfo(modelId)       //模型的字段信息
+	formInfoList := ModelForm().GetFormInfo(modelId, isSuper) //模型的表单信息
 	relationInfoList := ModelRelation().GetRelationInfo(modelId, filter, Db)
 	formRulesInfoList := ModelFormRules().GetRuleListForForm(modelId)
 	fieldOptionList, err := FieldOption().GetFieldOptions(modelId, tableName, modelCfg.IsTree, modelCfg.LabelFieldName, filter, Db) //模型的关联信息
@@ -134,7 +135,16 @@ func (b *BaseService) GetList(dataList interface{}, tableName string, data *help
 	modelCfg := ModelConfig().GetModelConfig(tableName)
 
 	if data.Keywords != "" {
-		query = query.Where(modelCfg.LabelFieldName+" like ?", "%"+data.Keywords+"%")
+		arr := strings.Split(data.Keywords, ",")
+		var conditionArr []string
+		params := make(map[string]interface{})
+		for k, v := range arr {
+			key := strconv.Itoa(k)
+			conditionArr = append(conditionArr, modelCfg.LabelFieldName+" like @kw_"+key)
+			params["kw_"+key] = v + "%"
+		}
+
+		query = query.Where(strings.Join(conditionArr, " or "), params)
 	} else if len(data.Filter) > 0 {
 		//过滤掉空值
 		for k, v := range data.Filter {

@@ -15,6 +15,8 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -39,8 +41,13 @@ func (ctrl *Admin) Index(c *gin.Context) {
 	Common(c, listParams, func() (interface{}, error) {
 		isSuper := helper.InterfaceToInt(app.Request(c).GetCtxVal("is_super"))
 		if isSuper != 10 {
-			uid := uint(helper.InterfaceToInt(app.Request(c).GetCtxVal("uid")))
-			listParams.Data.Filter["pid"] = uid
+			//非超级管理员，只能看自己和自己创建的账号
+			uid := strconv.Itoa(app.Request(c).GetCtxVal("uid").(int))
+			condition := make(map[string]interface{})
+			condition["pid"] = uid
+
+			listParams.Data.Filter["id"] = uid
+			listParams.Data.Filter["or"] = condition
 		}
 
 		return service.Base().CommonList(ctrl.ListData, ctrl.TableName, ctrl.FilterFields, listParams, isSuper)
@@ -51,13 +58,21 @@ func (ctrl *Admin) Index(c *gin.Context) {
 func (ctrl *Admin) Save(c *gin.Context) {
 	saveForm := &model.DataAdminForm{}
 	Common(c, saveForm, func() (interface{}, error) {
+		uid := uint(helper.InterfaceToInt(app.Request(c).GetCtxVal("uid")))
+		isSuper := app.Request(c).GetCtxVal("is_super")
+
 		if saveForm.Data.Id == uint(0) {
 			newId, err := service.Admin().Create(saveForm.Data)
-			isSuper := app.Request(c).GetCtxVal("is_super")
+
 			if isSuper == 10 {
 				saveForm.Data.Pid = newId
 			} else {
-				saveForm.Data.Pid = uint(helper.InterfaceToInt(app.Request(c).GetCtxVal("uid")))
+				saveForm.Data.Pid = uid
+				//非超级管理员，添加账号时，自动加上主账号作为前缀
+				userInfo := service.Admin().GetUser(uid)
+				if !strings.HasPrefix(saveForm.Data.Username, userInfo.Username+".") {
+					saveForm.Data.Username = userInfo.Username + "." + saveForm.Data.Username
+				}
 			}
 			if err != nil {
 				return newId, err
@@ -65,6 +80,15 @@ func (ctrl *Admin) Save(c *gin.Context) {
 
 			return service.Base().Update(saveForm.Data)
 		} else {
+			if isSuper != 10 {
+				//非超级管理员，添加账号时，自动加上主账号作为前缀
+				userInfo := service.Admin().GetUser(uid)
+				parentInfo := service.Admin().GetUser(userInfo.Pid)
+				if uid != userInfo.Pid && !strings.HasPrefix(saveForm.Data.Username, parentInfo.Username+".") {
+					saveForm.Data.Username = parentInfo.Username + "." + saveForm.Data.Username
+				}
+			}
+
 			return service.Base().Update(saveForm.Data)
 		}
 	})

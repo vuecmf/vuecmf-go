@@ -107,7 +107,7 @@ type relationOptions struct {
 //		modelId 模型ID
 //		filter 筛选条件
 //		db  菜单下拉的db实例
-func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}, db *gorm.DB) map[string]interface{} {
+func (ser *modelRelationService) getRelationOptions(modelId int, filter map[string]interface{}, db *gorm.DB, relationFilter map[string]map[string]interface{}) map[string]interface{} {
 	var reFieldInfo []relationFieldInfo
 	var result = make(map[string]interface{})
 
@@ -127,10 +127,15 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 	for _, val := range reFieldInfo {
 		var options []*helper.ModelFieldOption
 
+		paramsFilter := filter
+		if relationFilter[val.RelationTableName] != nil {
+			paramsFilter = relationFilter[val.RelationTableName]
+		}
+
 		isTree := ModelConfig().IsTree(val.RelationModelId)
 		if isTree {
 			//若关联的模型是目录树的、则下拉选项需要格式化树型结构
-			options = helper.FormatTree(options, db, db.NamingStrategy.TableName(val.RelationTableName), filter, "id", 0, "title", "pid", "sort_num", 1)
+			options = helper.FormatTree(options, db, db.NamingStrategy.TableName(val.RelationTableName), paramsFilter, "id", 0, "title", "pid", "sort_num", 1)
 
 		} else {
 			var showFieldNameArr []string
@@ -181,8 +186,8 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 					Select(showFieldStr + " label," + val.RelationFieldName + " field_name").
 					Where("status = 10")
 
-				if filter != nil && (val.RelationTableName == "model_field") {
-					for field, filterVal := range filter {
+				if paramsFilter != nil && (val.RelationTableName == "model_field") {
+					for field, filterVal := range paramsFilter {
 						query = query.Where(field+" = ?", filterVal)
 					}
 				}
@@ -215,18 +220,23 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 //		modelId 模型ID
 //		filter 筛选条件
 //		db  菜单下拉的db实例
-func (ser *modelRelationService) GetRelationInfo(modelId int, filter map[string]interface{}, db *gorm.DB) *modelRelationInfo {
+func (ser *modelRelationService) GetRelationInfo(modelId int, filter map[string]interface{}, db *gorm.DB, relationFilter ...map[string]map[string]interface{}) *modelRelationInfo {
 	mri := &modelRelationInfo{}
 
 	//供表单中与之相关的下拉框联动变化
 	mri.Linkage = ser.getRelationLinkage(modelId)
 
+	reFilter := make(map[string]map[string]interface{})
+	if 0 != len(relationFilter) {
+		reFilter = relationFilter[0]
+	}
+
 	//供表单中下拉框中使用
-	mri.Options = ser.getRelationOptions(modelId, filter, db)
+	mri.Options = ser.getRelationOptions(modelId, filter, db, reFilter)
 
 	//供列表及搜索表单下拉框中使用
 	delete(filter, "model_id")
-	mri.FullOptions = ser.getRelationOptions(modelId, filter, db)
+	mri.FullOptions = ser.getRelationOptions(modelId, filter, db, reFilter)
 
 	return mri
 

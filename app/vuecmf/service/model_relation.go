@@ -127,9 +127,16 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 	for _, val := range reFieldInfo {
 		var options []*helper.ModelFieldOption
 
-		paramsFilter := filter
-		if relationFilter[val.RelationTableName] != nil {
+		is_relation := false
+		paramsFilter := make(map[string]interface{})
+		if relationFilter == nil {
+			paramsFilter = filter
+		} else if relationFilter[val.RelationTableName] != nil {
 			paramsFilter = relationFilter[val.RelationTableName]
+			is_relation = true
+		} else {
+			paramsFilter = nil
+			is_relation = true
 		}
 
 		isTree := ModelConfig().IsTree(val.RelationModelId)
@@ -186,10 +193,8 @@ func (ser *modelRelationService) getRelationOptions(modelId int, filter map[stri
 					Select(showFieldStr + " label," + val.RelationFieldName + " field_name").
 					Where("status = 10")
 
-				if paramsFilter != nil && (val.RelationTableName == "model_field") {
-					for field, filterVal := range paramsFilter {
-						query = query.Where(field+" = ?", filterVal)
-					}
+				if paramsFilter != nil && (val.RelationTableName == "model_field" || is_relation) {
+					query = query.Where(paramsFilter)
 				}
 
 				if val.RelationFilter != "" {

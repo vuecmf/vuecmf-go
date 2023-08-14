@@ -122,10 +122,13 @@ func (t *JSONTime) UnmarshalJSON(data []byte) error {
 		*t = JSONTime{Time: time.Time{}}
 		return nil
 	}
-	loc, _ := time.LoadLocation("Asia/Shanghai")
-	now, err := time.ParseInLocation("\""+TimeFormat+"\"", string(data), loc)
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		loc = time.FixedZone("CST", 8*3600)
+	}
+	now, err2 := time.ParseInLocation("\""+TimeFormat+"\"", string(data), loc)
 	*t = JSONTime{Time: now}
-	return err
+	return err2
 }
 
 // Value 写入数据库时的值检查

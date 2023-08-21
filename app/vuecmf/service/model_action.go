@@ -255,6 +255,11 @@ func (ser *modelActionService) GetActionList(dataForm *model.DataActionListForm)
 				Where("id = ?", pid).
 				Where("status = 10").Find(&pidRoleName)
 		}
+
+		if pidRoleName == "" {
+			return res, nil
+		}
+
 	} else if dataForm.Data.Username != "" {
 		userInfo := Admin().GetUserByUsername(dataForm.Data.Username)
 		pidUserInfo := Admin().GetUser(userInfo.Pid)
@@ -262,6 +267,10 @@ func (ser *modelActionService) GetActionList(dataForm *model.DataActionListForm)
 		if err == nil {
 			//多角色的，暂只取一个角色
 			pidRoleName = roleArr[0]
+		}
+
+		if pidRoleName == "" {
+			return res, nil
 		}
 	}
 

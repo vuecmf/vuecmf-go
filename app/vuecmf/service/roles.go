@@ -172,7 +172,7 @@ func (ser *rolesService) GetUsers(roleName string) ([]int, error) {
 }
 
 // GetAllUsers 获取所有用户
-func (ser *rolesService) GetAllUsers() (interface{}, error) {
+func (ser *rolesService) GetAllUsers(username string, isSuper interface{}) (interface{}, error) {
 	type row struct {
 		Key      uint   `json:"key"`
 		Label    string `json:"label"`
@@ -181,9 +181,16 @@ func (ser *rolesService) GetAllUsers() (interface{}, error) {
 
 	var res []*row
 
-	Db.Table(NS.TableName("admin")).Select("id `key`, username label, false disabled").
+	query := Db.Table(NS.TableName("admin")).Select("id `key`, username label, false disabled").
 		Where("status = 10").
-		Where("is_super != 10").Find(&res)
+		Where("is_super != 10")
+
+	if isSuper != 10 && username != "" {
+		userInfo := Admin().GetUserByUsername(username)
+		query.Where("pid = ?", userInfo.Id)
+	}
+
+	query.Find(&res)
 
 	return res, nil
 }

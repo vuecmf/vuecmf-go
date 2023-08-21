@@ -160,8 +160,10 @@ func (ctrl *Admin) GetPermission(c *gin.Context) {
 
 // GetAllRoles 获取所有角色
 func (ctrl *Admin) GetAllRoles(c *gin.Context) {
-	Common(c, nil, func() (interface{}, error) {
-		res := service.Auth().GetAllRoles()
+	dataRoleForm := &model.DataRoleForm{}
+	Common(c, dataRoleForm, func() (interface{}, error) {
+		isSuper := app.Request(c).GetCtxVal("is_super")
+		res := service.Auth().GetAllRoles(dataRoleForm.Data.RoleName, isSuper)
 		return res, nil
 	})
 }

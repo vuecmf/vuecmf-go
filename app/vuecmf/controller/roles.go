@@ -10,6 +10,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/app"
 	"github.com/vuecmf/vuecmf-go/app/route"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
@@ -101,7 +102,9 @@ func (ctrl *Roles) GetPermission(c *gin.Context) {
 
 // GetAllUsers 获取所有用户
 func (ctrl *Roles) GetAllUsers(c *gin.Context) {
-	Common(c, nil, func() (interface{}, error) {
-		return service.Roles().GetAllUsers()
+	dataUsernameForm := &model.DataUsernameForm{}
+	Common(c, dataUsernameForm, func() (interface{}, error) {
+		isSuper := app.Request(c).GetCtxVal("is_super")
+		return service.Roles().GetAllUsers(dataUsernameForm.Data.Username, isSuper)
 	})
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"gorm.io/gorm"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -286,8 +287,8 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[stri
 		//超级管理员拥有所有权限
 		var actionList []action
 
-		Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
-			Joins("left join "+NS.TableName("model_config")+" MC on MA.model_id = MC.id").
+		Db.Table(NS.TableName("model_action") + " MA").Select("MA.id, MC.label").
+			Joins("left join " + NS.TableName("model_config") + " MC on MA.model_id = MC.id").
 			Where("MA.status = 10").
 			Where("MC.status = 10").
 			Find(&actionList)
@@ -395,11 +396,22 @@ type roleList struct {
 }
 
 // GetAllRoles 获取所有角色列表
-func (au *auth) GetAllRoles() interface{} {
+func (au *auth) GetAllRoles(roleName string, isSuper interface{}) interface{} {
 	var result []roleList
-	Db.Table(NS.TableName("roles")).Select("id `key`, role_name label, false disabled").
-		Where("status = 10").
-		Find(&result)
+	query := Db.Table(NS.TableName("roles")).Select("id `key`, role_name label, false disabled").
+		Where("status = 10")
+
+	if isSuper != 10 && roleName != "" {
+		var pid int
+		Db.Table(NS.TableName("roles")).Select("id").
+			Where("status = 10").
+			Where("role_name = ?", roleName).
+			Find(&pid)
+		pidStr := strconv.Itoa(pid)
+		query.Where(" id = ? or pid = ? or id_path like ? or id_path like ? or id_path like ?", pid, pid, pidStr+",%", "%,"+pidStr+",%", "%,"+pidStr)
+	}
+
+	query.Find(&result)
 	return result
 }
 
@@ -435,4 +447,3 @@ func (au *auth) UpdateUser(oldUserName, newUserName string) error {
 
 	return res.Error
 }
-

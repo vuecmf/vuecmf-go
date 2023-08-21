@@ -230,8 +230,8 @@ func (ser *modelActionService) GetNotAuthActionIds() []string {
 
 // GetActionList 获取所有模型的动作列表
 //	参数：
-//		roleName 角色名
-func (ser *modelActionService) GetActionList(roleName string) (interface{}, error) {
+//		dataForm 表单参数
+func (ser *modelActionService) GetActionList(dataForm *model.DataActionListForm) (interface{}, error) {
 	var res = make(map[string]map[string]string)
 	type row struct {
 		Id         string
@@ -239,53 +239,59 @@ func (ser *modelActionService) GetActionList(roleName string) (interface{}, erro
 		ModelLabel string
 	}
 
-	if roleName != "" {
+	//父级角色
+	var pidRoleName string
+
+	if dataForm.Data.RoleName != "" {
 		//若传入角色名称，则只取当前角色的父级角色拥有的权限
 		var pid uint
 		Db.Table(NS.TableName("roles")).
 			Select("pid").
-			Where("role_name = ?", roleName).
+			Where("role_name = ?", dataForm.Data.RoleName).
 			Where("status = 10").Find(&pid)
-
 		if pid > 0 {
-			//父级角色
-			var pidRoleName string
 			Db.Table(NS.TableName("roles")).
 				Select("role_name").
 				Where("id = ?", pid).
 				Where("status = 10").Find(&pidRoleName)
-
-			if pidRoleName == "" {
-				return nil, errors.New("没有获取到父级角色名称")
-			}
-
-			perList, err := Auth().GetPermissions(pidRoleName, nil)
-			if err != nil {
-				return nil, err
-			}
-
-			for modelName, actionIdList := range perList {
-				var actionRes []row
-				Db.Table(NS.TableName("model_action")).Select("id, label").
-					Where("id in ?", actionIdList).
-					Where("status = 10").Find(&actionRes)
-				if res[modelName] == nil {
-					res[modelName] = make(map[string]string)
-				}
-				for _, ac := range actionRes {
-					res[modelName][ac.Id] = ac.Label
-				}
-			}
-
-			return res, nil
 		}
+	} else if dataForm.Data.Username != "" {
+		userInfo := Admin().GetUserByUsername(dataForm.Data.Username)
+		pidUserInfo := Admin().GetUser(userInfo.Pid)
+		roleArr, err := Auth().GetRolesForUser(pidUserInfo.Username)
+		if err == nil {
+			//多角色的，暂只取一个角色
+			pidRoleName = roleArr[0]
+		}
+	}
+
+	if pidRoleName != "" {
+		perList, err := Auth().GetPermissions(pidRoleName, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		for modelName, actionIdList := range perList {
+			var actionRes []row
+			Db.Table(NS.TableName("model_action")).Select("id, label").
+				Where("id in ?", actionIdList).
+				Where("status = 10").Find(&actionRes)
+			if res[modelName] == nil {
+				res[modelName] = make(map[string]string)
+			}
+			for _, ac := range actionRes {
+				res[modelName][ac.Id] = ac.Label
+			}
+		}
+
+		return res, nil
 	}
 
 	//否则，获取所有权限列表(排除关闭权限验证的应用)
 	var actionRes []row
-	Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label model_label,  MA.label").
-		Joins("left join "+NS.TableName("model_config")+" MC on MC.id = MA.model_id").
-		Joins("left join "+NS.TableName("app_config")+" AC on MC.app_id = AC.id").
+	Db.Table(NS.TableName("model_action") + " MA").Select("MA.id, MC.label model_label,  MA.label").
+		Joins("left join " + NS.TableName("model_config") + " MC on MC.id = MA.model_id").
+		Joins("left join " + NS.TableName("app_config") + " AC on MC.app_id = AC.id").
 		Where("AC.auth_enable = 10").
 		Where("MC.status = 10").
 		Where("AC.status = 10").

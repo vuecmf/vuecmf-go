@@ -71,6 +71,6 @@ func (ctrl *ModelAction) GetApiMap(c *gin.Context) {
 func (ctrl *ModelAction) GetActionList(c *gin.Context) {
 	dataActionListForm := &model.DataActionListForm{}
 	Common(c, dataActionListForm, func() (interface{}, error) {
-		return service.ModelAction().GetActionList(dataActionListForm.Data.RoleName)
+		return service.ModelAction().GetActionList(dataActionListForm)
 	})
 }

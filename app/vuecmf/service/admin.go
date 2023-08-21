@@ -204,3 +204,14 @@ func (ser *adminService) GetUser(userId uint) model.Admin {
 		Find(&res)
 	return res
 }
+
+//GetUserByUsername 根据用户名获取用户信息
+//	参数：
+// 		username 用户名
+func (ser *adminService) GetUserByUsername(username string) model.Admin {
+	var res model.Admin
+	Db.Table(NS.TableName("admin")).Select("*").
+		Where("username = ?", username).
+		Find(&res)
+	return res
+}

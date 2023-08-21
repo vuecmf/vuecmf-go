@@ -11,6 +11,7 @@ package helper
 import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+	"reflect"
 	"strings"
 )
 
@@ -165,7 +166,7 @@ var pInstances = make(map[string]*page)
 //		ns			gorm数据库相关信息接口
 func Page(tableName string, filterFields []string, db *gorm.DB, ns schema.Namer) *page {
 	p, ok := pInstances[tableName]
-	if ok == false {
+	if ok == false || !reflect.DeepEqual(p.db, db) {
 		pInstances[tableName] = &page{
 			tableName:    tableName,
 			db:           db,

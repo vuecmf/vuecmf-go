@@ -24,7 +24,7 @@ func init() {
 
 func (ctrl *Index) Index(c *gin.Context) {
 	app.Response(c).SendHtml("vuecmf/index/index.html", gin.H{
-		"welcome": "Welcome to VueCMF V2.",
+		"welcome": "Welcome to VueCMF V2.5",
 	})
 }
 

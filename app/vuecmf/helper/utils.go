@@ -278,3 +278,25 @@ func FormatTree(tree []*ModelFieldOption, db *gorm.DB, tableName string, filter 
 
 	return tree
 }
+
+//MinusStrList 字符串差集
+func MinusStrList(strA, strB []string) []string {
+	var res []string
+	tmp := make(map[string]bool)
+	for _, str := range strA {
+		if _, ok := tmp[str]; !ok {
+			tmp[str] = true
+		}
+	}
+
+	for _, str := range strB {
+		if _, ok := tmp[str]; ok {
+			delete(tmp, str)
+		}
+	}
+
+	for k, _ := range tmp {
+		res = append(res, k)
+	}
+	return res
+}

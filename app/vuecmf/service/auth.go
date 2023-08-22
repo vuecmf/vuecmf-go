@@ -12,6 +12,7 @@ import (
 	"errors"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
 	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
 	"gorm.io/gorm"
 	"log"
@@ -54,8 +55,13 @@ func Auth() *auth {
 //		roleIdList 角色ID列表
 func (au *auth) AddRolesForUser(username string, roleIdList []int) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
+		//先清除移除历史角色
+		_, err := au.DelAllRolesForUser(username)
+		if err != nil {
+			return err
+		}
+
 		rolesList := Roles().GetRoleNameList(roleIdList)
-		var err error
 		appNameList := AppConfig().GetAuthAppList()
 		for _, appName := range appNameList {
 			for _, roleName := range rolesList {
@@ -129,10 +135,27 @@ func (au *auth) DelAllRolesForUser(username string) (bool, error) {
 //		username 用户名列表
 func (au *auth) AddUsersForRole(role string, username []string) (bool, error) {
 	err := Db.Transaction(func(tx *gorm.DB) error {
+		//先取出角色下原有所有用户
+		oldUsers, err := au.GetUsers(role)
+		if err != nil {
+			return err
+		}
+		//取出需要删除的用户
+		delUserList := helper.MinusStrList(oldUsers, username)
+
 		roleArr := []string{role}
 
 		appNameList := AppConfig().GetAuthAppList()
 		for _, appName := range appNameList {
+			//删除用户
+			for _, user := range delUserList {
+				_, err2 := au.Enforcer.DeleteRoleForUser(user, role, appName)
+				if err2 != nil {
+					return err2
+				}
+			}
+
+			//添加用户
 			for _, user := range username {
 				_, err2 := au.Enforcer.AddRolesForUser(user, roleArr, appName)
 				if err2 != nil {

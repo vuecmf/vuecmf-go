@@ -34,6 +34,7 @@ type formInfo struct {
 	DefaultValue string `json:"default_value"`
 	Placeholder  string `json:"placeholder"`
 	IsDisabled   bool   `json:"is_disabled"`
+	IsEdit       bool   `json:"is_edit"`
 	SortNum      int    `json:"sort_num"`
 }
 

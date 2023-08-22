@@ -53,19 +53,19 @@ gitee https://gitee.com/emei/vuecmf-go
 
 github下载地址：
 
-linux:  https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-linux_v2.3.0.zip
+linux:  https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-linux_v2.5.0.zip
 
-windows: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-windows_v2.3.0.zip
+windows: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-windows_v2.5.0.zip
 
-mac: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-mac_v2.3.0.zip
+mac: https://github.com/vuecmf/vuecmf-go/raw/master/vuecmf-mac_v2.5.0.zip
 
 gitee下载地址：
 
-linux:  https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-linux_v2.3.0.zip
+linux:  https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-linux_v2.5.0.zip
 
-windows: https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-windows_v2.3.0.zip
+windows: https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-windows_v2.5.0.zip
 
-mac: https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-mac_v2.3.0.zip
+mac: https://gitee.com/emei/vuecmf-go/raw/master/vuecmf-mac_v2.5.0.zip
 
 下载并解压，将解压好的文件所在路径添加环境变量中，这样任何目录中都可以执行vuecmf命令行工具。
 

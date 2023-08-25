@@ -217,13 +217,26 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 		modelIndexId := 0
 		id := strconv.Itoa(int(value.Id))
 		Db.Table(NS.TableName("model_index")).Select("id").
-			Where("model_field_id = ? or model_field_id like ? or model_field_id like ?", id, id+",%", "%,"+id).
+			Where("model_field_id = ?", id).
 			Where("index_type = 'UNIQUE'").
+			Where("status = 10").
 			Find(&modelIndexId)
 
 		if modelIndexId > 0 {
-			uniqueIndex = "uniqueIndex:unique_index;"
+			uniqueIndex = "unique;"
+		} else {
+			//字段联合唯一索引处理
+			Db.Table(NS.TableName("model_index")).Select("id").
+				Where("model_field_id = ? or model_field_id like ? or model_field_id like ? or model_field_id like ?", id, id+",%", "%,"+id, "%,"+id+",%").
+				Where("index_type = 'UNIQUE'").
+				Where("status = 10").
+				Find(&modelIndexId)
+
+			if modelIndexId > 0 {
+				uniqueIndex = "uniqueIndex:unique_index;"
+			}
 		}
+
 		gormCnf := " gorm:\"" + columnType + "column:" + value.FieldName + ";" + autoIncrement + size + uniqueIndex + notNull + autoCreateTime + defaultVal +
 			"comment:" + value.Note + "\""
 
@@ -660,10 +673,16 @@ ${import_package}
 )
 
 func main() {
+	cfg := app.Config()
+
+	if cfg.Debug == false {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	engine := gin.Default()
 
 	//初始化路由
-	route.InitRoute(engine)
+	route.InitRoute(engine, cfg)
 
 	err := engine.Run(":" + app.Config().ServerPort)
 	if err != nil {

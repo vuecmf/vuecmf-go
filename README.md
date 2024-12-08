@@ -43,7 +43,7 @@ gitee https://gitee.com/emei/vuecmf-go
 ## 安装govuecmf命令行工具
 
 ~~~
-go install github.com/vuecmf/vuecmf-go/v3/tools/govuecmf@latest
+go install github.com/vuecmf/govuecmf@latest
 ~~~
 
 注意：**以下操作均在命令行中执行**

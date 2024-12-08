@@ -1,33 +1,42 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package service
 
 import (
 	"errors"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/model"
 	"gorm.io/gorm"
 	"strconv"
+	"sync"
 )
 
-// fieldOptionService fieldOption服务结构
-type fieldOptionService struct {
+// FieldOptionService fieldOption服务结构
+type FieldOptionService struct {
 	*BaseService
-	TableName string
 }
 
-var fieldOption *fieldOptionService
+var fieldOptionOnce sync.Once
+var fieldOption *FieldOptionService
 
 // FieldOption 获取fieldOption服务实例
-func FieldOption() *fieldOptionService {
-	if fieldOption == nil {
-		fieldOption = &fieldOptionService{}
-	}
+func FieldOption() *FieldOptionService {
+	fieldOptionOnce.Do(func() {
+		fieldOption = &FieldOptionService{
+			BaseService: &BaseService{
+				"field_option",
+				&model.FieldOption{},
+				&[]model.FieldOption{},
+				[]string{"option_value", "option_label"},
+			},
+		}
+	})
 	return fieldOption
 }
 
@@ -39,18 +48,19 @@ type resFieldOption struct {
 }
 
 // GetFieldOptions 根据模型ID获取模型的字段选项列表
+//
 //	参数：
-// 		modelId 模型ID
+//		modelId 模型ID
 //		tableName 表名
 //		isTree 是否为目录树
 //		labelFieldName 需要显示为标签的字段
 //		filter 筛选条件
 //		db  菜单下拉的db实例
-func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, isTree bool, labelFieldName string, filter map[string]interface{}, db *gorm.DB) (map[string][]*helper.ModelFieldOption, error) {
+func (svc *FieldOptionService) GetFieldOptions(modelId int, tableName string, isTree bool, labelFieldName string, filter map[string]interface{}, db *gorm.DB) (map[string][]*helper.ModelFieldOption, error) {
 	var list = make(map[string][]*helper.ModelFieldOption)
 	var result []*resFieldOption
 
-	Db.Table(NS.TableName("field_option")).
+	DbTable("field_option").
 		Select("model_field_id field_id, option_value, if((option_value REGEXP '[0-9]') = 1 , option_label, concat(option_value,' (',option_label, ')')) option_label").
 		Where("model_id = ?", modelId).
 		Where("status = 10").
@@ -75,7 +85,7 @@ func (ser *fieldOptionService) GetFieldOptions(modelId int, tableName string, is
 		}
 
 		var pidFieldId int
-		Db.Table(NS.TableName("model_field")).
+		DbTable("model_field").
 			Select("id").
 			Where("field_name = 'pid'").
 			Where("model_id = ?", modelId).

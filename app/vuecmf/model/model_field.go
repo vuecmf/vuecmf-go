@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package model
@@ -27,7 +27,7 @@ type ModelField struct {
 	IsFixed         uint16 `json:"is_fixed" form:"is_fixed"  gorm:"column:is_fixed;size:8;not null;default:20;comment:默认列表中固定：10=固定，20=不固定"`
 	ColumnWidth     uint   `json:"column_width" form:"column_width"  gorm:"column:column_width;size:32;not null;default:150;comment:列表中默认显示宽度：0表示不限"`
 	IsFilter        uint16 `json:"is_filter" form:"is_filter"  gorm:"column:is_filter;size:8;not null;default:10;comment:列表中是否可为筛选条件：10=是，20=否"`
-	IsCode        	uint16 `json:"is_code" form:"is_code"  gorm:"column:is_code;size:8;not null;default:20;comment:是否显示文本源码，10=是，20=否"`
+	IsCode          uint16 `json:"is_code" form:"is_code"  gorm:"column:is_code;size:8;not null;default:20;comment:是否显示文本源码，10=是，20=否"`
 	SortNum         uint   `json:"sort_num" form:"sort_num"  gorm:"column:sort_num;size:32;not null;default:0;comment:表单/列表中字段的排列顺序(小在前)"`
 	Status          uint16 `json:"status" form:"status"  gorm:"column:status;size:8;not null;default:10;comment:状态：10=开启，20=禁用"`
 }

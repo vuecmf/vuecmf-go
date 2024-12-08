@@ -1,62 +1,99 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/service"
+	"sync"
 )
 
-// Menu 菜单管理
-type Menu struct {
-	Base
+// MenuController 菜单管理
+type MenuController struct {
+	BaseController
+	Svc *service.MenuService
 }
 
-func init() {
-	menu := &Menu{}
-	menu.TableName = "menu"
-	menu.Model = &model.Menu{}
-	menu.ListData = &[]model.Menu{}
-	menu.FilterFields = []string{"title", "icon"}
+var menuController *MenuController
+var menuCtrlOnce sync.Once
 
-	route.Register(menu, "POST", "vuecmf")
-}
-
-// Index 列表页
-func (ctrl *Menu) Index(c *gin.Context) {
-	listParams := &helper.DataListParams{}
-	Common(c, listParams, func() (interface{}, error) {
-		return service.Menu().List(listParams)
-	})
-}
-
-// Save 新增/更新 单条数据
-func (ctrl *Menu) Save(c *gin.Context) {
-	saveForm := &model.DataMenuForm{}
-	Common(c, saveForm, func() (interface{}, error) {
-		if saveForm.Data.Id == uint(0) {
-			return service.Menu().Create(saveForm.Data)
-		} else {
-			return service.Menu().Update(saveForm.Data)
+// Menu 获取Menu控制器实例
+func Menu() *MenuController {
+	menuCtrlOnce.Do(func() {
+		menuController = &MenuController{
+			Svc: service.Menu(),
 		}
 	})
+	return menuController
 }
 
-// Nav 获取用户的导航菜单列表
-func (ctrl *Menu) Nav(c *gin.Context) {
-	dataUsernameForm := &model.DataUsernameForm{}
-	Common(c, dataUsernameForm, func() (interface{}, error) {
-		isSuper := app.Request(c).GetCtxVal("is_super")
-		return service.Menu().Nav(dataUsernameForm.Data.Username, isSuper)
-	})
+// Action 控制器入口
+func (ctrl MenuController) Action() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var err error
+		var res any
+
+		switch GetActionName(c) {
+		case "":
+			res, err = ctrl.index(c)
+		case "save":
+			res, err = ctrl.save(c)
+		case "nav":
+			res, err = ctrl.nav(c)
+		default:
+			res, err = ctrl.BaseController.Action(c, ctrl.Svc.BaseService)
+		}
+
+		if err != nil {
+			c.Set("error", err)
+		} else {
+			c.Set("result", res)
+		}
+
+		c.Next()
+	}
+}
+
+// index 列表页
+func (ctrl MenuController) index(c *gin.Context) (any, error) {
+	var params *helper.DataListParams
+	err := Post(c, &params)
+	if err != nil {
+		return nil, err
+	}
+	return ctrl.Svc.List(params)
+}
+
+// save 新增/更新 单条数据
+func (ctrl MenuController) save(c *gin.Context) (int64, error) {
+	var params *model.DataMenuForm
+	err := Post(c, &params)
+	if err != nil {
+		return 0, err
+	}
+
+	if params.Data.Id == uint(0) {
+		return ctrl.Svc.Create(params.Data)
+	} else {
+		return ctrl.Svc.Update(params.Data)
+	}
+}
+
+// nav 获取用户的导航菜单列表
+func (ctrl MenuController) nav(c *gin.Context) (any, error) {
+	isSuper := MGet(c, "is_super").(uint16)
+	var params *model.DataUsernameForm
+	err := Post(c, &params)
+	if err != nil {
+		return nil, err
+	}
+	return ctrl.Svc.Nav(params.Data.Username, isSuper)
 }

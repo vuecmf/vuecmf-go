@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package service
@@ -12,28 +12,36 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
-	"github.com/vuecmf/vuecmf-go"
-	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/v3/app"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/model"
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
-// adminService admin服务结构
-type adminService struct {
+// AdminService admin服务结构
+type AdminService struct {
 	*BaseService
 }
 
-var admin *adminService
+var adminOnce sync.Once
+var admin *AdminService
 
 // Admin 获取admin服务实例
-func Admin() *adminService {
-	if admin == nil {
-		admin = &adminService{}
-	}
+func Admin() *AdminService {
+	adminOnce.Do(func() {
+		admin = &AdminService{
+			BaseService: &BaseService{
+				"admin",
+				&model.Admin{},
+				&[]model.Admin{},
+				[]string{"username", "email", "mobile", "token"},
+			},
+		}
+	})
 	return admin
 }
 
@@ -44,41 +52,44 @@ type LoginRes struct {
 }
 
 // Create 创建单条或多条数据, 成功返回影响行数
+//
 //	参数：
-// 		data 需要保存的数据
-func (ser *adminService) Create(data *model.Admin) (uint, error) {
-	res := Db.Create(&data)
+//		data 需要保存的数据
+func (svc *AdminService) Create(data *model.Admin) (uint, error) {
+	res := app.Db.Create(&data)
 	return data.Id, res.Error
 }
 
 // Update 更新数据, 成功返回影响行数
+//
 //	参数：
-// 		data 需要更新的数据
-func (ser *adminService) Update(data *model.Admin) (int64, error) {
+//		data 需要更新的数据
+func (svc *AdminService) Update(data *model.Admin) (int64, error) {
 	//如果修改用户名，则更新权限中用户名
 	var oldUserName string
-	Db.Table(NS.TableName("admin")).Select("username").
+	DbTable("admin").Select("username").
 		Where("id = ?", data.Id).Find(&oldUserName)
 	err := Auth().UpdateUser(oldUserName, data.Username)
 	if err != nil {
 		return 0, err
 	}
 
-	res := Db.Updates(data)
+	res := app.Db.Updates(data)
 	return res.RowsAffected, res.Error
 }
 
-//IsLogin 验证是否登录
+// IsLogin 验证是否登录
+//
 //	参数：
-// 		token 验证token
+//		token 验证token
 //		loginIp 登录IP
-func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, error) {
+func (svc *AdminService) IsLogin(token string, loginIp string) (*model.Admin, error) {
 	if token == "" {
 		return nil, errors.New("您还没有登录，请先登录！")
 	}
 
 	var adm *model.Admin
-	if err := Db.Table(NS.TableName("admin")).Select("id, username, password, is_super, last_login_time, status").
+	if err := DbTable("admin").Select("id, username, password, is_super, last_login_time, status").
 		Where("token = ?", token).Find(&adm).Error; err != nil {
 		return nil, errors.New("验证是否登录IsLogin异常：" + err.Error())
 	}
@@ -100,9 +111,10 @@ func (ser *adminService) IsLogin(token string, loginIp string) (*model.Admin, er
 }
 
 // Login 用户登录
+//
 //	参数：
-// 		loginForm 登录传入的表单数据
-func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) {
+//		loginForm 登录传入的表单数据
+func (svc *AdminService) Login(loginForm *model.LoginForm) (interface{}, error) {
 	loginTimesCacheKey := "vuecmf:login_err_times:" + loginForm.LoginName
 	var loginErrTimes int
 	_ = app.Cache().Get(loginTimesCacheKey, &loginErrTimes)
@@ -112,7 +124,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 
 	var adminInfo model.Admin
 
-	Db.Table(NS.TableName("admin")).
+	DbTable("admin").
 		Where("username = ? or email = ? or mobile = ?", loginForm.LoginName, loginForm.LoginName, loginForm.LoginName).
 		Where("status = 10").
 		Find(&adminInfo)
@@ -126,7 +138,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 	codeByte := md5.Sum([]byte(adminInfo.Username + adminInfo.Password + loginForm.LastLoginIp + loginForm.LastLoginTime.Format(model.DateFormat)))
 	token := fmt.Sprintf("%x", codeByte)
 
-	res := Db.Updates(&model.Admin{
+	res := app.Db.Updates(&model.Admin{
 		Id:            adminInfo.Id,
 		LastLoginTime: loginForm.LastLoginTime,
 		LastLoginIp:   loginForm.LastLoginIp,
@@ -138,7 +150,7 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 	}
 
 	var mysqlVersion string
-	Db.Raw("select version() as v").Scan(&mysqlVersion)
+	app.Db.Raw("select version() as v").Scan(&mysqlVersion)
 
 	role := "超级管理员"
 	if adminInfo.IsSuper != 10 {
@@ -157,24 +169,25 @@ func (ser *adminService) Login(loginForm *model.LoginForm) (interface{}, error) 
 	result.User["last_login_time"] = loginForm.LastLoginTime.String()
 	result.User["last_login_ip"] = loginForm.LastLoginIp
 	result.Server = map[string]string{}
-	result.Server["version"] = vuecmf.Version
+	result.Server["version"] = app.Version
 	result.Server["os"] = runtime.GOOS
 	result.Server["software"] = "Gin"
 	result.Server["mysql"] = mysqlVersion
-	result.Server["upload_max_size"] = strconv.Itoa(Conf.Upload.AllowFileSize) + "M"
+	result.Server["upload_max_size"] = strconv.Itoa(app.Cfg.Upload.AllowFileSize) + "M"
 
 	return result, nil
 }
 
 // Logout 用户退出登录
+//
 //	参数：
-// 		logoutForm 退出传入的表单数据
-func (ser *adminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
+//		logoutForm 退出传入的表单数据
+func (svc *AdminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
 	if logoutForm.Token == "" {
 		return false, errors.New("token不能为空")
 	}
 
-	Db.Table(NS.TableName("admin")).Where("token = ?", logoutForm.Token).
+	DbTable("admin").Where("token = ?", logoutForm.Token).
 		Where("status = 10").Update("token", "")
 
 	//清除系统缓存
@@ -183,34 +196,37 @@ func (ser *adminService) Logout(logoutForm *model.LogoutForm) (bool, error) {
 	return true, nil
 }
 
-//GetUserNames 根据用户ID获取用户名
+// GetUserNames 根据用户ID获取用户名
+//
 //	参数：
-// 		userIdList 用户ID列表
-func (ser *adminService) GetUserNames(userIdList []int) []string {
+//		userIdList 用户ID列表
+func (svc *AdminService) GetUserNames(userIdList []int) []string {
 	var res []string
-	Db.Table(NS.TableName("admin")).Select("username").
+	DbTable("admin").Select("username").
 		Where("id in ?", userIdList).
 		Find(&res)
 	return res
 }
 
-//GetUser 根据用户ID获取用户信息
+// GetUser 根据用户ID获取用户信息
+//
 //	参数：
-// 		userId 用户ID
-func (ser *adminService) GetUser(userId uint) model.Admin {
+//		userId 用户ID
+func (svc *AdminService) GetUser(userId uint) model.Admin {
 	var res model.Admin
-	Db.Table(NS.TableName("admin")).Select("*").
+	DbTable("admin").Select("*").
 		Where("id = ?", userId).
 		Find(&res)
 	return res
 }
 
-//GetUserByUsername 根据用户名获取用户信息
+// GetUserByUsername 根据用户名获取用户信息
+//
 //	参数：
-// 		username 用户名
-func (ser *adminService) GetUserByUsername(username string) model.Admin {
+//		username 用户名
+func (svc *AdminService) GetUserByUsername(username string) model.Admin {
 	var res model.Admin
-	Db.Table(NS.TableName("admin")).Select("*").
+	DbTable("admin").Select("*").
 		Where("username = ?", username).
 		Find(&res)
 	return res

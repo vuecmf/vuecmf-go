@@ -1,51 +1,82 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/service"
+	"sync"
 )
 
-// ModelFormRules 模型表单验证规则
-type ModelFormRules struct {
-	Base
+// ModelFormRulesController 模型表单验证规则
+type ModelFormRulesController struct {
+	BaseController
+	Svc *service.ModelFormRulesService
 }
 
-func init() {
-	modelFormRules := &ModelFormRules{}
-	modelFormRules.TableName = "model_form_rules"
-	modelFormRules.Model = &model.ModelFormRules{}
-	modelFormRules.ListData = &[]model.ModelFormRules{}
-	modelFormRules.FilterFields = []string{"rule_type", "rule_value", "error_tips"}
+var modelFormRulesController *ModelFormRulesController
+var modelFormRulesCtrlOnce sync.Once
 
-	route.Register(modelFormRules, "POST", "vuecmf")
-}
-
-// Save 新增/更新 单条数据
-func (ctrl *ModelFormRules) Save(c *gin.Context) {
-	saveForm := &model.DataModelFormRulesForm{}
-	Common(c, saveForm, func() (interface{}, error) {
-		if saveForm.Data.Id == uint(0) {
-			return service.Base().Create(saveForm.Data)
-		} else {
-			return service.Base().Update(saveForm.Data)
+// ModelFormRules 获取控制器实例
+func ModelFormRules() *ModelFormRulesController {
+	modelFormRulesCtrlOnce.Do(func() {
+		modelFormRulesController = &ModelFormRulesController{
+			Svc: service.ModelFormRules(),
 		}
 	})
+	return modelFormRulesController
 }
 
-// Delete 根据ID删除单条数据
-func (ctrl *ModelFormRules) Delete(c *gin.Context) {
-	data := &model.DataIdForm{}
-	Common(c, data, func() (interface{}, error) {
-		return service.ModelFormRules().Delete(data.Data.Id, ctrl.Model)
-	})
+// Action 控制器入口
+func (ctrl ModelFormRulesController) Action() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var err error
+		var res any
+
+		switch GetActionName(c) {
+		case "save":
+			res, err = ctrl.save(c)
+		default:
+			res, err = ctrl.BaseController.Action(c, ctrl.Svc.BaseService)
+		}
+
+		if err != nil {
+			c.Set("error", err)
+		} else {
+			c.Set("result", res)
+		}
+
+		c.Next()
+	}
+}
+
+// save 新增/更新 单条数据
+func (ctrl ModelFormRulesController) save(c *gin.Context) (int64, error) {
+	var params *model.DataModelFormRulesForm
+	err := Post(c, &params)
+	if err != nil {
+		return 0, err
+	}
+	if params.Data.Id == uint(0) {
+		return ctrl.Svc.Create(params.Data)
+	} else {
+		return ctrl.Svc.Update(params.Data)
+	}
+}
+
+// delete 根据ID删除单条数据
+func (ctrl ModelFormRulesController) delete(c *gin.Context) (int64, error) {
+	var params *model.DataIdForm
+	err := Post(c, &params)
+	if err != nil {
+		return 0, err
+	}
+	return ctrl.Svc.Delete(params.Data.Id)
 }

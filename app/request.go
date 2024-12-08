@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package app
@@ -15,12 +15,13 @@ import (
 	"strings"
 )
 
-//request 定义request结构体，加入gin上下文
+// request 定义request结构体，加入gin上下文
 type request struct {
 	*gin.Context
 }
 
-//Input 获取客户端GET/POST请求及header的所有输入数据
+// Input 获取客户端GET/POST请求及header的所有输入数据
+//
 //	参数：
 //	method 请求方式 post/get/header
 //	bindParam 绑定参数，用于存储客户端提交的数据
@@ -43,21 +44,24 @@ func (r *request) Input(method string, bindParam interface{}) error {
 	return err
 }
 
-//Get 获取GET请求参数
+// Get 获取GET请求参数
+//
 //	参数：
 //	fieldName 字段名
 func (r *request) Get(fieldName string) string {
 	return r.Query(fieldName)
 }
 
-//Post 获取formData方式的POST请求参数
+// Post 获取formData方式的POST请求参数
+//
 //	参数：
 //	fieldName 字段名
 func (r *request) Post(fieldName string) string {
 	return r.PostForm(fieldName)
 }
 
-//Header 获取头信息中数据
+// Header 获取头信息中数据
+//
 //	参数：
 //	fieldName 字段名
 func (r *request) Header(fieldName string) string {
@@ -65,6 +69,7 @@ func (r *request) Header(fieldName string) string {
 }
 
 // GetCtxVal 根据key获取中间件中传入的数据
+//
 //	参数：
 //	key 传入的键名
 func (r *request) GetCtxVal(key string) interface{} {
@@ -102,7 +107,7 @@ func (r *request) GetCtxVal(key string) interface{} {
 	return val
 }
 
-//Request 获取请求实例
+// Request 获取请求实例
 func Request(ctx *gin.Context) *request {
 	return &request{
 		Context: ctx,

@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package app
@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
+	"sync"
 )
 
 // uploadImage 图像文件上传配置
@@ -55,7 +56,7 @@ type Water struct {
 	Conf      FontInfo `yaml:"conf"`       //水印配置
 }
 
-//跨域配置
+// 跨域配置
 type crossDomain struct {
 	Enable        bool   `yaml:"enable"`         //是否开启跨域请求
 	AllowedOrigin string `yaml:"allowed_origin"` //允许请求的来源， 例如 http://www.vuecmf.com
@@ -65,33 +66,30 @@ type crossDomain struct {
 type Conf struct {
 	Module      string       `yaml:"module"`       //项目名称，与go.mod中module保持一致
 	Env         string       `yaml:"env"`          //当前运行环境， dev 开发环境，test 测试环境，prod 生产环境
-	UpdateMain  bool		 `yaml:"update_main"`  //创建或更新模型时是否重新生成入口文件main.go, 默认为true
 	Debug       bool         `yaml:"debug"`        //是否开启调试模式
-	ServerHost  string		 `yaml:"server_host"`  //服务器地址或域名
 	ServerPort  string       `yaml:"server_port"`  //服务运行的端口
 	CrossDomain *crossDomain `yaml:"cross_domain"` //跨域请求配置
 	Upload      *upload      `yaml:"upload"`       //上传配置
 	Water       *Water       `yaml:"water"`        //水印配置
-	StaticDir   string		 `yaml:"static_dir"`   //静态资源目录
+	StaticDir   string       `yaml:"static_dir"`   //静态资源目录
 }
 
+var cfgOnce sync.Once
 var appConf *Conf
 
 // Config 读取app应用配置
 func Config() *Conf {
-	if appConf != nil {
-		return appConf
-	}
+	cfgOnce.Do(func() {
+		confContent, err := os.Open("config/app.yaml")
+		if err != nil {
+			log.Fatal("无法读取应用配置文件app.yaml")
+		}
 
-	confContent, err := os.Open("config/app.yaml")
-	if err != nil {
-		//log.Fatal("无法读取应用配置文件app.yaml")
-		return nil
-	}
+		err = yaml.NewDecoder(confContent).Decode(&appConf)
+		if err != nil {
+			log.Fatal("应用配置文件解析错误！")
+		}
+	})
 
-	err = yaml.NewDecoder(confContent).Decode(&appConf)
-	if err != nil {
-		log.Fatal("应用配置文件解析错误！")
-	}
 	return appConf
 }

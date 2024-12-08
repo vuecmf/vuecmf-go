@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package helper
@@ -41,25 +41,26 @@ type page struct {
 	Fields       string   //需要查询的字段
 }
 
-// result 存放分页列表返回结果
+// Result result 存放分页列表返回结果
 type Result struct {
 	Data  interface{} `json:"data"`
 	Total int64       `json:"total"`
 }
 
-//Field 需要查询的字段
+// Field 需要查询的字段
 func (p *page) Field(queryFields string) *page {
 	p.Fields = queryFields
 	return p
 }
 
-//Group 分组查询
+// Group 分组查询
 func (p *page) Group(name string) *page {
 	p.group = name
 	return p
 }
 
 // Filter 列表过滤器
+//
 //	参数：
 //		model 模型实例
 //		params POST请求传递的参数
@@ -160,6 +161,7 @@ func (p *page) Filter(model interface{}, data *ListParams) (*Result, error) {
 var pInstances = make(map[string]*page)
 
 // Page 获取列表分页实例
+//
 //	参数：
 //		tableName	模型对应的表名
 //		db			gorm的DB实例指针

@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package helper
@@ -13,7 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang/freetype"
-	"github.com/vuecmf/vuecmf-go/app"
+	"github.com/vuecmf/vuecmf-go/v3/app"
 	"golang.org/x/image/draw"
 	"image"
 	"image/color"
@@ -33,10 +33,10 @@ const (
 )
 
 type img struct {
-	FileObj *os.File  //文件实例
+	FileObj  *os.File //文件实例
 	FileName string   //文件名
-	FileExt string    //文件扩展名
-	Err error         //异常信息
+	FileExt  string   //文件扩展名
+	Err      error    //异常信息
 }
 
 var imgInstance *img
@@ -49,7 +49,8 @@ func Img() *img {
 	return imgInstance
 }
 
-//Load 根据文件名加载文件
+// Load 根据文件名加载文件
+//
 //	参数：
 //	fileName 文件名
 func (im *img) Load(fileName string) *img {
@@ -64,7 +65,8 @@ func (im *img) Load(fileName string) *img {
 	return im
 }
 
-//LoadFile 直接加载文件流
+// LoadFile 直接加载文件流
+//
 //	参数：
 //	file 文件流
 //	fileName 文件名
@@ -105,8 +107,9 @@ func (im *img) GetImage() (image.Image, string, error) {
 }
 
 // SaveImage 保存图像文件
+//
 //	参数：
-// 	outImg 需要保存的image实例
+//	outImg 需要保存的image实例
 //	saveFileName 保存的文件名
 func (im *img) SaveImage(outImg image.Image, saveFileName string) error {
 	fileExt := GetFileExt(saveFileName)
@@ -140,6 +143,7 @@ func (im *img) SaveImage(outImg image.Image, saveFileName string) error {
 }
 
 // Resize 图片绽放
+//
 //	参数：
 //		newFileName 保存新的文件名
 //		width		缩放后的宽度
@@ -257,7 +261,7 @@ func (im *img) FontWater(typeface []app.FontInfo) error {
 	}
 }
 
-//gif图片水印
+// gif图片水印
 func (im *img) gifFontWater(imgFile *os.File, newImage string, typeface []app.FontInfo) error {
 	var err error
 	gifImg2, _ := gif.DecodeAll(imgFile)
@@ -326,7 +330,7 @@ func (im *img) gifFontWater(imgFile *os.File, newImage string, typeface []app.Fo
 	}
 }
 
-//png,jpeg图片水印
+// png,jpeg图片水印
 func (im *img) staticFontWater(imgFile *os.File, newImage, status string, typeface []app.FontInfo) (err error) {
 	var staticImg image.Image
 	if status == "png" {
@@ -365,7 +369,7 @@ func (im *img) staticFontWater(imgFile *os.File, newImage, status string, typefa
 	return err
 }
 
-//添加文字水印函数
+// 添加文字水印函数
 func (im *img) common(rgbImg *image.NRGBA, typeface []app.FontInfo) (*image.NRGBA, error) {
 	//拷贝一个字体文件到运行目录
 	fontBytes, err := os.ReadFile(app.Config().Water.WaterFont)

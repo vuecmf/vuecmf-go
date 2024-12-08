@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 // Package middleware 中间件
@@ -13,17 +13,22 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"github.com/vuecmf/vuecmf-go/v3/app"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/service"
+	"path/filepath"
 	"strings"
 )
 
 var middlewares = make(map[string]func(ctx *gin.Context))
 
-//GetMiddleWares 获取所有中间件
+// GetMiddleWares 获取所有中间件
 func GetMiddleWares() map[string]func(ctx *gin.Context) {
 	//先取出所有应用列表
 	appList := service.AppConfig().GetFullAppList()
+
+	if len(appList) == 0 {
+		return nil
+	}
 
 	//访问权限验证
 	middlewares["auth"] = func(ctx *gin.Context) {
@@ -36,6 +41,23 @@ func GetMiddleWares() map[string]func(ctx *gin.Context) {
 		}()
 
 		path := strings.ToLower(ctx.Request.URL.String())
+
+		staticExtensions := map[string]bool{
+			".ico":  true,
+			".js":   true,
+			".css":  true,
+			".png":  true,
+			".jpg":  true,
+			".jpeg": true,
+			".gif":  true,
+			".svg":  true,
+			".map":  true,
+		}
+		ext := filepath.Ext(path)
+		if staticExtensions[ext] {
+			return
+		}
+
 		tmpArr := strings.Split(path, "?")
 		pathArr := strings.Split(tmpArr[0], "/")
 		routeApp := "index"
@@ -67,7 +89,7 @@ func GetMiddleWares() map[string]func(ctx *gin.Context) {
 		exclusionUrlArr := strings.Split(strings.ToLower(strings.Replace(appList[routeApp].ExclusionUrl, " ", "", -1)), ",")
 		checkUrl := "/" + routeApp + "/" + routeController + "/" + routeAction
 		for _, exUrl := range exclusionUrlArr {
-			if exUrl == checkUrl || exUrl + "/index" == checkUrl {
+			if exUrl == checkUrl || exUrl+"/index" == checkUrl {
 				flag = true
 				break
 			}

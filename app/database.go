@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package app
@@ -16,8 +16,32 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
+
+var Db *gorm.DB     //数据库连接实例
+var NS schema.Namer //数据库名称服务
+var Cfg *Conf       // 配置信息实例
+var once sync.Once
+
+func init() {
+	//初始化项目时，不返回数据库连接
+	args := os.Args
+	if (len(args) > 1 && (strings.ToLower(args[1]) == "init" || strings.ToLower(args[1]) == "-h")) ||
+		(len(args) == 1 && (strings.HasSuffix(args[0], "vuecmf.exe") || strings.HasSuffix(args[0], "vuecmf"))) {
+		return
+	}
+
+	Cfg = Config()
+	if Cfg != nil {
+		Db = Connect(strings.ToLower(Cfg.Env))
+	}
+
+	if Db != nil {
+		NS = Db.NamingStrategy
+	}
+}
 
 // connConf 数据库配置
 type connConf struct {
@@ -36,43 +60,44 @@ type connConf struct {
 	Debug                  bool   `yaml:"debug"`                    //是否开启调试模式，开启后，控制台会打印所执行的SQL语句
 }
 
-// databaseConf 数据库配置
-type databaseConf struct {
+// DatabaseConf 数据库配置
+type DatabaseConf struct {
 	Connect map[string]connConf `yaml:"connect"`
 }
 
-var conf *databaseConf
+var DbCfg *DatabaseConf
 
 // DbConf 读取数据库配置信息
-func DbConf() *databaseConf {
-	if conf != nil {
-		return conf
-	}
-
+func DbConf() *DatabaseConf {
 	confContent, err := os.Open("config/database.yaml")
 	if err != nil {
 		log.Fatal("无法读取数据库配置文件database.yaml")
 	}
 
-	err = yaml.NewDecoder(confContent).Decode(&conf)
+	err = yaml.NewDecoder(confContent).Decode(&DbCfg)
 	if err != nil {
 		log.Fatal("数据库配置文件解析错误！")
 	}
-	return conf
+	return DbCfg
 }
 
 var conn = make(map[string]*gorm.DB)
 
 // Connect 连接数据库
-func connect(confName string) *gorm.DB {
-	conf = DbConf()
+//
+//	参数：
+//	confName 数据库配置名称
+func Connect(confName string) *gorm.DB {
+	once.Do(func() {
+		DbCfg = DbConf()
+	})
 
-	_, isExist := conf.Connect[confName]
+	_, isExist := DbCfg.Connect[confName]
 	if isExist && conn[confName] != nil {
 		return conn[confName]
 	}
 
-	cfg, ok := conf.Connect[confName]
+	cfg, ok := DbCfg.Connect[confName]
 	if ok == false {
 		log.Fatal("数据库配置（" + confName + "）不存在")
 	}
@@ -112,22 +137,5 @@ func connect(confName string) *gorm.DB {
 	// SetConnMaxLifetime 设置了连接可复用的最大时间
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime * int64(time.Minute)))
 
-	return conn[confName]
-}
-
-//Db 获取数据库连接
-//	参数：
-//	confName 数据库配置名称
-func Db(confName string) *gorm.DB {
-	//初始化项目时，不返回数据库连接
-	args := os.Args
-	if (len(args) > 1 && (strings.ToLower(args[1]) == "init" || strings.ToLower(args[1]) == "-h")) ||
-		(len(args) == 1 && (strings.HasSuffix(args[0], "vuecmf.exe") || strings.HasSuffix(args[0], "vuecmf"))) {
-		return nil
-	}
-
-	if conn[confName] == nil {
-		conn[confName] = connect(confName)
-	}
 	return conn[confName]
 }

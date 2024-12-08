@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package controller
@@ -11,46 +11,75 @@ package controller
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"github.com/vuecmf/vuecmf-go/v3/app"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/service"
+	"sync"
 )
 
-// Upload 文件上传
-type Upload struct {
-	Base
+// UploadController 文件上传
+type UploadController struct {
+	BaseController
+	Svc *service.UploadService
 }
 
-func init() {
-	upload := &Upload{}
-	upload.TableName = "upload"
-	upload.Model = &model.Upload{}
-	upload.ListData = &[]model.Upload{}
-	upload.FilterFields = []string{""}
+var uploadController *UploadController
+var uploadCtrlOnce sync.Once
 
-	route.Register(upload, "POST", "vuecmf")
+// Upload 文件上传控制器实例
+func Upload() *UploadController {
+	uploadCtrlOnce.Do(func() {
+		uploadController = &UploadController{
+			Svc: service.Upload(),
+		}
+	})
+	return uploadController
 }
 
-// Save 新增/更新 单条数据
-func (ctrl *Upload) Save(c *gin.Context) {
-	saveForm := &model.DataUploadForm{}
-	Common(c, saveForm, func() (interface{}, error) {
-		if saveForm.Data.Id == uint(0) {
-			return service.Base().Create(saveForm.Data)
+// Action 控制器入口
+func (ctrl UploadController) Action() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var err error
+		var res any
+
+		switch GetActionName(c) {
+		case "save":
+			res, err = ctrl.save(c)
+		case "":
+			res, err = ctrl.index(c)
+		default:
+			res, err = ctrl.BaseController.Action(c, ctrl.Svc.BaseService)
+		}
+
+		if err != nil {
+			c.Set("error", err)
 		} else {
-			return service.Base().Update(saveForm.Data)
+			c.Set("result", res)
 		}
-	})
+
+		c.Next()
+	}
 }
 
-// Index 文件上传
-func (ctrl *Upload) Index(c *gin.Context) {
-	Common(c, nil, func() (interface{}, error) {
-		fieldName := app.Request(c).Post("field_name")
-		if fieldName == "" {
-			return nil, errors.New("上传字段名(field_name)不能为空")
-		}
-		return service.Upload().UploadFile(fieldName, c)
-	})
+// save 新增/更新 单条数据
+func (ctrl UploadController) save(c *gin.Context) (int64, error) {
+	var params *model.DataUploadForm
+	err := Post(c, &params)
+	if err != nil {
+		return 0, err
+	}
+	if params.Data.Id == uint(0) {
+		return ctrl.Svc.Create(params.Data)
+	} else {
+		return ctrl.Svc.Update(params.Data)
+	}
+}
+
+// index 文件上传
+func (ctrl UploadController) index(c *gin.Context) (any, error) {
+	fieldName := app.Request(c).Post("field_name")
+	if fieldName == "" {
+		return nil, errors.New("上传字段名(field_name)不能为空")
+	}
+	return ctrl.Svc.UploadFile(fieldName, c)
 }

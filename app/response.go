@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package app
@@ -18,21 +18,24 @@ type response struct {
 	*gin.Context
 }
 
-//SendHtml 输出并渲染网页
+// SendHtml 输出并渲染网页
+//
 //	参数：
 //	tplName 模板名
 func (r *response) SendHtml(tplName string, obj any) {
 	r.HTML(http.StatusOK, tplName, obj)
 }
 
-//SendText 输出文本
+// SendText 输出文本
+//
 //	参数：
 //	msg 输出的文本内容
 func (r *response) SendText(msg string) {
 	r.String(http.StatusOK, "%s", msg)
 }
 
-//SendJson 输出JSON内容到客户端
+// SendJson 输出JSON内容到客户端
+//
 //	参数：
 //	code 响应码
 //	msg 消息提示内容
@@ -45,7 +48,8 @@ func (r *response) SendJson(code int, msg string, data interface{}) {
 	})
 }
 
-//SendSuccess 成功返回信息到客户端
+// SendSuccess 成功返回信息到客户端
+//
 //	参数：
 //	msg 消息提示内容
 //	data 返回的内容
@@ -58,7 +62,8 @@ func (r *response) SendSuccess(msg string, data interface{}, code ...int) {
 	r.SendJson(codeNum, msg, data)
 }
 
-//SendFailure 失败返回信息到客户端
+// SendFailure 失败返回信息到客户端
+//
 //	参数：
 //	msg 消息提示内容
 //	data 返回的内容
@@ -69,6 +74,14 @@ func (r *response) SendFailure(msg string, data interface{}, code ...int) {
 		codeNum = code[0]
 	}
 	r.SendJson(codeNum, msg, data)
+}
+
+// NotFound 404页面
+//
+//	参数：
+//	msg 输出的文本内容
+func (r *response) NotFound() {
+	r.String(http.StatusNotFound, "%s", "404 Not found")
 }
 
 // Response 获取response实例

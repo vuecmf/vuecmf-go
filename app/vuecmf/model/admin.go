@@ -1,15 +1,15 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package model
 
 import (
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/helper"
 	"gorm.io/gorm"
 )
 
@@ -36,11 +36,11 @@ type DataAdminForm struct {
 	Data *Admin `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
 
-//BeforeSave 数据更新前处理
+// BeforeSave 数据更新前处理
 func (m *Admin) BeforeSave(tx *gorm.DB) error {
 	var err error
 	//如果有填写密码，则更新加密密码
-	if m.Password != "" && len(m.Password) >=4 && len(m.Password) <= 32 {
+	if m.Password != "" && len(m.Password) >= 4 && len(m.Password) <= 32 {
 		m.Password, err = helper.PasswordHash(m.Password)
 	}
 	return err

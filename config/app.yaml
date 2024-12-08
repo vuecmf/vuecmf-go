@@ -1,17 +1,11 @@
 #项目名称
-module: "github.com/vuecmf/vuecmf-go" #项目名称，与go.mod中module保持一致
+module: "github.com/vuecmf/vuecmf-go/v3" #项目名称，与go.mod中module保持一致
 
 #当前运行环境
 env: "dev"  #当前运行环境， dev 开发环境，test 测试环境，prod 生产环境
 
-#创建或更新模型时是否重新生成入口文件main.go, 默认为true
-update_main: true
-
 #是否开启调试模式
 debug: true
-
-#服务器地址或域名
-server_host: "http://localhost:8080"
 
 #服务运行的端口
 server_port: "8080"

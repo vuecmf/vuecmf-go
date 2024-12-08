@@ -1,43 +1,72 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/service"
+	"sync"
 )
 
-// ModelRelation 模型关联管理
-type ModelRelation struct {
-	Base
+// ModelRelationController 模型关联管理
+type ModelRelationController struct {
+	BaseController
+	Svc *service.ModelRelationService
 }
 
-func init() {
-	modelRelation := &ModelRelation{}
-	modelRelation.TableName = "model_relation"
-	modelRelation.Model = &model.ModelRelation{}
-	modelRelation.ListData = &[]model.ModelRelation{}
-	modelRelation.FilterFields = []string{"relation_show_field_id"}
+var modelRelationController *ModelRelationController
+var modelRelationCtrlOnce sync.Once
 
-	route.Register(modelRelation, "POST", "vuecmf")
-}
-
-// Save 新增/更新 单条数据
-func (ctrl *ModelRelation) Save(c *gin.Context) {
-	saveForm := &model.DataModelRelationForm{}
-	Common(c, saveForm, func() (interface{}, error) {
-		if saveForm.Data.Id == uint(0) {
-			return service.Base().Create(saveForm.Data)
-		} else {
-			return service.Base().Update(saveForm.Data)
+// ModelRelation 获取控制器实例
+func ModelRelation() *ModelRelationController {
+	modelRelationCtrlOnce.Do(func() {
+		modelRelationController = &ModelRelationController{
+			Svc: service.ModelRelation(),
 		}
 	})
+	return modelRelationController
+}
+
+// Action 控制器入口
+func (ctrl ModelRelationController) Action() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var err error
+		var res any
+
+		switch GetActionName(c) {
+		case "save":
+			res, err = ctrl.save(c)
+		default:
+			res, err = ctrl.BaseController.Action(c, ctrl.Svc.BaseService)
+		}
+
+		if err != nil {
+			c.Set("error", err)
+		} else {
+			c.Set("result", res)
+		}
+
+		c.Next()
+	}
+}
+
+// save 新增/更新 单条数据
+func (ctrl ModelRelationController) save(c *gin.Context) (int64, error) {
+	var params *model.DataModelRelationForm
+	err := Post(c, &params)
+	if err != nil {
+		return 0, err
+	}
+	if params.Data.Id == uint(0) {
+		return ctrl.Svc.Create(params.Data)
+	} else {
+		return ctrl.Svc.Update(params.Data)
+	}
 }

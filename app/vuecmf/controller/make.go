@@ -1,30 +1,70 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vuecmf/vuecmf-go/app"
-	"github.com/vuecmf/vuecmf-go/app/route"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/service"
+	"github.com/vuecmf/vuecmf-go/v3/app"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/service"
+	"sync"
 )
 
-// Make 代码生成控制器
-type Make struct {
+// MakeController 代码生成控制器
+type MakeController struct {
 }
 
-func init() {
-	route.Register(&Make{}, "GET|POST", "vuecmf")
+var makeController *MakeController
+var makeCtrlOnce sync.Once
+
+// Make 获取代码生成控制器实例
+func Make() *MakeController {
+	makeCtrlOnce.Do(func() {
+		makeController = &MakeController{}
+	})
+	return makeController
 }
 
-// Model 生成模型代码文件
-func (ctrl *Make) Model(c *gin.Context) {
+// Before 路由前置拦截器
+func (ctrl MakeController) Before() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// TODO 加入前置业务处理逻辑
+
+		c.Next()
+	}
+}
+
+// After 路由后置拦截器
+func (ctrl MakeController) After() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// TODO 加入后置业务处理逻辑
+	}
+}
+
+// Action 动作
+func (ctrl MakeController) Action() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		actionName := c.Param("action")
+		switch actionName {
+		case "model":
+			ctrl.model(c)
+		case "service":
+			ctrl.service(c)
+		case "controller":
+			ctrl.controller(c)
+		default:
+			app.Response(c).SendFailure("无效的action", nil)
+		}
+	}
+}
+
+// model 生成模型代码文件
+func (ctrl MakeController) model(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
 	err := service.Make().Model(tableName, "vuecmf")
 
@@ -35,8 +75,8 @@ func (ctrl *Make) Model(c *gin.Context) {
 	}
 }
 
-// Service 生成服务代码文件
-func (ctrl *Make) Service(c *gin.Context) {
+// service 生成服务代码文件
+func (ctrl MakeController) service(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
 	err := service.Make().Service(tableName, "vuecmf")
 
@@ -47,8 +87,8 @@ func (ctrl *Make) Service(c *gin.Context) {
 	}
 }
 
-// Controller 生成服务代码文件
-func (ctrl *Make) Controller(c *gin.Context) {
+// controller 生成服务代码文件
+func (ctrl MakeController) controller(c *gin.Context) {
 	tableName := app.Request(c).Get("table_name")
 	err := service.Make().Controller(tableName, "vuecmf")
 

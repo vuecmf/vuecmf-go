@@ -1,10 +1,30 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
+
+/*
+//使用示例
+//app.Cache().Set("hello", "123456")
+
+login := &model.LoginForm{
+	Username: "haha",
+	Password: "123456",
+}
+
+_ = app.Cache().Set("user", login)
+
+var loginRes model.LoginForm
+_ = app.Cache().Get("user", &loginRes)
+
+fmt.Println("loginRes = ", loginRes)
+
+var str string
+app.Cache().Get("hello", &str)
+fmt.Println("str cache = ", str)*/
 
 package app
 
@@ -12,6 +32,7 @@ import (
 	"encoding/json"
 	"github.com/allegro/bigcache/v3"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -68,6 +89,7 @@ type cache struct {
 }
 
 // Set 添加缓存
+//
 //	参数：
 //		key 缓存的键
 //		content 缓存的内容
@@ -81,6 +103,7 @@ func (c *cache) Set(key string, content interface{}) error {
 }
 
 // Get 获取缓存内容
+//
 //	参数：
 //		key 缓存的key
 //		res 存放缓存内容的容器
@@ -94,18 +117,21 @@ func (c *cache) Get(key string, res interface{}) error {
 }
 
 // Del 删除缓存内容
+//
 //	参数：
 //		key 缓存的key
 func (c *cache) Del(key string) error {
 	return bc.Delete(key)
 }
 
+var cacheOnce sync.Once
 var c *cache
 
 // Cache 获取缓存组件实例
 func Cache() *cache {
-	if c == nil {
+	cacheOnce.Do(func() {
 		c = &cache{}
-	}
+	})
+
 	return c
 }

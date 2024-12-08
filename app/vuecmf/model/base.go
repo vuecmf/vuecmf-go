@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 // Package model 模型
@@ -38,7 +38,7 @@ type IdListForm struct {
 	IdList string `json:"id_list" form:"id_list"`
 }
 
-//DataIdListForm 根据ID批量删除
+// DataIdListForm 根据ID批量删除
 type DataIdListForm struct {
 	Data *IdListForm `json:"data" form:"data" binding:"required" required_tips:"参数data不能为空"`
 }
@@ -96,18 +96,18 @@ func GetError(errs error, f interface{}) error {
 	return errs
 }
 
-//时间格式化
+// 时间格式化
 const (
 	TimeFormat = "2006-01-02 15:04:05"
 	DateFormat = "2006-01-02"
 )
 
-//JSONTime JSON时间格式化
+// JSONTime JSON时间格式化
 type JSONTime struct {
 	time.Time
 }
 
-//MarshalJSON 格式化时间后输出JSON
+// MarshalJSON 格式化时间后输出JSON
 func (t JSONTime) MarshalJSON() ([]byte, error) {
 	if t.IsZero() {
 		return []byte("null"), nil
@@ -116,7 +116,7 @@ func (t JSONTime) MarshalJSON() ([]byte, error) {
 	return []byte(formatted), nil
 }
 
-//UnmarshalJSON 解析JSON中时间后 转换成Time类型
+// UnmarshalJSON 解析JSON中时间后 转换成Time类型
 func (t *JSONTime) UnmarshalJSON(data []byte) error {
 	if len(data) == 2 {
 		*t = JSONTime{Time: time.Time{}}
@@ -150,17 +150,17 @@ func (t *JSONTime) Scan(v interface{}) error {
 	return fmt.Errorf("无法解析的时间 %v ", v)
 }
 
-//String 将Time类型格式化输出为字符串
+// String 将Time类型格式化输出为字符串
 func (t JSONTime) String() string {
 	return t.Format(TimeFormat)
 }
 
-//JSONDate JSON时间格式化
+// JSONDate JSON时间格式化
 type JSONDate struct {
 	time.Time
 }
 
-//MarshalJSON 格式化时间后输出JSON
+// MarshalJSON 格式化时间后输出JSON
 func (t JSONDate) MarshalJSON() ([]byte, error) {
 	if t.IsZero() {
 		return []byte("null"), nil
@@ -169,7 +169,7 @@ func (t JSONDate) MarshalJSON() ([]byte, error) {
 	return []byte(formatted), nil
 }
 
-//UnmarshalJSON 解析JSON中时间后 转换成Time类型
+// UnmarshalJSON 解析JSON中时间后 转换成Time类型
 func (t *JSONDate) UnmarshalJSON(data []byte) error {
 	if len(data) == 2 {
 		*t = JSONDate{Time: time.Time{}}
@@ -200,7 +200,7 @@ func (t *JSONDate) Scan(v interface{}) error {
 	return fmt.Errorf("无法解析的时间 %v ", v)
 }
 
-//String 将Time类型格式化输出为字符串
+// String 将Time类型格式化输出为字符串
 func (t JSONDate) String() string {
 	return t.Format(DateFormat)
 }

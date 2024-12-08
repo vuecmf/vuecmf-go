@@ -1,9 +1,9 @@
 //+----------------------------------------------------------------------
-// | Copyright (c) 2023 http://www.vuecmf.com All rights reserved.
+// | Copyright (c) 2024 http://www.vuecmf.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( https://github.com/vuecmf/vuecmf-go/blob/master/LICENSE )
 // +----------------------------------------------------------------------
-// | Author: vuecmf <tulihua2004@126.com>
+// | Author: tulihua2004@126.com
 // +----------------------------------------------------------------------
 
 package service
@@ -12,51 +12,56 @@ import (
 	"errors"
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/helper"
-	"github.com/vuecmf/vuecmf-go/app/vuecmf/model"
+	"github.com/vuecmf/vuecmf-go/v3/app"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/helper"
+	"github.com/vuecmf/vuecmf-go/v3/app/vuecmf/model"
 	"gorm.io/gorm"
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 )
 
-// auth 权限管理
-type auth struct {
+// AuthService 权限管理
+type AuthService struct {
 	Enforcer *casbin.Enforcer
 }
 
-var authInstance *auth
+var authOnce sync.Once
+var authInstance *AuthService
 
 // Auth 获取授权组件实例
-func Auth() *auth {
-	if authInstance == nil {
+func Auth() *AuthService {
+	authOnce.Do(func() {
 		var enf *casbin.Enforcer
-		a, err := gormadapter.NewAdapterByDBWithCustomTable(Db, &model.Rules{}, NS.TableName("rules"))
+		a, err := gormadapter.NewAdapterByDBWithCustomTable(app.Db, &model.Rules{}, TableName("rules"))
 		if err != nil {
 			log.Fatalln("初始化权限异常：" + err.Error())
-			return nil
+			return
 		}
 
 		enf, err = casbin.NewEnforcer("config/tauthz-rbac-model.conf", a)
 		if err != nil {
 			log.Fatalln("读取权限配置文件异常：" + err.Error())
-			return nil
+			return
 		}
-		authInstance = &auth{
+		authInstance = &AuthService{
 			Enforcer: enf,
 		}
-	}
+	})
+
 	return authInstance
 }
 
 // AddRolesForUser 给指定用户添加角色
+//
 //	参数：
 //		username 用户名
 //		roleIdList 角色ID列表
-func (au *auth) AddRolesForUser(username string, roleIdList []int) (bool, error) {
-	err := Db.Transaction(func(tx *gorm.DB) error {
+func (svc *AuthService) AddRolesForUser(username string, roleIdList []int) (bool, error) {
+	err := app.Db.Transaction(func(tx *gorm.DB) error {
 		//先清除移除历史角色
-		_, err := au.DelAllRolesForUser(username)
+		_, err := svc.DelAllRolesForUser(username)
 		if err != nil {
 			return err
 		}
@@ -65,7 +70,7 @@ func (au *auth) AddRolesForUser(username string, roleIdList []int) (bool, error)
 		appNameList := AppConfig().GetAuthAppList()
 		for _, appName := range appNameList {
 			for _, roleName := range rolesList {
-				_, err2 := au.Enforcer.AddRoleForUser(username, roleName, appName)
+				_, err2 := svc.Enforcer.AddRoleForUser(username, roleName, appName)
 				if err2 != nil {
 					err = err2
 					break
@@ -83,15 +88,16 @@ func (au *auth) AddRolesForUser(username string, roleIdList []int) (bool, error)
 }
 
 // DelRolesForUser 批量删除指定用户下的角色
+//
 //	参数：
 //		username 用户名
 //		roles 角色列表
-func (au *auth) DelRolesForUser(username string, roles []string) (bool, error) {
-	err := Db.Transaction(func(tx *gorm.DB) error {
+func (svc *AuthService) DelRolesForUser(username string, roles []string) (bool, error) {
+	err := app.Db.Transaction(func(tx *gorm.DB) error {
 		appNameList := AppConfig().GetAuthAppList()
 		for _, appName := range appNameList {
 			for _, role := range roles {
-				_, err2 := au.Enforcer.DeleteRoleForUser(username, role, appName)
+				_, err2 := svc.Enforcer.DeleteRoleForUser(username, role, appName)
 				if err2 != nil {
 					return err2
 				}
@@ -108,13 +114,14 @@ func (au *auth) DelRolesForUser(username string, roles []string) (bool, error) {
 }
 
 // DelAllRolesForUser 删除用户的所有角色
+//
 //	参数：
 //		username 用户名
-func (au *auth) DelAllRolesForUser(username string) (bool, error) {
-	err := Db.Transaction(func(tx *gorm.DB) error {
+func (svc *AuthService) DelAllRolesForUser(username string) (bool, error) {
+	err := app.Db.Transaction(func(tx *gorm.DB) error {
 		appNameList := AppConfig().GetAuthAppList()
 		for _, appName := range appNameList {
-			_, err2 := au.Enforcer.DeleteRolesForUser(username, appName)
+			_, err2 := svc.Enforcer.DeleteRolesForUser(username, appName)
 			if err2 != nil {
 				return err2
 			}
@@ -130,13 +137,14 @@ func (au *auth) DelAllRolesForUser(username string) (bool, error) {
 }
 
 // AddUsersForRole 给角色分配用户
+//
 //	参数：
 //		role 角色名
 //		username 用户名列表
-func (au *auth) AddUsersForRole(role string, username []string) (bool, error) {
-	err := Db.Transaction(func(tx *gorm.DB) error {
+func (svc *AuthService) AddUsersForRole(role string, username []string) (bool, error) {
+	err := app.Db.Transaction(func(tx *gorm.DB) error {
 		//先取出角色下原有所有用户
-		oldUsers, err := au.GetUsers(role)
+		oldUsers, err := svc.GetUsers(role)
 		if err != nil {
 			return err
 		}
@@ -149,7 +157,7 @@ func (au *auth) AddUsersForRole(role string, username []string) (bool, error) {
 		for _, appName := range appNameList {
 			//删除用户
 			for _, user := range delUserList {
-				_, err2 := au.Enforcer.DeleteRoleForUser(user, role, appName)
+				_, err2 := svc.Enforcer.DeleteRoleForUser(user, role, appName)
 				if err2 != nil {
 					return err2
 				}
@@ -157,7 +165,7 @@ func (au *auth) AddUsersForRole(role string, username []string) (bool, error) {
 
 			//添加用户
 			for _, user := range username {
-				_, err2 := au.Enforcer.AddRolesForUser(user, roleArr, appName)
+				_, err2 := svc.Enforcer.AddRolesForUser(user, roleArr, appName)
 				if err2 != nil {
 					return err2
 				}
@@ -174,21 +182,22 @@ func (au *auth) AddUsersForRole(role string, username []string) (bool, error) {
 }
 
 // DelUsersForRole 批量删除指定角色下的用户
+//
 //	参数：
 //		role 角色名
 //		userIdList 用户ID列表
-func (au *auth) DelUsersForRole(role string, userIdList []int) (bool, error) {
+func (svc *AuthService) DelUsersForRole(role string, userIdList []int) (bool, error) {
 	if len(userIdList) == 0 {
 		return false, errors.New("该角色(" + role + ")没有分配用户")
 	}
 
 	username := Admin().GetUserNames(userIdList)
 
-	err := Db.Transaction(func(tx *gorm.DB) error {
+	err := app.Db.Transaction(func(tx *gorm.DB) error {
 		appNameList := AppConfig().GetAuthAppList()
 		for _, appName := range appNameList {
 			for _, user := range username {
-				_, err2 := au.Enforcer.DeleteRoleForUser(user, role, appName)
+				_, err2 := svc.Enforcer.DeleteRoleForUser(user, role, appName)
 				if err2 != nil {
 					return err2
 				}
@@ -205,20 +214,21 @@ func (au *auth) DelUsersForRole(role string, userIdList []int) (bool, error) {
 }
 
 // AddPermission 根据动作ID 给用户或角色分配权限
+//
 //	参数：
 //		userOrRole 用户名或角色名
 //		actionIdList 动作ID列表
-func (au *auth) AddPermission(userOrRole string, actionIdList string) (bool, error) {
+func (svc *AuthService) AddPermission(userOrRole string, actionIdList string) (bool, error) {
 	actionIdArr := strings.Split(actionIdList, ",")
 	var actionPathArr []string
-	Db.Table(NS.TableName("model_action")).Select("api_path").
+	DbTable("model_action").Select("api_path").
 		Where("id in ?", actionIdArr).
 		Where("status = 10").
 		Find(&actionPathArr)
 
-	err := Db.Transaction(func(tx *gorm.DB) error {
+	err := app.Db.Transaction(func(tx *gorm.DB) error {
 		//先清空原有权限
-		_, err2 := au.Enforcer.DeletePermissionsForUser(userOrRole)
+		_, err2 := svc.Enforcer.DeletePermissionsForUser(userOrRole)
 		if err2 != nil {
 			return err2
 		}
@@ -235,7 +245,7 @@ func (au *auth) AddPermission(userOrRole string, actionIdList string) (bool, err
 			if len(arr) >= 3 && arr[2] != "" {
 				action = arr[2]
 			}
-			_, err2 = au.Enforcer.AddPermissionForUser(userOrRole, appName, controller, action)
+			_, err2 = svc.Enforcer.AddPermissionForUser(userOrRole, appName, controller, action)
 			if err2 != nil {
 				return err2
 			}
@@ -250,18 +260,19 @@ func (au *auth) AddPermission(userOrRole string, actionIdList string) (bool, err
 }
 
 // DelPermission 根据动作ID 删除用户或角色的权限
+//
 //	参数：
 //		userOrRole 用户名或角色名
 //		actionIdList 动作ID列表
-func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, error) {
+func (svc *AuthService) DelPermission(userOrRole string, actionIdList string) (bool, error) {
 	actionIdArr := strings.Split(actionIdList, ",")
 	var actionPathArr []string
-	Db.Table(NS.TableName("model_action")).Select("api_path").
+	DbTable("model_action").Select("api_path").
 		Where("id in ?", actionIdArr).
 		Where("status = 10").
 		Find(&actionPathArr)
 
-	err := Db.Transaction(func(tx *gorm.DB) error {
+	err := app.Db.Transaction(func(tx *gorm.DB) error {
 		//再解析出路径中的控制器及动作，并分配权限
 		for _, path := range actionPathArr {
 			arr := strings.Split(strings.Trim(path, "/"), "/")
@@ -275,7 +286,7 @@ func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, err
 			if len(arr) >= 3 && arr[2] != "" {
 				action = arr[2]
 			}
-			_, err2 := au.Enforcer.DeletePermissionForUser(userOrRole, appName, controller, action)
+			_, err2 := svc.Enforcer.DeletePermissionForUser(userOrRole, appName, controller, action)
 			if err2 != nil {
 				return err2
 			}
@@ -291,10 +302,11 @@ func (au *auth) DelPermission(userOrRole string, actionIdList string) (bool, err
 }
 
 // GetPermissions 获取(用户或角色)所有权限ID列表
+//
 //	参数：
 //		userOrRole 用户名或角色名
 //		isSuper 是否为超级管理员
-func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[string][]string, error) {
+func (svc *AuthService) GetPermissions(userOrRole string, isSuper uint16) (map[string][]string, error) {
 	if userOrRole == "" {
 		return nil, errors.New("用户或角色不能为空")
 	}
@@ -310,8 +322,8 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[stri
 		//超级管理员拥有所有权限
 		var actionList []action
 
-		Db.Table(NS.TableName("model_action") + " MA").Select("MA.id, MC.label").
-			Joins("left join " + NS.TableName("model_config") + " MC on MA.model_id = MC.id").
+		DbTable("model_action", "MA").Select("MA.id, MC.label").
+			Joins("left join " + TableName("model_config") + " MC on MA.model_id = MC.id").
 			Where("MA.status = 10").
 			Where("MC.status = 10").
 			Find(&actionList)
@@ -323,7 +335,7 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[stri
 	} else {
 		appList := AppConfig().GetAuthAppList()
 		for _, appName := range appList {
-			data, err := au.Enforcer.GetImplicitPermissionsForUser(userOrRole, appName)
+			data, err := svc.Enforcer.GetImplicitPermissionsForUser(userOrRole, appName)
 			if err != nil {
 				return nil, err
 			}
@@ -339,9 +351,9 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[stri
 				n++
 				if n%100 == 0 {
 					var actionList []action
-					Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
-						Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
-						Joins("left join "+NS.TableName("app_config")+" AC on MC.app_id = AC.id").
+					DbTable("model_action", "MA").Select("MA.id, MC.label").
+						Joins("left join "+TableName("model_config")+" MC ON MA.model_id = MC.id").
+						Joins("left join "+TableName("app_config")+" AC on MC.app_id = AC.id").
 						Where("AC.app_name = ?", appName).
 						Where("MA.api_path in ?", pathList).
 						Where("MA.status = 10").
@@ -358,9 +370,9 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[stri
 
 			if pathList != nil {
 				var actionList []action
-				Db.Table(NS.TableName("model_action")+" MA").Select("MA.id, MC.label").
-					Joins("left join "+NS.TableName("model_config")+" MC ON MA.model_id = MC.id").
-					Joins("left join "+NS.TableName("app_config")+" AC on MC.app_id = AC.id").
+				DbTable("model_action", "MA").Select("MA.id, MC.label").
+					Joins("left join "+TableName("model_config")+" MC ON MA.model_id = MC.id").
+					Joins("left join "+TableName("app_config")+" AC on MC.app_id = AC.id").
 					Where("AC.app_name = ?", appName).
 					Where("MA.api_path in ?", pathList).
 					Where("MA.status = 10").
@@ -389,23 +401,25 @@ func (au *auth) GetPermissions(userOrRole string, isSuper interface{}) (map[stri
 }*/
 
 // GetUsers 获取指定角色下所有用户
+//
 //	参数：
 //		role 角色名
-func (au *auth) GetUsers(role string) ([]string, error) {
+func (svc *AuthService) GetUsers(role string) ([]string, error) {
 	if role == "" {
 		return nil, errors.New("角色不能为空")
 	}
-	return au.Enforcer.GetUsersForRole(role, "vuecmf")
+	return svc.Enforcer.GetUsersForRole(role, "vuecmf")
 }
 
 // GetRoles 获取指定用户名下所有角色
+//
 //	参数：
 //		username 用户名
-func (au *auth) GetRoles(username string) ([]int, error) {
+func (svc *AuthService) GetRoles(username string) ([]int, error) {
 	if username == "" {
 		return nil, errors.New("用户名不能为空")
 	}
-	roleNameList, err := au.Enforcer.GetRolesForUser(username, "vuecmf")
+	roleNameList, err := svc.Enforcer.GetRolesForUser(username, "vuecmf")
 	if err != nil {
 		return nil, err
 	}
@@ -419,14 +433,14 @@ type roleList struct {
 }
 
 // GetAllRoles 获取所有角色列表
-func (au *auth) GetAllRoles(roleName string, isSuper interface{}) interface{} {
+func (svc *AuthService) GetAllRoles(roleName string, isSuper uint16) interface{} {
 	var result []roleList
-	query := Db.Table(NS.TableName("roles")).Select("id `key`, role_name label, false disabled").
+	query := DbTable("roles").Select("id `key`, role_name label, false disabled").
 		Where("status = 10")
 
 	if isSuper != 10 && roleName != "" {
 		var pid int
-		Db.Table(NS.TableName("roles")).Select("id").
+		DbTable("roles").Select("id").
 			Where("status = 10").
 			Where("role_name = ?", roleName).
 			Find(&pid)
@@ -438,34 +452,37 @@ func (au *auth) GetAllRoles(roleName string, isSuper interface{}) interface{} {
 	return result
 }
 
-//GetRolesForUser 获取指定用户下所有角色名称
+// GetRolesForUser 获取指定用户下所有角色名称
+//
 //	参数：
 //		userName 用户名
-func (au *auth) GetRolesForUser(userName string) ([]string, error) {
-	return au.Enforcer.GetRolesForUser(userName, "vuecmf")
+func (svc *AuthService) GetRolesForUser(userName string) ([]string, error) {
+	return svc.Enforcer.GetRolesForUser(userName, "vuecmf")
 }
 
-//UpdateRoles 更新权限的角色名称
+// UpdateRoles 更新权限的角色名称
+//
 //	参数：
 //		oldRoleName 原角色名
 //		newRoleName 新角色名
-func (au *auth) UpdateRoles(oldRoleName, newRoleName string) error {
-	Db.Table(NS.TableName("rules")).Where("ptype = 'p'").
+func (svc *AuthService) UpdateRoles(oldRoleName, newRoleName string) error {
+	DbTable("rules").Where("ptype = 'p'").
 		Where("v0 = ?", oldRoleName).
 		Update("v0", newRoleName)
 
-	Db.Table(NS.TableName("rules")).Where("ptype = 'g'").
+	DbTable("rules").Where("ptype = 'g'").
 		Where("v1 = ?", oldRoleName).
 		Update("v1", newRoleName)
 	return nil
 }
 
-//UpdateUser 更新权限的用户名
+// UpdateUser 更新权限的用户名
+//
 //	参数：
 //		oldUserName 原用户名
 //		newUserName 新用户名
-func (au *auth) UpdateUser(oldUserName, newUserName string) error {
-	res := Db.Table(NS.TableName("rules")).Where("v0 = ?", oldUserName).
+func (svc *AuthService) UpdateUser(oldUserName, newUserName string) error {
+	res := DbTable("rules").Where("v0 = ?", oldUserName).
 		Update("v0", newUserName)
 
 	return res.Error

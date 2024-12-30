@@ -1628,6 +1628,14 @@ func (svc *MakeService) CreateApp(appName, moduleName string) error {
 		}
 	}
 
+	//创建中间件配置目录
+	middlewareDir := "app/middleware"
+	if _, err := os.Stat(middlewareDir); err != nil {
+		if err = os.MkdirAll(middlewareDir, 0666); err != nil {
+			return errors.New("创建中间件配置目录失败！" + err.Error())
+		}
+	}
+
 	//创建控制器目录
 	controllerDir := appDir + "/controller"
 	if _, err := os.Stat(controllerDir); err != nil {
@@ -1783,7 +1791,125 @@ func (ctrl IndexController) fail(c *gin.Context) {
 		return err
 	}
 
+	//创建中间件配置文件
+	if err := svc.CreateMiddlewareConf(middlewareDir, appName); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (svc *MakeService) CreateMiddlewareConf(middlewareDir, appName string) error {
+	middlewareFile := middlewareDir + "/middleware.go"
+	_, err := os.Stat(middlewareFile)
+	conf := ""
+
+	if err == nil {
+		//配置文件已经存在，则追加
+		file, err := os.Open(middlewareFile)
+		if err != nil {
+			return err
+		}
+
+		defer file.Close()
+
+		//先读取原内容
+		content, err := io.ReadAll(file)
+		if err != nil {
+			return err
+		}
+
+		conf = string(content)
+		conf = strings.TrimRight(conf, "}\n\r")
+		conf = conf + `	{
+			// ${appName}应用中间件
+			GroupName: "/${appName}",
+			Middleware: func(ctx *gin.Context) {
+				defer func() {
+					if err := recover(); err != nil {
+						app.Response(ctx).SendFailure("请求失败", err, 1003)
+						ctx.Abort()
+					}
+				}()
+
+				fmt.Println("${appName}应用中间件")
+
+				url := ctx.Request.URL.String()
+				fmt.Println("url:", url)
+
+				token := ctx.Request.Header.Get("token")
+				fmt.Println("token:", token)
+
+			},
+		},
+	}
+}
+`
+
+	} else if os.IsNotExist(err) {
+		//初次创建
+		conf = `package middleware
+
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/vuecmf/vuecmf-go/v3/app"
+	"github.com/vuecmf/vuecmf-go/v3/app/route"
+)
+
+func Middleware() []route.MiddlewareGroup {
+	return []route.MiddlewareGroup{
+		{
+			// 全局中间件
+			GroupName: "/",
+			Middleware: func(ctx *gin.Context) {
+				defer func() {
+					if err := recover(); err != nil {
+						app.Response(ctx).SendFailure("请求失败", err, 1003)
+						ctx.Abort()
+					}
+				}()
+
+				fmt.Println("全局中间件")
+
+				url := ctx.Request.URL.String()
+				fmt.Println("url:", url)
+
+				token := ctx.Request.Header.Get("token")
+				fmt.Println("token:", token)
+
+			},
+		},
+		{
+			// home应用中间件
+			GroupName: "/${appName}",
+			Middleware: func(ctx *gin.Context) {
+				defer func() {
+					if err := recover(); err != nil {
+						app.Response(ctx).SendFailure("请求失败", err, 1003)
+						ctx.Abort()
+					}
+				}()
+
+				fmt.Println("${appName}应用中间件")
+
+				url := ctx.Request.URL.String()
+				fmt.Println("url:", url)
+
+				token := ctx.Request.Header.Get("token")
+				fmt.Println("token:", token)
+
+			},
+		},
+	}
+}
+`
+	}
+
+	conf = strings.Replace(conf, "${appName}", appName, -1)
+	err = os.WriteFile(middlewareFile, []byte(conf), 0666)
+
+	return err
 }
 
 // RenameApp 重命名应用名称

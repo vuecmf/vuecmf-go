@@ -19,10 +19,8 @@ import (
 	"strings"
 )
 
-var middlewares = make(map[string]func(ctx *gin.Context))
-
-// GetMiddleWares 获取所有中间件
-func GetMiddleWares() map[string]func(ctx *gin.Context) {
+// GetMiddleWare 获取访问权限验证中间件
+func GetMiddleWare() func(ctx *gin.Context) {
 	//先取出所有应用列表
 	appList := service.AppConfig().GetFullAppList()
 
@@ -31,7 +29,7 @@ func GetMiddleWares() map[string]func(ctx *gin.Context) {
 	}
 
 	//访问权限验证
-	middlewares["auth"] = func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				err2 := errors.New(fmt.Sprintf("%s", err))
@@ -127,5 +125,4 @@ func GetMiddleWares() map[string]func(ctx *gin.Context) {
 		}
 	}
 
-	return middlewares
 }

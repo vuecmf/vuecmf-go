@@ -213,8 +213,11 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 				defaultVal = "default:" + value.DefaultValue + ";"
 			case value.IsAutoIncrement != 10 && value.DefaultValue == "":
 				defaultVal = "default:'';"
-				if value.Type == "datetime" || value.Type == "date" {
+				if value.Type == "datetime" || value.Type == "date" || value.Type == "timestamp" {
 					defaultVal = "default:null;"
+					size = ""
+				} else if value.Type == "int" || value.Type == "bigint" || value.Type == "smallint" || value.Type == "tinyint" {
+					defaultVal = "default:0;"
 				}
 			}
 
@@ -300,11 +303,13 @@ func (m *{{.model_name}}) ToTree(data []*{{.model_name}}) {{.model_name}}Tree {
 		case "date":
 			hasTime = true
 			fieldType = "model.JSONDate"
-		case "int", "bigint":
+		case "int":
 			fieldType = "int"
 			if row.IsSigned == "20" {
 				fieldType = "uint"
 			}
+		case "bigint":
+			fieldType = "int64"
 		case "smallint":
 			fieldType = "int16"
 			if row.IsSigned == "20" {

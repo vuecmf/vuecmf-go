@@ -17,14 +17,31 @@ type Route struct {
 	Controller controller.IController //控制器实例
 }
 
+// RoutesGroup 路由分组
 type RoutesGroup struct {
 	GroupName string
 	Get       []Route
 	Post      []Route
 }
 
+// MiddlewareGroup 中间件分组
+type MiddlewareGroup struct {
+	GroupName  string
+	Middleware func(ctx *gin.Context)
+}
+
+// getMiddleware 获取中间件
+func getMiddleware(middlewareGroup []MiddlewareGroup, groupName string) func(ctx *gin.Context) {
+	for _, v := range middlewareGroup {
+		if v.GroupName == groupName {
+			return v.Middleware
+		}
+	}
+	return nil
+}
+
 // Register 注册路由
-func Register(eng *gin.Engine, cfg *app.Conf, routesGroup []RoutesGroup) {
+func Register(eng *gin.Engine, cfg *app.Conf, middlewareGroup []MiddlewareGroup, routesGroup []RoutesGroup) {
 
 	//表单上传文件最大5M
 	eng.MaxMultipartMemory = int64(cfg.Upload.AllowFileSize) << 20
@@ -56,9 +73,11 @@ func Register(eng *gin.Engine, cfg *app.Conf, routesGroup []RoutesGroup) {
 	}
 
 	//获取所有中间件
-	mw := middleware.GetMiddleWares()
-	for _, handle := range mw {
-		eng.Use(handle)
+	eng.Use(middleware.GetMiddleWare())
+
+	appMiddleware := getMiddleware(middlewareGroup, "/")
+	if appMiddleware != nil {
+		eng.Use(appMiddleware)
 	}
 
 	sysRoutesGroup := config()
@@ -75,7 +94,11 @@ func Register(eng *gin.Engine, cfg *app.Conf, routesGroup []RoutesGroup) {
 
 	//注册用户自定义路由Get请求
 	for _, group := range routesGroup {
+		mw := getMiddleware(middlewareGroup, group.GroupName)
 		appGroup := eng.Group(group.GroupName)
+		if mw != nil {
+			appGroup.Use(mw)
+		}
 		{
 			for _, route := range group.Get {
 				appGroup.GET(route.Path, route.Controller.Before(), route.Controller.Action(), route.Controller.After())
@@ -95,7 +118,11 @@ func Register(eng *gin.Engine, cfg *app.Conf, routesGroup []RoutesGroup) {
 
 	//注册用户自定义路由POST请求
 	for _, group := range routesGroup {
+		mw := getMiddleware(middlewareGroup, group.GroupName)
 		appGroup := eng.Group(group.GroupName)
+		if mw != nil {
+			appGroup.Use(mw)
+		}
 		{
 			for _, route := range group.Post {
 				appGroup.POST(route.Path, route.Controller.Before(), route.Controller.Action(), route.Controller.After())

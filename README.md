@@ -89,6 +89,12 @@ go build
 ./myproject
 ~~~
 
+## Docker部署
+若没有安装docker，则必须先安装docker，然后在项目根目录下执行如下命令即可快速部署项目
+```
+docker compose up -d
+```
+
 
 
 

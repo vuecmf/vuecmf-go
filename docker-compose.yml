@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    container_name: vuecmf-go
+    volumes:
+      - /home/tulihua/myserver/config:/app/config
+      - /home/tulihua/myserver/static:/app/static
+      - /home/tulihua/myserver/uploads:/app/uploads
+      - /home/tulihua/myserver/views:/app/views
+    command: ["/app/main"]
+    restart: unless-stopped
